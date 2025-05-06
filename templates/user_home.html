@@ -1,0 +1,36 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 31 15:26:07 2025
+
+@author: jacques
+"""-->
+
+<!doctype html>
+<title>Case List</title>
+
+<h1>Hello, {{ username }}!</h1>
+<h2>Welcome to Lyon Dermoscopy Studies, here is the list of cases you have to look at<h2>
+{% if remaining_items > 0 %}
+    <h2>You still have {{ remaining_items }} cases to look at<h2>
+    <h2>Study ends in {{remaining_days}} days<h2>
+{% else %}
+    <h2>You have looked at every case, congratulations ! You may still change your mind<h2>
+    <h2>No action is needed from you for the experimenter to finish the study, all your answers have been safely stored<h2>
+    {% if admin_notified %}
+        <h2>experimenter has been notified of your progress<h2>
+    {% else %}
+        <h2>You may notify the experimenter that you are done<h2>
+        <form method="post">
+            <p><input type=submit value=Notify>
+        </form>
+    {% endif %}
+{% endif %}
+
+{% block title %}Cases{% endblock %}
+{% block content %}
+  <ol>
+  {% for item in items %}
+    <li><a href="/case_display/{{ item[0] }}">{{ item[0] }}</a> {% if item[1] %} <a> OK</a>{% endif %}</li>
+  {% endfor %}
+  </ol>
+{% endblock %}

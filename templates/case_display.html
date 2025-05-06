@@ -1,0 +1,54 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 31 15:26:07 2025
+
+@author: jacques
+"""-->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0"
+		/>
+		<title>Case List</title>
+
+		<script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
+		<link
+			rel="stylesheet"
+			href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
+	</head>
+</html>
+
+<body>
+    {% block images %}<h1>Images</h1>{% endblock %}
+    {% block images_content %}
+        <div id="gallery">
+        {% for i in range(nb_imgs) %}
+            <img src="data:image/jpeg;base64,{{ imgs[i] }}" alt="Picture {{i}}">
+        {% endfor %}
+        </div>
+    {% endblock %}
+    
+    {% for i in range(nbTitles) %}
+        <h1>{{titles[i]}}</h1>
+        {% for criterion in criteria[i] %}
+            <fieldset>
+            <legend>Is {{criterion[0]}} present ?</legend>
+                <div>
+                    <input type="radio" id="{{criterion[0]}}Yes" name="{{criterion[0]}}" value=True {% if criterion[1] %} checked {% endif %}/>
+                    <label for="{{criterion[0]}}">Yes</label>
+                </div>
+            
+                <div>
+                    <input type="radio" id="{{criterion[0]}}No" name="{{criterion[0]}}" value=False {% if not criterion[1] %} checked {% endif %}/>
+                    <label for="{{criterion[0]}}">No</label>
+                </div>
+            </fieldset>    
+        {% endfor %}
+    {% endfor %}
+</body>
+      
+<script src="{{ url_for('static', filename='case_display.js')}}"></script>  
