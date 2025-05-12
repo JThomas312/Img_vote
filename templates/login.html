@@ -3,16 +3,12 @@
 {% if error %}
   <h1>There has been an error during login: {{ error }}!</h1>
 {% else %}
-    {% if username %}
-      <h1>You are now logged in, {{ username }}!</h1>
-    {% else %}
-        <form method="post">
-            <a> Login </a>
-            <p><input type=text name=username>
-            <br/>
-            <a> Password </a>
-            <p><input type=password name=password>
-            <p><input type=submit value=Login>
-        </form>
-    {% endif %}
+    <form method="post">
+        <a> Login </a>
+        <p><input type=text name=username>
+        <br/>
+        <a> Password </a>
+        <p><input type=password name=password>
+        <p><input type=submit value=Login>
+    </form>
 {% endif %}
