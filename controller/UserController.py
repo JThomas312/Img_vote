@@ -25,7 +25,7 @@ def user_for_home(username):
     usr.userId = 42
     
     # temporary hardcoded path
-    path = getcwd() + "/dummy_data"
+    path = getcwd() + "/dummy_data/Img_data"
     files = listdir(path)
     
     #sort by id once database is plugged in

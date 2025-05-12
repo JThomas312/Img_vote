@@ -24,7 +24,7 @@ class CaseViewModel():
         self.criteria = [[] for i in range(nbCategories)]
     imgs: list()
     imgs_sizes: list((int, int))
-    criteria: list(list((str, bool)))
+    criteria: list(list((str, bool, bytearray)))
     
 def caseForDisplay(userId, case):
     #fix path
@@ -32,7 +32,8 @@ def caseForDisplay(userId, case):
     #data_path = '/data/'
     #load delimiting words from config file
     delimitations = ['Pattern', 'Signs']
-    path = getcwd() + data_path + case
+    path = getcwd() + data_path + '/Img_data/' + case
+    tutorial_folder = getcwd() + data_path + '/tutorial_criteria/'
     img_files = listdir(path)
 
     caseVM = CaseViewModel(len(delimitations))
@@ -64,10 +65,18 @@ def caseForDisplay(userId, case):
                 val = not val
             if cell.value in delimitations:
                 criteriaIndex += 1
-                print(criteriaIndex)
                 currentList = caseVM.criteria[criteriaIndex]
             else:
-                currentList.append((cell.value, val))
+                tutorial_slide_path = tutorial_folder + delimitations[criteriaIndex] + '/' + cell.value + '.jpeg'
+                try:
+                    slide_im = Image.open(tutorial_slide_path)
+                    data = io.BytesIO()
+                    slide_im.save(data, 'JPEG')
+                    slide_encoded_img_data = base64.b64encode(data.getvalue())
+                    currentList.append((cell.value, val, slide_encoded_img_data.decode('utf-8')))
+                except:
+                    currentList.append((cell.value, val, bytearray()))
+                
     
     #working demo for SFP dance images
     # caseVM.criteria.append(('Jacques', True))
