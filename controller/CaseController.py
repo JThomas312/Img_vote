@@ -8,6 +8,7 @@ Created on Tue Apr  1 11:55:48 2025
 
 from os import getcwd
 from os import listdir
+import os.path
 
 from PIL import Image
 import base64
@@ -16,32 +17,61 @@ from openpyxl import load_workbook
 
 from random import randint
 
+#enable imports from local modules
+from pathlib import Path
+import sys
+path_root = Path(__file__).parents[2]
+sys.path.append(str(path_root))
 
-class CaseViewModel():
-    def __init__(self, nbCategories):
-        self.imgs = []
-        self.imgs_sizes = []
-        self.criteria = [[] for i in range(nbCategories)]
-    imgs: list()
-    imgs_sizes: list((int, int))
-    criteria: list(list((str, bool, bytearray)))
-    
+#local modules
+from img_vote.Models.ViewModels import CaseViewModel
+
+from img_vote.dal.MasterDal import get_criterion_for_case
+from img_vote.dal.MasterDal import get_diagnosis_for_case
+from img_vote.dal.MasterDal import get_criterion_by_id
+from img_vote.dal.MasterDal import create_all_answer_to_criterion
+from img_vote.dal.MasterDal import save_Criterion
+from img_vote.dal.MasterDal import safeguard_Criterion
+from img_vote.dal.MasterDal import undo_all_but_one
+from img_vote.dal.MasterDal import get_unfinished_criteria
+from img_vote.dal.MasterDal import mark_answer_done
+from img_vote.dal.MasterDal import advance_user_count
+from img_vote.dal.MasterDal import create_all_answers
+from img_vote.dal.MasterDal import create_all_criterion
+from img_vote.dal.MasterDal import create_all_cases
+from img_vote.dal.MasterDal import exists_case_by_id
+
+def init_data_study_start():
+    create_all_criterion()
+    create_all_cases()
+    create_all_answers()
+    create_all_answer_to_criterion()
+
 def caseForDisplay(userId, case):
-    #fix path
-    data_path = '/dummy_data/'
-    #data_path = '/data/'
-    #load delimiting words from config file
-    delimitations = ['Pattern', 'Signs']
-    path = getcwd() + data_path + '/Img_data/' + case
-    tutorial_folder = getcwd() + data_path + '/tutorial_criteria/'
+    
+    criterionForCase = get_criterion_for_case(userId, case)
+    
+    #temp demo confidence index
+    hasConfidence = []
+     
+    # load delimiting words from config file
+    delimitations = []
+    with open(os.path.join(getcwd(), 'persistence/delim_criteria.txt')) as delim_file:
+        for l in delim_file:
+            delimitations.append(l.removesuffix('\n'))
+            #temp demo confidence index
+            hasConfidence.append(True)
+        
+    path = criterionForCase.path
+    
+    
     img_files = listdir(path)
+    img_files.sort()
 
     caseVM = CaseViewModel(len(delimitations))
     
-    
-    #load data from database instead
     for img_file in img_files:
-        im = Image.open(path + '/' + img_file)
+        im = Image.open(os.path.join(path, img_file))
         data = io.BytesIO()
         im.save(data, 'JPEG')
         encoded_img_data = base64.b64encode(data.getvalue())
@@ -49,42 +79,102 @@ def caseForDisplay(userId, case):
         w, h = im.size
         caseVM.imgs_sizes.append((w, h))
     
-    criteriaWB = load_workbook(filename = getcwd() + '/data/Criterias DPO.xlsx')
-    criteriaWS = criteriaWB.active
-    #end load
     
-    criteriaIndex = -1
     
-    currentList = []
+    for i in range (len(criterionForCase.criteria)):
+        currentCriterion = criterionForCase.criteria[i]
+        #currentCriterion 0: type, 1: name, 2: value, 3: tutorial path, 4: id
+        tutorial_slide_path = currentCriterion[3]
+        try:
+            slide_im = Image.open(tutorial_slide_path)
+            data = io.BytesIO()
+            slide_im.save(data, 'JPEG')
+            slide_encoded_img_data = base64.b64encode(data.getvalue())
+            caseVM.criteria[currentCriterion[0]].append((currentCriterion[1], currentCriterion[2], slide_encoded_img_data.decode('utf-8'), currentCriterion[4]))
+        except:
+            caseVM.criteria[currentCriterion[0]].append((currentCriterion[1], currentCriterion[2], bytearray()))
     
-    # temp value for creating dummy data until database is plugged in
-    val = True
-    for row in criteriaWS.iter_rows(min_row=1, max_col=1):   
-        for cell in row:
-            if randint(1,2) == 1:
-                val = not val
-            if cell.value in delimitations:
-                criteriaIndex += 1
-                currentList = caseVM.criteria[criteriaIndex]
-            else:
-                tutorial_slide_path = tutorial_folder + delimitations[criteriaIndex] + '/' + cell.value + '.jpeg'
-                try:
-                    slide_im = Image.open(tutorial_slide_path)
-                    data = io.BytesIO()
-                    slide_im.save(data, 'JPEG')
-                    slide_encoded_img_data = base64.b64encode(data.getvalue())
-                    currentList.append((cell.value, val, slide_encoded_img_data.decode('utf-8')))
-                except:
-                    currentList.append((cell.value, val, bytearray()))
-                
+    #temp demo confidance index
+    return (caseVM, delimitations, hasConfidence)
+
+def caseForDiagnosis(userId, case):
+
+    trueValue = 1
     
-    #working demo for SFP dance images
-    # caseVM.criteria.append(('Jacques', True))
-    # caseVM.criteria.append(('Eitan', True))
-    # caseVM.criteria.append(('Maureen', False))
-    # caseVM.criteria.append(('Mathilde', False))
-    # caseVM.criteria.append(('Apolline', False))
-    # caseVM.criteria.append(('Porté', True))
+    criterionForCase = get_diagnosis_for_case(userId, case)
+         
+    # load delimiting words from config file
+    delimitations = []
+    with open(os.path.join(getcwd(), 'persistence/delim_diagnosis.txt')) as delim_file:
+        for l in delim_file:
+            delimitations.append(l.removesuffix('\n'))
     
-    return (caseVM, delimitations)
+    path = criterionForCase.path
     
+    
+    img_files = listdir(path)
+    img_files.sort()
+
+    caseVM = CaseViewModel(len(delimitations))
+    
+    for img_file in img_files:
+        im = Image.open(os.path.join(path, img_file))
+        data = io.BytesIO()
+        im.save(data, 'JPEG')
+        encoded_img_data = base64.b64encode(data.getvalue())
+        caseVM.imgs.append(encoded_img_data.decode('utf-8'))
+        w, h = im.size
+        caseVM.imgs_sizes.append((w, h))
+    
+    unanswered = True
+    
+    for i in range (len(criterionForCase.criteria)):
+        currentCriterion = criterionForCase.criteria[i]
+        #currentCriterion 0: type, 1: name, 2: value, 3: tutorial path, 4: id
+        tutorial_slide_path = currentCriterion[3]
+        if currentCriterion[2] == trueValue:
+            unanswered = False
+        try:
+            slide_im = Image.open(tutorial_slide_path)
+            data = io.BytesIO()
+            slide_im.save(data, 'JPEG')
+            slide_encoded_img_data = base64.b64encode(data.getvalue())
+            #only one type of criterion, diagnosis, and its id is 2 so out of range
+            caseVM.criteria[0].append((currentCriterion[1], currentCriterion[2], slide_encoded_img_data.decode('utf-8'), currentCriterion[4]))
+        except:
+            caseVM.criteria[0].append((currentCriterion[1], currentCriterion[2], bytearray(), currentCriterion[4]))
+    
+    nextcase = 0
+    
+    if (exists_case_by_id(int(case) + 1)):
+        nextcase = int(case) + 1
+    
+    return (caseVM, delimitations, unanswered, nextcase)
+
+    
+
+def criterion_for_tutorial(idCriterion):
+    tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
+    slide_im = Image.open(tutorial_slide_path)
+    data = io.BytesIO()
+    slide_im.save(data, 'JPEG')
+    slide_encoded_img_data = base64.b64encode(data.getvalue())
+    img_data = slide_encoded_img_data.decode('utf-8')
+    return(img_data)
+   
+def saveProgress(userId, case, answers):
+    for answer in answers:
+        save_Criterion(userId, case, answer, answers[answer])
+    
+def safeguardProgress(userId, case, criterionId, value):
+    safeguard_Criterion(userId, case, criterionId, value)
+    
+def safeguardDiagnosis(userId, case, criterionId, value):
+    undo_all_but_one(userId, case, criterionId, value)
+    
+def checkProgress(userId, case):
+    exists_unfinished = get_unfinished_criteria(userId, case)
+    if not exists_unfinished:
+        if mark_answer_done(userId, case):
+            advance_user_count(userId)
+

@@ -1,14 +1,32 @@
-<!doctype html>
+<!--# -*- coding: utf-8 -*-
+"""
+
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
 <title>Login to Lyon Dermoscopy Studies</title>
+
 {% if error %}
   <h1>There has been an error during login: {{ error }}!</h1>
+  <a href="/login/">
+    <button>try again</button>
+  </a>
 {% else %}
+    {% if logout %}
+        <h3>You have been successfully logged out !</h3>
+    {% endif %}
     <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <a> Login </a>
         <p><input type=text name=username>
+        <br/>
         <br/>
         <a> Password </a>
         <p><input type=password name=password>
         <p><input type=submit value=Login>
     </form>
 {% endif %}
+
+{% endautoescape %}

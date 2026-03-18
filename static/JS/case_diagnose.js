@@ -19,11 +19,15 @@ const viewer = new Viewer(gallery, {
     tooltip: 1, //gives zoom ratio after a change
 });
 
+
 function safeguard(case_id, criterion_id, value) {
-    url = '/safeguard_model?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value;
-    $.getJSON(url, function(data){});
+    url = '/safeguard_diagnosis?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value
+    $.getJSON(url,
+        function(data) {
+      //do nothing
+    });
     return false;
-}
+};
 
 function tutorial(idCriterion) {
     var modal = document.getElementById("tutorialModal");
@@ -46,26 +50,17 @@ function tutorial(idCriterion) {
     };
 }
 
-function case_diagnose(userId){
-    open ('/case_diagnose/' + userId, '_self')
-}
-
-function user_home(){
-    open ('/user_home/', '_self')
-}
-
 // Function to update unanswered red borders
 function updateUnansweredBorders() {
-    document.querySelectorAll('.options').forEach(function(optionGroup) {
-        const radios = optionGroup.querySelectorAll('input[type="radio"]:not(:disabled)');
-        const unansweredLabel = optionGroup.querySelector('input[type="radio"]:disabled + label');
+    const diagnosisGroup = document.querySelector('.diagnosis-options');
+    const radios = diagnosisGroup.querySelectorAll('input[type="radio"]:not(:disabled)');
+    const unansweredLabel = diagnosisGroup.querySelector('input[type="radio"]:disabled + label');
 
-        let isAnswered = Array.from(radios).some(r => r.checked);
+    let isAnswered = Array.from(radios).some(r => r.checked);
 
-        if (unansweredLabel) {
-            unansweredLabel.style.border = isAnswered ? '1px solid #bbb' : '1px solid #ff9999';
-        }
-    });
+    if (unansweredLabel) {
+        unansweredLabel.style.border = isAnswered ? '1px solid #bbb' : '1px solid #ff9999';
+    }
 }
 
 // Run on page load
@@ -73,7 +68,7 @@ window.addEventListener('load', updateUnansweredBorders);
 
 // Update whenever any radio is clicked
 document.addEventListener('change', function(e) {
-    if (e.target.matches('.options input[type="radio"]')) {
+    if (e.target.matches('.diagnosis-options input[type="radio"]')) {
         updateUnansweredBorders();
     }
 });
@@ -84,7 +79,7 @@ window.addEventListener('DOMContentLoaded', function() {
         let translateX = 0;
         let translateY = 0;
         let isDragging = false;
-        let hasMoved = false; // Track if mouse has moved during drag
+        let hasMoved = false;
         let dragStartX = 0;
         let dragStartY = 0;
         
@@ -96,12 +91,10 @@ window.addEventListener('DOMContentLoaded', function() {
             if (e.ctrlKey) {
                 e.preventDefault();
                 
-                // Get mouse position relative to the image
                 const rect = img.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
                 
-                // Calculate mouse position in the transformed coordinate space
                 const imgCenterX = rect.width / 2;
                 const imgCenterY = rect.height / 2;
                 
@@ -110,11 +103,10 @@ window.addEventListener('DOMContentLoaded', function() {
                 
                 const oldScale = scale;
                 
-                // Slower, smoother zoom increments
                 if (e.deltaY < 0) {
-                    scale = Math.min(scale + 0.1, 3); // Zoom in slower (max 5x)
+                    scale = Math.min(scale + 0.1, 3);
                 } else {
-                    scale = Math.max(scale - 0.1, 1); // Zoom out slower (min 1x)
+                    scale = Math.max(scale - 0.1, 1);
                     
                     if (scale === 1) {
                         translateX = 0;
@@ -122,7 +114,6 @@ window.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                // Adjust translation to zoom toward mouse cursor
                 if (scale > 1) {
                     const scaleDiff = scale - oldScale;
                     translateX -= mouseFromCenterX * scaleDiff;
@@ -134,27 +125,24 @@ window.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Mouse down - start dragging
         img.addEventListener('mousedown', function(e) {
             if (scale > 1) {
                 isDragging = true;
-                hasMoved = false; // Reset movement flag
+                hasMoved = false;
                 dragStartX = e.clientX - translateX;
                 dragStartY = e.clientY - translateY;
                 img.style.cursor = 'grabbing';
                 img.style.transition = 'none';
                 e.preventDefault();
-                e.stopPropagation(); // Stop event from bubbling
+                e.stopPropagation();
             }
         });
 
-        // Mouse move - drag the image
         img.addEventListener('mousemove', function(e) {
             if (isDragging && scale > 1) {
                 const newTranslateX = e.clientX - dragStartX;
                 const newTranslateY = e.clientY - dragStartY;
                 
-                // If mouse has moved more than a few pixels, mark as moved
                 if (Math.abs(newTranslateX - translateX) > 3 || Math.abs(newTranslateY - translateY) > 3) {
                     hasMoved = true;
                 }
@@ -165,14 +153,12 @@ window.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Mouse up - stop dragging
         img.addEventListener('mouseup', function(e) {
             if (isDragging) {
                 isDragging = false;
                 img.style.cursor = 'grab';
                 img.style.transition = 'transform 0.1s ease';
                 
-                // Prevent click event if we moved the image
                 if (hasMoved) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -181,16 +167,14 @@ window.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Click event - prevent gallery opening if we dragged
         img.addEventListener('click', function(e) {
             if (scale > 1 && hasMoved) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
             }
-        }, true); // Use capture phase
+        }, true);
 
-        // Mouse leave - stop dragging if user leaves the image
         img.addEventListener('mouseleave', function(e) {
             if (isDragging) {
                 isDragging = false;
@@ -199,7 +183,6 @@ window.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Double-click to reset zoom
         img.addEventListener('dblclick', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -214,7 +197,6 @@ window.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
 
-        // Helper function to update transform
         function updateTransform(element) {
             element.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             element.style.transformOrigin = 'center center';

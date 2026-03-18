@@ -4,71 +4,145 @@ Created on Mon Mar 31 15:26:07 2025
 
 @author: jacques
 """-->
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0"
-		/>
-		<title>Case List</title>
 
-		<script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
-		<link
-			rel="stylesheet"
-			href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
-        <link
-			rel="stylesheet"
-			href="{{url_for('static', filename='CSS/tutorial_pop_up.css')}}"/>
-        <link
-			rel="stylesheet"
-			href="{{url_for('static', filename='CSS/helper.css')}}"/>
-	</head>
-</html>
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1.0"/>
+    <title>Case Display</title>
+
+    <!-- Viewer.js -->
+    <script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
+
+    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+    
+
+    <link rel="stylesheet" href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
+    <link rel="stylesheet" href="{{url_for('static', filename='CSS/case_display.css')}}"/>
+    <link rel="stylesheet" href="{{url_for('static', filename='CSS/helper.css')}}"/>
+    
+    <style>
+        .slidecontainer {
+          width: 100%;
+        }
+        
+        .slider {
+          -webkit-appearance: none;
+          width: 100%;
+          height: 15px;
+          background: linear-gradient(to left, green, yellow 50%, red) content-box;          /* le centre */
+          opacity: 0.7;
+          -webkit-transition: .2s;
+          transition: opacity .2s;
+        }
+        
+        .slider:hover {
+          opacity: 1;
+        }
+        
+        .slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 25px;
+          height: 25px;
+          background: #04AA6D;
+          cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+          height: 15px;
+          border-radius: 100%;
+          background: &#x25BE;
+          cursor: pointer;
+        }
+    </style>
+    
+</head>
 
 <body>
-    {% block images %}<h1>Images</h1>{% endblock %}
-    {% block images_content %}
-        <div id="gallery">
-        {% for i in range(nb_imgs) %}
-            <img src="data:image/jpeg;base64,{{ imgs[i] }}" alt="Picture {{i}}">
-        {% endfor %}
+    <div class="case-header">
+        DPO {{case_id}}
+    </div>
+    <div class="split left">
+        <div class="centered">
+            {% block images %}<h1>Images</h1>{% endblock %}
+            {% block images_content %}
+                <div id="gallery">
+                {% for i in range(nb_imgs) %}
+                    <img class="case_img" src="data:image/jpeg;base64,{{ imgs[i] }}" alt="Picture {{i}}">
+                {% endfor %}
+                </div>
+            {% endblock %}
         </div>
-    {% endblock %}
-    
-    {% for i in range(nbTitles) %}
-        <h1>{{titles[i]}}</h1>
-        {% set ns = namespace(j = 0) %}
-        {% for criterion in criteria[i] %}
-            <fieldset>
-            <legend>Is {{criterion[0]}} present ?</legend>
-                <div class="popup" onclick="tutorial({{ns.j}})" ><span class="in-circle">?</span>
-                    <span class="popuptext" id="myPopUp{{ns.j}}">
-                        <img src="data:image/jpeg;base64,{{ criterion[2] }}" alt="Tutorial {{j}}">
-                    </span>
-                </div> 
-                <div>
-                    <input type="radio" id="{{criterion[0]}}Yes" name="{{criterion[0]}}" value=True {% if criterion[1] %} checked {% endif %}/>
-                    <label for="{{criterion[0]}}">Yes</label>
-                </div>
-            
-                <div>
-                    <input type="radio" id="{{criterion[0]}}No" name="{{criterion[0]}}" value=False {% if not criterion[1] %} checked {% endif %}/>
-                    <label for="{{criterion[0]}}">No</label>
-                </div>
-            </fieldset>  
-            {% set ns.j = ns.j + 1 %}  
-        {% endfor %}
-    {% endfor %}
-</body>
-      
-<script src="{{ url_for('static', filename='JS/case_display.js')}}"></script>  
+    </div>
 
-<script>
-    function tutorial(idPopUp) {
-        var popup = document.getElementById("myPopUp" + idPopUp);
-    popup.classList.toggle("show");
-    }
-</script>
+    <div class="split right">
+        <div class="centered">
+            <form id="criteria-form" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% for i in range(nbTitles) %}
+                    <h1>{{titles[i]}}</h1>
+                    {% set ns = namespace(j = 0) %}
+                    {% for criterion in criteria[i] %}
+                        <fieldset>
+                            <legend>{{criterion[0]}}</legend>
+                            <div class="criterion-row">
+                                <div class="options">
+                                    <input type="radio" id="{{criterion[0]}}Yes" name="{{criterion[0]}}" onclick="safeguard({{case_id}}, {{criterion[3]}}, 1)" value=1 {% if criterion[1]==1 %} checked {% endif %}/>
+                                    <label for="{{criterion[0]}}Yes">Yes</label>
+
+                                    <input type="radio" id="{{criterion[0]}}No" name="{{criterion[0]}}" onclick="safeguard({{case_id}}, {{criterion[3]}}, 2)" value=2 {% if criterion[1]==2 %} checked {% endif %}/>
+                                    <label for="{{criterion[0]}}No">No</label>
+
+                                    <input type="radio" id="{{criterion[0]}}N/A" name="{{criterion[0]}}" onclick="safeguard({{case_id}}, {{criterion[3]}}, 3)" value=3 {% if criterion[1]==3 %} checked {% endif %}/>
+                                    <label for="{{criterion[0]}}N/A">N/A</label>
+
+                                    <input type="radio" id="{{criterion[0]}}unanswered" name="{{criterion[0]}}" onclick="safeguard({{case_id}}, {{criterion[3]}}, 0)" value=0 {% if criterion[1]==0 %} checked {% endif %} disabled/>
+                                    <label for="{{criterion[0]}}unanswered">unanswered</label>
+                                </div>
+                                    <div class="tutorial-btn">
+                                        <input type="button" onclick="tutorial({{criterion[3]}})" value="?" />
+                                    </div>
+                            </div>
+                        </fieldset>
+                        {% set ns.j = ns.j + 1 %}
+                    {% endfor %}
+                    {% if hasConfidence[i] %}
+                        {{titles[i]}} Confidence Index
+                        <div class="slidecontainer">
+                          <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                <p>
+            </form>
+            <div class="button_area">
+                <a href="/case_diagnose/{{case_id}}">
+                  <button>Continue to diagnosis</button>
+                </a>
+                <a href="/user_home/">
+                  <button>Save and leave</button>
+                </a>
+            </div>
+            <br/>
+        </div>
+    </div>
+
+    <div id="tutorialModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <iframe id="tutorialFrame" src="" frameborder="0"></iframe>
+      </div>
+    </div>
+</body>
+
+<script src="{{ url_for('static', filename='JS/case_display.js')}}"></script>
+{% endautoescape %}
+</html>
+
+
+
+

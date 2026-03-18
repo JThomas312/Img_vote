@@ -1,0 +1,30 @@
+<!--#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Sep 22 16:22:13 2025
+
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<title>User creation</title>
+
+{% if error %}
+  <h1>There has been an error during user creation: {{ error }}!</h1>
+  <a href="/new_user/">
+    <button>try again</button>
+  </a>
+{% else %}
+    <h2>User {{fullname}} has been created with login {{login}}<h2>
+    {% if admin %} <h3>They are an administrator for the project<h3> {% endif %}
+    <h3>Their new password is now {{ newPass }}<h3>
+    <h3>Please copy it now and communicate it to them discreetly, it will not be displayed after you leave this page<h3>
+    <h4>You may still reset it again if need be<h4>
+{% endif %}
+
+<a href="/user_home/">
+  <button>return home</button>
+</a>
+
+{% endautoescape %}

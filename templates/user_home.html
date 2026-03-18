@@ -5,32 +5,59 @@ Created on Mon Mar 31 15:26:07 2025
 @author: jacques
 """-->
 
-<!doctype html>
-<title>Case List</title>
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 31 15:26:07 2025
 
-<h1>Hello, {{ username }}!</h1>
-<h2>Welcome to Lyon Dermoscopy Studies, here is the list of cases you have to look at<h2>
-{% if remaining_items > 0 %}
-    <h2>You still have {{ remaining_items }} cases to look at<h2>
-    <h2>Study ends in {{remaining_days}} days<h2>
-{% else %}
-    <h2>You have looked at every case, congratulations ! You may still change your mind<h2>
-    <h2>No action is needed from you for the experimenter to finish the study, all your answers have been safely stored<h2>
-    {% if admin_notified %}
-        <h2>experimenter has been notified of your progress<h2>
-    {% else %}
-        <h2>You may notify the experimenter that you are done<h2>
-        <form method="post">
-            <p><input type=submit value=Notify>
-        </form>
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HomePage</title>
+  <link rel="stylesheet" href="{{url_for('static', filename='CSS/user_home.css')}}"/>
+
+</head>
+<body>
+
+  <h1>Hello, {{ username }}!</h1>
+  <h2>Intraoperative dermoscopy of the nail apparatus – Case review platform</h2>
+
+  <h2>Current progress in labelling :</h2>
+  {% if remaining_items > 0 %}
+    <h2>- {{remaining_items}} cases pending review<h2>
+    {% if remaining_days > 0 %}<h2>- Study deadline: in {{remaining_days}} days<h2>
+    {% else %}<h2>- Study deadline has passed<h2>
     {% endif %}
-{% endif %}
+  {% else %}
+      <h2>- No cases pending review</h2>
+      {% if remaining_days > 0 %}<h2>- Study deadline: in {{remaining_days}} days<h2>
+      {% else %}<h2>- Study deadline has passed<h2>
+      {% endif %}
+  {% endif %}
 
-{% block title %}Cases{% endblock %}
-{% block content %}
-  <ol>
-  {% for item in items %}
-    <li><a href="/case_display/{{ item[0] }}">{{ item[0] }}</a> {% if item[1] %} <a> OK</a>{% endif %}</li>
-  {% endfor %}
-  </ol>
-{% endblock %}
+    <a href="/logout/">
+      <button>Logout</button>
+    </a>
+  <br/>
+    <a href="/change_password/">
+      <button>Change Password</button>
+    </a>
+  <br/><br/>
+
+  <ul class="grid-list">
+    {% for item in items %}
+      <li class="{% if item[2] %}done-box{% endif %}">
+        <a href="/case_display/{{ item[0] }}">
+          {{ item[1] }}
+          {% if item[2] %}<span></span>{% endif %}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</body>
+{% endautoescape %}
+</html>

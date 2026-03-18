@@ -1,0 +1,101 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 31 15:26:07 2025
+
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta content="width=device-width, initial-scale=1.0"/>
+		<title>Case Diagnose</title>
+
+		<script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
+		<script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+            
+		<link rel="stylesheet" href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
+        <link rel="stylesheet" href="{{url_for('static', filename='CSS/case_diagnose.css')}}"/>
+        <link rel="stylesheet" href="{{url_for('static', filename='CSS/helper.css')}}"/>
+	</head>
+
+<body>
+    <div class="case-header">
+        DPO {{case_id}}
+    </div>
+    <div class="split left">
+        <div class="centered">
+            {% block images %}<h1>Images</h1>{% endblock %}
+            {% block images_content %}
+                <div id="gallery">
+                {% for i in range(nb_imgs) %}
+                    <img class="case_img" src="data:image/jpeg;base64,{{ imgs[i] }}" alt="Picture {{i}}">
+                {% endfor %}
+                </div>
+            {% endblock %}
+        </div>
+    </div>
+    
+    <div class="split right">
+        <div class="centered">
+            <form id="criteria-form" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% for i in range(nbTitles) %}
+                    <h1>{{titles[i]}}</h1>
+                    {% set ns = namespace(j = 0) %}
+                    <fieldset>
+                        <legend>Diagnosis</legend>
+                        <div class="diagnosis-options">
+                            {% for criterion in criteria[i] %}
+                                <div class="diagnosis-row">
+                                    <div style="flex: 1;">
+                                        <input type="radio" id="{{criterion[0]}}" name="diagnosis" onclick="safeguard({{case_id}}, {{criterion[3]}}, 1)" value=1 {% if criterion[1]==1 %} checked {% endif %}/>
+                                        <label for="{{criterion[0]}}">{{criterion[0]}}</label>
+                                    </div>
+                                    <div class="tutorial-btn">
+                                        <input type="button" onclick="tutorial({{criterion[3]}})" value="?" />
+                                    </div>
+                                </div>
+                                {% set ns.j = ns.j + 1 %}  
+                            {% endfor %}
+                            <input type="radio" id="unanswered" name="diagnosis" value=0 {% if unanswered %} checked {% endif %} disabled/>
+                            <label for="unanswered">unanswered</label>
+                        </div>
+                    </fieldset>  
+                {% endfor %}
+                <p>
+            </form>
+            <div class="button_area">
+                <a href="/case_display/{{case_id}}">
+                  <button>Back to Criteria</button>
+                </a>
+                <a href="/user_home/">
+                  <button>Save and leave</button>
+                </a>
+                {% if nextcase != 0 %}<a href="/case_display/{{nextcase}}"><button>Next Case</button></a>
+                {% else %} <button type="button" disabled>Next Case</button>
+                {% endif %}
+            </div>
+            <br/>
+        </div> 
+    </div> 
+    
+    <div id="tutorialModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <iframe id="tutorialFrame" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+</body>
+
+<script src="{{ url_for('static', filename='JS/case_diagnose.js')}}"></script>  
+
+{% endautoescape %}
+</html>
+
+
+

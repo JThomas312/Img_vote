@@ -1,0 +1,38 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Sep 22 15:54:21 2025
+
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<title>Create New User</title>
+
+{% if error %}
+  <h1>There has been an error during user creation: {{ error }}!</h1>
+  <a href="/user_home/">
+    <button>go back</button>
+  </a>
+{% else %}
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <a> Login </a>
+        <p><input type=text name=login>
+        <br/>
+        <a> Full Name </a>
+        <p><input type=text name=fullname>
+        <fieldset>
+        <legend>Administrator</legend>
+        <input type="radio" id="yes" name="admin" value=1 />
+        <label for="admin">yes</label>
+        <input type="radio" id="no" name="admin" value=0 />
+        <label for="admin">no</label>
+        </fieldset>
+        <p><input type=submit value=Create User>
+    </form>
+    <a href="/user_home/">
+      <button>cancel</button>
+    </a>
+{% endif %}
+{% endautoescape %}

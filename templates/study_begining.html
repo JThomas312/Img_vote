@@ -1,0 +1,33 @@
+<!--#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct  1 21:13:12 2025
+
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<title>Start Study</title>
+
+{% if error %}
+  <h1>There has been an error during study launch: {{ error }}!</h1>
+  <a href="/user_home/">
+    <button>go back</button>
+  </a>
+{% else %}
+    <h1>You are launching a new study<h1>
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <a> Study Name </a>
+        <p><input type=text name=study_name>
+        <br/>
+        <br/>
+        <a> When is you study intended to end ? </a>
+        <br/>
+        <a> (date is only used for display purposes, the study can only be stopped manually) </a>
+        <p><input type="date" name=study_end>
+        <p><input type=submit value=Launch Study>
+    </form>
+{% endif %}
+{% endautoescape %}

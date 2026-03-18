@@ -1,0 +1,12 @@
+flask
+flask-WTF
+sqlalchemy
+psycopg2-binary
+bcrypt
+openpyxl
+pillow
+
+jquery
+viewerjs
+
+postgresql

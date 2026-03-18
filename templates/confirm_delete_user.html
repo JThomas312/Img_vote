@@ -1,0 +1,24 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Oct 13 16:55:54 2025
+
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<title>Confirm user deletion</title>
+
+<h2>Are you sure you want to erase {{name}} with login {{login}} ?</h2>
+<h2>Doing so will erase all of their data for the study</h2>
+<a href="/user_home/">
+  <button>Cancel</button>
+</a>
+<br/>
+<br/>
+<a href="/delete_user/{{delid}}">
+  <button>Confirm</button>
+</a>
+<br/>
+{% endautoescape %}
+
