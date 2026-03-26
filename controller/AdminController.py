@@ -74,29 +74,36 @@ def get_data_for_export():
     finalExtract = extract_all_data()
     
     nbCriteria = len(criteria)
+    print(nbCriteria)
     
     ws.cell(row=1, column=1, value='cases')
     ws.cell(row=1, column=2, value='reviewers')
     for i in range(nbCriteria):
         ws.cell(row=1, column=i + 3, value=format_r_friendly(criteria[i].name))
     ws.cell(row=1 , column=nbCriteria + 3 , value='reviewer_diagnosis')
-    ws.cell(row=1 , column=nbCriteria + 4 , value='gold_standard_diagnosis')
-    ws.cell(row=1 , column=nbCriteria + 5 , value='reviewer_diagnosis_compared_to_gold_standard')
-    ws.cell(row=1 , column=nbCriteria + 6 , value='reviewer_diagnosis_malignity')
-    ws.cell(row=1 , column=nbCriteria + 7 , value='gold_standard_malignity')
-    ws.cell(row=1 , column=nbCriteria + 8 , value='reviewer_malignity_compared_to_gold_standard')
+    ws.cell(row=1 , column=nbCriteria + 4 , value='reviewer_diagnosis_confidence')
+    ws.cell(row=1 , column=nbCriteria + 5 , value='reviewer_melanoma_depth_confidence')
+    ws.cell(row=1 , column=nbCriteria + 6 , value='gold_standard_diagnosis')
+    ws.cell(row=1 , column=nbCriteria + 7 , value='reviewer_diagnosis_compared_to_gold_standard')
+    ws.cell(row=1 , column=nbCriteria + 8 , value='reviewer_diagnosis_malignity')
+    ws.cell(row=1 , column=nbCriteria + 9 , value='gold_standard_malignity')
+    ws.cell(row=1 , column=nbCriteria + 10 , value='reviewer_malignity_compared_to_gold_standard')
+    
     
     for i in range(len(finalExtract)):
         ws.cell(row=i + 2, column=1, value=finalExtract[i].case)
         ws.cell(row=i + 2, column=2, value=finalExtract[i].reviewer)
+        print(finalExtract[i].criteria)
         for j in range(nbCriteria):
             ws.cell(row=i + 2, column=j + 3, value=finalExtract[i].criteria[j])
         ws.cell(row=i + 2, column=nbCriteria + 3, value=finalExtract[i].reviewer_diagnosis)
-        ws.cell(row=i + 2, column=nbCriteria + 4, value=finalExtract[i].gold_standard_diagnosis)
-        ws.cell(row=i + 2, column=nbCriteria + 5, value=finalExtract[i].gold_standard_diagnosis_comparison)
-        ws.cell(row=i + 2, column=nbCriteria + 6, value=finalExtract[i].malignant_diagnosis)
-        ws.cell(row=i + 2, column=nbCriteria + 7, value=finalExtract[i].gold_standard_malignity)
-        ws.cell(row=i + 2, column=nbCriteria + 8, value=finalExtract[i].gold_standard_malignity_comparison)
+        ws.cell(row=i + 2, column=nbCriteria + 4, value=finalExtract[i].diagnosis_confidence)
+        ws.cell(row=i + 2, column=nbCriteria + 5, value=finalExtract[i].depth_confidence)
+        ws.cell(row=i + 2, column=nbCriteria + 6, value=finalExtract[i].gold_standard_diagnosis)
+        ws.cell(row=i + 2, column=nbCriteria + 7, value=finalExtract[i].gold_standard_diagnosis_comparison)
+        ws.cell(row=i + 2, column=nbCriteria + 8, value=finalExtract[i].malignant_diagnosis)
+        ws.cell(row=i + 2, column=nbCriteria + 9, value=finalExtract[i].gold_standard_malignity)
+        ws.cell(row=i + 2, column=nbCriteria + 10, value=finalExtract[i].gold_standard_malignity_comparison)
      
     wb.save(wb_path)
     

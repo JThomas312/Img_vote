@@ -16,10 +16,10 @@ CREATE TABLE criterion
     name VARCHAR(100) NOT NULL,                                              
     tutorial_path VARCHAR(200) NOT NULL,                                              
     type INT NOT NULL,
+    category INT NOT NULL,
     malignity BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (id)
 );;
-
 
 CREATE TABLE study_case
 (

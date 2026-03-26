@@ -19,8 +19,15 @@ const viewer = new Viewer(gallery, {
     tooltip: 1, //gives zoom ratio after a change
 });
 
-function safeguard(case_id, criterion_id, value) {
-    url = '/safeguard_model?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value;
+function safeguard(case_id, criterion_id, value, category, type) {
+    if (category === 1) {
+        url = '/safeguard_model?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value;
+    } else {
+        if (category === 2) {
+            url = '/safeguard_diagnosis?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value + '&type=' + type;
+        }
+        //else
+    }
     $.getJSON(url, function(data){});
     return false;
 }

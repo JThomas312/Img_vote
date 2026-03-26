@@ -49,18 +49,16 @@ def init_data_study_start():
 
 def caseForDisplay(userId, case):
     
+    trueValue = 1
+    
     criterionForCase = get_criterion_for_case(userId, case)
     
-    #temp demo confidence index
-    hasConfidence = []
      
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence/delim_criteria.txt')) as delim_file:
+    with open(os.path.join(getcwd(), 'persistence/delimitations.txt')) as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
-            #temp demo confidence index
-            hasConfidence.append(True)
         
     path = criterionForCase.path
     
@@ -79,23 +77,26 @@ def caseForDisplay(userId, case):
         w, h = im.size
         caseVM.imgs_sizes.append((w, h))
     
-    
+    unanswered = [True for a in range (len(delimitations))]
     
     for i in range (len(criterionForCase.criteria)):
         currentCriterion = criterionForCase.criteria[i]
-        #currentCriterion 0: type, 1: name, 2: value, 3: tutorial path, 4: id
+        #currentCriterion 0: type, 1: category, 2: name, 3: value, 4: tutorial path, 5: id
         tutorial_slide_path = currentCriterion[3]
+        #category 2 is one of many where we need unanswered status
+        if currentCriterion[1] == 2 and currentCriterion[3] == trueValue:
+            unanswered[currentCriterion[0]] = False
         try:
             slide_im = Image.open(tutorial_slide_path)
             data = io.BytesIO()
             slide_im.save(data, 'JPEG')
             slide_encoded_img_data = base64.b64encode(data.getvalue())
-            caseVM.criteria[currentCriterion[0]].append((currentCriterion[1], currentCriterion[2], slide_encoded_img_data.decode('utf-8'), currentCriterion[4]))
+            (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], slide_encoded_img_data.decode('utf-8'), currentCriterion[5], True))
         except:
-            caseVM.criteria[currentCriterion[0]].append((currentCriterion[1], currentCriterion[2], bytearray()))
+            (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], bytearray(), currentCriterion[5], False))
     
     #temp demo confidance index
-    return (caseVM, delimitations, hasConfidence)
+    return (caseVM, delimitations, unanswered)
 
 def caseForDiagnosis(userId, case):
 
@@ -169,8 +170,8 @@ def saveProgress(userId, case, answers):
 def safeguardProgress(userId, case, criterionId, value):
     safeguard_Criterion(userId, case, criterionId, value)
     
-def safeguardDiagnosis(userId, case, criterionId, value):
-    undo_all_but_one(userId, case, criterionId, value)
+def safeguardDiagnosis(userId, case, criterionId, value, critType):
+    undo_all_but_one(userId, case, criterionId, value, critType)
     
 def checkProgress(userId, case):
     exists_unfinished = get_unfinished_criteria(userId, case)

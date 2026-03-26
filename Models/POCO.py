@@ -38,21 +38,29 @@ class ReviewerPOCO(Base):
         self.admin = admin
         self.remaining_cases = 0
 
+class CategoryPOCO(Base):
+    __tablename__ = "category"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    type: Mapped[int]
+    trust: Mapped[int]
+
 class CriterionPOCO(Base):
     __tablename__ = "criterion"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
     tutorial_path: Mapped[str] = mapped_column(String(200))
     type: Mapped[int]
+    category: Mapped[int]
     malignity: Mapped[bool]
     
     def __repr__(self) -> str:
         return f"Criterion(id={self.id!r}, name={self.name!r}, tutorial_path={self.tutorial_path!r}, type={self.type!r})"
     
-    def __init__(self, name, path, critType, mal):
+    def __init__(self, name, path, critType, critCategory, mal):
         self.name = name
         self.path = path
         self.type = critType
+        self.category = critCategory
         self.malignity = mal
 
 class CasePOCO(Base):

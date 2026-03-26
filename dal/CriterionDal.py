@@ -39,7 +39,7 @@ def get_criterion_by_id(identifier, engine):
     
     criterionPOCO = session.get(CriterionPOCO, identifier)
     
-    criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.type)
+    criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.type, criterionPOCO.category, criterionPOCO.trust)
     
     session.close()
     
@@ -65,10 +65,11 @@ def get_unfinished_criteria(userId, caseId, engine):
 def get_criterion_for_case(userId, caseId, engine):
     
     session = Session(engine)
-    #criterion type 2 is diagnosis
-    diagnosis_type = 2    
+    #criterion category 3 is trustScale
+    #trustCategory = 3    
 
-    query = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type != diagnosis_type).order_by(CriterionPOCO.id)
+    query = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).order_by(CriterionPOCO.id)
+    #.filter(CriterionPOCO.category != trustCategory)
 
     queriedAnswer = query.all()
     
@@ -77,11 +78,12 @@ def get_criterion_for_case(userId, caseId, engine):
     answer = CriterionForCaseDataModel(queriedAnswer[0][0].path)
     
     for i in range(len(queriedAnswer)):
-        answer.criteria.append((queriedAnswer[i][2].type, queriedAnswer[i][2].name, queriedAnswer[i][3].value, queriedAnswer[i][2].tutorial_path, queriedAnswer[i][2].id))
+        answer.criteria.append((queriedAnswer[i][2].type, queriedAnswer[i][2].category, queriedAnswer[i][2].name, queriedAnswer[i][3].value, queriedAnswer[i][2].tutorial_path, queriedAnswer[i][2].id))
     
     session.close()
     
     return answer
+
 
 def get_diagnosis_for_case(userId, caseId, engine):
     
@@ -124,9 +126,10 @@ def get_all_criteria_no_diagnosis(engine):
     
     session = Session(engine)
     
-    diagnosis_type = 2
+    diagnosis_type = 0
+    trust_category = 3
     
-    query = session.query(CriterionPOCO).filter(CriterionPOCO.type != diagnosis_type)
+    query = session.query(CriterionPOCO).filter(CriterionPOCO.type != diagnosis_type).filter(CriterionPOCO.category != trust_category)
     ans = query.all()
     
     critNoDiag = []
@@ -142,7 +145,7 @@ def get_all_diagnosis(engine):
     
     session = Session(engine)
     
-    diagnosis_type = 2
+    diagnosis_type = 0
     
     query = session.query(CriterionPOCO).filter(CriterionPOCO.type == diagnosis_type)
     ans = query.all()
@@ -207,15 +210,14 @@ def safeguard_Criterion(user, case, critId, newValue, engine):
     
     session.close()
 
-def undo_all_but_one(user, case, critId, value, engine):
+def undo_all_but_one(user, case, critId, value, critType, engine):
     
     session = Session(engine)
     
-    diagnosis_type = 2
     true_value = 1
     false_value = 2
     
-    query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.type == diagnosis_type).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
+    query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.type == critType).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
     ansCrit = query.all()
     criterionId = int(critId)
     # 0: answerCriterion, 1: answer, 2: criterion
@@ -237,49 +239,60 @@ def create_all_criterion(engine):
     
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence/delim_criteria.txt')) as delim_file:
+    with open(os.path.join(getcwd(), 'persistence/delimitations.txt')) as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
-            
-    with open(os.path.join(getcwd(), 'persistence/delim_diagnosis.txt')) as delim_file:
-        for l in delim_file:
-            delimitations.append(l.removesuffix('\n'))
+          
+    critType = -1
+    critCategory = 0
+    trust = False
+    name = ""
+    typeName = ""
     
-    val = -1
-    
-    criteriaWB = load_workbook(filename = getcwd() + '/data/DPO_criteria.xlsx')
+    criteriaWB = load_workbook(filename = getcwd() + '/data/WOW.xlsx')
     criteriaWS = criteriaWB.active
     
     session = Session(engine)
     
-    for row in criteriaWS.iter_rows(min_row=1, max_col=1):   
-        for cell in row:
-            if cell.value in delimitations:
-                val += 1
-            else:
-                name = cell.value
-                tutorial_slide_path = getcwd() + '/data/tutorial_criteria/' + delimitations[val] + '/' + cell.value + '.jpeg'
-                newCrit = CriterionPOCO(name, tutorial_slide_path, val, False)
-                newCrit.tutorial_path = tutorial_slide_path
+    for i in range (1, criteriaWS.max_row + 1):
+        nameCell = criteriaWS.cell(row=i, column=1)
+        categoryCell = criteriaWS.cell(row=i, column=2)
+        trustCell = criteriaWS.cell(row=i, column=3)
+        malCell = criteriaWS.cell(row=i, column=4)
+        if nameCell.value in delimitations:
+            
+            # add trust criterion at the end of a type
+            if critType > -1 and trust:
+                newCrit = CriterionPOCO(typeName, "", critType, 3, False)
+                newCrit.tutorial_path = ""
                 session.add(newCrit)
-    
-    criteriaWB = load_workbook(filename = getcwd() + '/data/DPO_diagnostics_malignity.xlsx')
-    criteriaWS = criteriaWB.active
-    
-    
-    for i  in range (1, criteriaWS.max_row + 1):
-        diagCell = criteriaWS.cell(row=i, column= 1)    
-        malCell = criteriaWS.cell(row=i, column= 2)
-        if diagCell.value in delimitations:
-            val +=1
+            
+            typeName = nameCell.value
+
+            critType +=1
+            categoryName = categoryCell.value
+            print(typeName)
+            print(trustCell.value)
+            trust = trustCell.value == "With Trust"
+            if categoryName == "One Of":
+                category = 2
+            if categoryName == "Multiple":
+                category = 1
+           
         else:
-            name = diagCell.value
-            tutorial_slide_path = getcwd() + '/data/tutorial_criteria/' + delimitations[val] + '/' + name + '.jpeg'
-            malignity = (malCell.value == 'Malignant')
-            newCrit = CriterionPOCO(name, tutorial_slide_path, val, malignity)
+            name = nameCell.value
+            tutorial_slide_path = getcwd() + '/data/tutorial_criteria/' + delimitations[critType] + '/' + name + '.jpeg'
+            newCrit = CriterionPOCO(name, tutorial_slide_path, critType, category, False)
             newCrit.tutorial_path = tutorial_slide_path
             session.add(newCrit)
-       
+        
+        # add trust criterion at the end if need be
+        print(i)
+        if (i == criteriaWS.max_row) and trust:
+            print("il est passé par ici")
+            newCrit = CriterionPOCO(typeName, "", critType, 3, False)
+            newCrit.tutorial_path = ""
+            session.add(newCrit) 
     
     session.commit()
     

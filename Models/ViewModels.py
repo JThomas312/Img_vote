@@ -32,7 +32,7 @@ class AdminHomeViewModel():
 class CaseViewModel():
     imgs: list()
     imgs_sizes: list((int, int))
-    criteria: list(list((str, int, bytearray, int))) #name, value, image, id
+    criteria: list(list((int, str, int, bytearray, int, bool))) #category, name, value, image, id, hasTutorial
     def __init__(self, nbCategories):
         self.imgs = []
         self.imgs_sizes = []

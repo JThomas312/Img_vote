@@ -98,14 +98,12 @@ def extract_all_data(engine):
     
     session = Session(engine)
     
-    diagnosisType = 2
+    diagnosisType = 0
     trueValue = 1
     
     reviewers = get_all_non_admin_reviewers(engine)
     casesQuery = session.query(CasePOCO, CriterionPOCO).join(CriterionPOCO, CasePOCO.gold_standard == CriterionPOCO.id).order_by(CasePOCO.id)
     cases = session.execute(casesQuery).all()
-    
-    id_decrement = cases[0][0].id -1
     
     extracts = []
     
@@ -115,6 +113,21 @@ def extract_all_data(engine):
             queriedAnswer = query.one_or_none()
             rev_malignity = 'na'
             rev_diag = 'na'
+            
+            diagnosis_confidence = -1
+            depth_confidence = -1
+            
+            confidence_category = 3
+            
+            query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == confidence_category).where(CriterionPOCO.name == "Diagnosis")
+            queriedAnswer = query.one_or_none()
+            if queriedAnswer[0].value != None :
+                diagnosis_confidence = queriedAnswer[0].value
+            
+            query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == confidence_category).where(CriterionPOCO.name == "Melanoma Depth Prediction")
+            queriedAnswer = query.one_or_none()
+            if queriedAnswer[0].value != None :
+                depth_confidence = queriedAnswer[0].value
             
             gld_std_name = format_r_friendly(case[1].name)
             if case[1].malignity:
@@ -140,7 +153,7 @@ def extract_all_data(engine):
                 
             rev_identifier = str(reviewer.userId) + '_' + format_r_friendly(reviewer.name)
             
-            newExtract = FinalExtractDataModel(case[0].name, rev_identifier, ansCrit, rev_diag, gld_std_name, rev_diag == gld_std_name, rev_malignity, gld_std_malignity, rev_malignity == gld_std_malignity)
+            newExtract = FinalExtractDataModel(case[0].name, rev_identifier, ansCrit, rev_diag, diagnosis_confidence, depth_confidence, gld_std_name, rev_diag == gld_std_name, rev_malignity, gld_std_malignity, rev_malignity == gld_std_malignity)
             
             extracts.append(newExtract)
     
@@ -161,7 +174,7 @@ def create_all_cases(engine):
     
     cwd = getcwd()
     path = os.path.join(cwd,'data', 'Img_data')
-    wbpath = os.path.join(cwd , 'data', 'Data_DPO.xlsx')
+    wbpath = os.path.join(cwd , 'data', 'Data.xlsx')
     case_files = [file for file in listdir(path) if not file.startswith('.')]
     
     case_files = sorted(list(case_files), key=natural_sort_key)
@@ -174,7 +187,8 @@ def create_all_cases(engine):
     for case_file in case_files:
         newpath = os.path.join(path, case_file)
         newname = sheet_obj.cell(row=counter, column=1).value
-        cell_value = sheet_obj.cell(row=counter, column=12).value
+        #temp hardcoded column number
+        cell_value = sheet_obj.cell(row=counter, column=5).value
         gld_std_name = cell_value.removesuffix(' ')
         gld_std = criteriaDict[gld_std_name]
         newcase = CasePOCO(newpath, newname, gld_std)

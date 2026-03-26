@@ -154,8 +154,8 @@ def save_Criterion(user, case, critName, newValue):
 def safeguard_Criterion(user, case, critId, newValue):
     return CriterionDal.safeguard_Criterion(user, case, critId, newValue, engine)    
     
-def undo_all_but_one(user, case, critId, value):
-    return CriterionDal.undo_all_but_one(user, case, critId, value, engine)    
+def undo_all_but_one(user, case, critId, value, critType):
+    return CriterionDal.undo_all_but_one(user, case, critId, value, critType, engine)    
 
 def get_unfinished_criteria(userId, caseId):
     return CriterionDal.get_unfinished_criteria(userId, caseId, engine)

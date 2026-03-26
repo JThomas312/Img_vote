@@ -59,12 +59,12 @@ class CriterionDataModel():
     critId: int
     name: str
     tutorial_path: str
-    critType: int   
-    def __init__(self, critId, name, tutorial_path, critType):
+    critCategory: int   
+    def __init__(self, critId, name, tutorial_path, category):
         self.critId = critId
         self.name = name
         self.tutorial_path = tutorial_path
-        self.critType = critType
+        self.critCategory = category
  
 class DiagnosisDataModel():
     diagId: int
@@ -75,7 +75,7 @@ class DiagnosisDataModel():
  
 class CriterionForCaseDataModel():
      path: str
-     criteria: list((int, str, int, str, int))#type, name, value, path to tutorial, id
+     criteria: list((int, int, str, int, str, int))#type, category, name, value, path to tutorial, id
      def __init__(self, path):
          self.path = path
          self.criteria = []
@@ -85,16 +85,20 @@ class FinalExtractDataModel():
     reviewer: str
     criteria: list[int]
     reviewer_diagnosis: str
+    diagnosis_confidence: int
+    depth_confidence: int
     gold_standard_diagnosis: str
     gold_standard_diagnosis_comparison: bool
     malignant_diagnosis: str
     gold_standard_malignity: str
     gold_standard_malignity_comparison: bool
-    def __init__(self, case, reviewer, criteria, reviewer_diagnosis, gold_standard_diagnosis, gold_standard_diagnosis_comparison, malignant_diagnosis, gold_standard_malignity, gold_standard_malignity_comparison):
+    def __init__(self, case, reviewer, criteria, reviewer_diagnosis, diag_conf, depth_conf, gold_standard_diagnosis, gold_standard_diagnosis_comparison, malignant_diagnosis, gold_standard_malignity, gold_standard_malignity_comparison):
         self.case = case
         self.reviewer = reviewer
         self.criteria = criteria
         self.reviewer_diagnosis = reviewer_diagnosis
+        self.diagnosis_confidence = diag_conf
+        self.depth_confidence = depth_conf
         self.gold_standard_diagnosis = gold_standard_diagnosis
         self.gold_standard_diagnosis_comparison = gold_standard_diagnosis_comparison
         self.malignant_diagnosis = malignant_diagnosis
