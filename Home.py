@@ -52,11 +52,12 @@ from controller.CaseController import checkProgress
 
 
 app = Flask(__name__)
-pkfile = open(os.path.join(getcwd(), 'private_key.txt'))
-pkcontent = pkfile.read()
-pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
+# pkfile = open(os.path.join(getcwd(), 'private_key.txt'))
+# pkcontent = pkfile.read()
+# pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
+pk = b'a62a3f0ecba55677e0e738b1ac3f6bb14333a9683a2de43d0146e06f95b5cdf9'
 app.secret_key = pk
-pkfile.close()
+#pkfile.close()
 
 csrf = CSRFProtect(app)
 
@@ -145,7 +146,7 @@ def begin_study():
         if 'admin' in session:
             if session['admin']:
                 error = None
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read().replace('\n', '')
                 if status != 'stopped':
                     error = 'Study has already begun, current status is: ' + status 
@@ -159,7 +160,7 @@ def start_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read().replace('\n', '')
                 endDate = datetime.strptime(request.form['study_end'], '%Y-%m-%d')
                 if status == 'stopped':
@@ -181,10 +182,10 @@ def pause_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'ongoing':
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
                         fw.write('paused')
         return(redirect(url_for('user_home')))    
     else:
@@ -195,10 +196,10 @@ def resume_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'paused':
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
                         fw.write('ongoing')
         return(redirect(url_for('user_home')))    
     else:
@@ -209,7 +210,7 @@ def confirm_end():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'paused':
                     return render_template('confirm_end.html')
@@ -222,10 +223,10 @@ def end_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'paused':
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
                         fw.write('ended')
         return(redirect(url_for('user_home')))
     else:
@@ -257,11 +258,11 @@ def clear_users():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'ended':
                     clear_data()
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
                         fw.write('stopped')
         return redirect(url_for('user_home'))
     else:
@@ -337,7 +338,7 @@ def new_user_creation():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
                     status = fr.read()
                 error = None
                 login = request.form['login']
@@ -361,8 +362,8 @@ def new_user_creation():
 @app.route('/case_display/<case>', methods=['GET'])
 def case_display(case):
     if 'userId' in session:
-        (caseVM, criteriaTitles, unanswered) = caseForDisplay(session['userId'], case)
-        return render_template("case_display.html", case_id=case, case_name=case, nb_imgs=len(caseVM.imgs), imgs=caseVM.imgs, imgs_sizes=caseVM.imgs_sizes, criteria=caseVM.criteria, titles=criteriaTitles, nbTitles=len(criteriaTitles), unanswered=unanswered)
+        (caseVM, criteriaTitles, unanswered, nextcase) = caseForDisplay(session['userId'], case)
+        return render_template("case_display.html", case_id=case, case_name=case, nb_imgs=len(caseVM.imgs), imgs=caseVM.imgs, imgs_sizes=caseVM.imgs_sizes, criteria=caseVM.criteria, titles=criteriaTitles, nbTitles=len(criteriaTitles), unanswered=unanswered, nextcase=nextcase)
     else:
         return redirect(url_for('login'))
     

@@ -28,7 +28,7 @@ import img_vote.dal.CriterionDal as CriterionDal
 
 metadata_obj = MetaData()
 
-database_credentials_file = open(os.path.join(getcwd(), 'persistence/database_credentials.txt'))
+database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials.txt'))
 orm_driver = database_credentials_file.readline().removesuffix('\n')
 usrname = database_credentials_file.readline().removesuffix('\n')
 passw = database_credentials_file.readline().removesuffix('\n')

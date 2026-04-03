@@ -85,75 +85,77 @@ Created on Mon Mar 31 15:26:07 2025
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 {% for i in range(nbTitles) %}
                     {% set ns = namespace (done = False) %}
-                    <h1>{{titles[i]}}</h1>
-                    {% for criterion in criteria[i] %}
-                        {% if criterion[0] == 1 %}
-                        {% set ns.done = True %}
-                            <fieldset>
-                                <legend>{{criterion[1]}}</legend>
-                                <div class="criterion-row">
-                                    <div class="options">
-                                        <input type="radio" id="{{criterion[1]}}Yes" name="{{criterion[1]}}" onclick="safeguard({{case_id}}, {{criterion[4]}}, 1, {{criterion[0]}}, {{i}})" value=1 {% if criterion[2]==1 %} checked {% endif %}/>
-                                        <label for="{{criterion[1]}}Yes">Yes</label>
-    
-                                        <input type="radio" id="{{criterion[1]}}No" name="{{criterion[1]}}" onclick="safeguard({{case_id}}, {{criterion[4]}}, 2, {{criterion[0]}}, {{i}})" value=2 {% if criterion[2]==2 %} checked {% endif %}/>
-                                        <label for="{{criterion[1]}}No">No</label>
-    
-                                        <input type="radio" id="{{criterion[1]}}unanswered" name="{{criterion[1]}}" onclick="safeguard({{case_id}}, {{criterion[4]}}, 0, {{criterion[0]}}, {{i}})" value=0 {% if criterion[2]==0 %} checked {% endif %} disabled hidden/>
-                                        <label hidden for="{{criterion[1]}}unanswered">unanswered</label>
-                                    </div>
-                                    {% if criterion[5] %}
-                                        <div class="tutorial-btn">
-                                            <input type="button" onclick="tutorial({{criterion[4]}})" value="?" />
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </fieldset>
-                        {% endif %}
-                    {% endfor %}
-                    {% if not ns.done %}
-                        <fieldset>
-                            <legend>{{titles[i]}}</legend>
-                                <div class="{{titles[i]}}-diagnosis-options">
-                                    {% for criterion in criteria[i] %}
-                                        {% if criterion[0] == 2 %}
-                                                <div class="diagnosis-row">
-                                                    <div style="flex: 1;">
-                                                        <input type="radio" id="{{criterion[1]}}" name="diagnosis" onclick="safeguard({{case_id}}, {{criterion[4]}}, 1, {{criterion[0]}}, {{i}})" value=1 {% if criterion[2]==1 %} checked {% endif %}/>
-                                                        <label for="{{criterion[1]}}">{{criterion[1]}}</label>
-                                                    </div>
-                                                    {% if criterion[5] %}
-                                                        <div class="tutorial-btn">
-                                                            <input type="button" onclick="tutorial({{criterion[4]}})" value="?" />
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                <input type="radio" id="{{titles[i]}}unanswered" name="titles[i]" value=0 {% if unanswered[i] %} checked {% endif %} disabled hidden/>
-                                <label hidden for="unanswered">unanswered</label>
-                            </div>
-                        </fieldset>
+                    <div class="Title_block" id={{titles[i]}}>
+                        <h1>{{titles[i]}}</h1>
                         {% for criterion in criteria[i] %}
-                            {% if criterion[0] == 3 %}
-                                {{titles[i]}} Confidence Index
-                                <div class="slidecontainer">
-                                  <input type="range" min="0" max="100" value="{{criteria[i][0]}}" class="slider" id="myRange">
-                                  <p>Value: <span id="{{titles[i]}}TrustScale"></span></p>
-                                </div>
+                            {% if criterion[0] == 1 %}
+                            {% set ns.done = True %}
+                                <fieldset>
+                                    <legend>{{criterion[1]}}</legend>
+                                    <div class="criterion-row">
+                                        <div class="options">
+                                            <input type="radio" id="{{criterion[1]}}Yes" name="{{criterion[1]}}" onclick="safeguard({{case_id}}, {{criterion[4]}}, 1, {{criterion[0]}}, {{i}})" value=1 {% if criterion[2]==1 %} checked {% endif %}/>
+                                            <label for="{{criterion[1]}}Yes">Yes</label>
+        
+                                            <input type="radio" id="{{criterion[1]}}No" name="{{criterion[1]}}" onclick="safeguard({{case_id}}, {{criterion[4]}}, 2, {{criterion[0]}}, {{i}})" value=2 {% if criterion[2]==2 %} checked {% endif %}/>
+                                            <label for="{{criterion[1]}}No">No</label>
+        
+                                            <input type="radio" id="{{criterion[1]}}unanswered" name="{{criterion[1]}}" onclick="safeguard({{case_id}}, {{criterion[4]}}, 0, {{criterion[0]}}, {{i}})" value=0 {% if criterion[2]==0 %} checked {% endif %} disabled hidden/>
+                                            <label hidden for="{{criterion[1]}}unanswered">unanswered</label>
+                                        </div>
+                                        {% if criterion[5] %}
+                                            <div class="tutorial-btn">
+                                                <input type="button" onclick="tutorial({{criterion[4]}})" value="?" />
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </fieldset>
                             {% endif %}
                         {% endfor %}
-                    {% endif %}   
+                        {% if not ns.done %}
+                            <fieldset>
+                                <legend>{{titles[i]}}</legend>
+                                    <div class="{{titles[i]}}-diagnosis-options">
+                                        {% for criterion in criteria[i] %}
+                                            {% if criterion[0] == 2 %}
+                                                    <div class="diagnosis-row">
+                                                        <div style="flex: 1;">
+                                                            <input type="radio" id="{{criterion[1]}}" name="{{titles[i]}}-diagnosis" onclick="safeguard({{case_id}}, {{criterion[4]}}, 1, {{criterion[0]}}, {{i}}); updateVisibility('{{titles[i]}}', '{{criterion[1]}}');" value=1 {% if criterion[2]==1 %} checked {% endif %}/>
+                                                            <label for="{{criterion[1]}}">{{criterion[1]}}</label>
+                                                        </div>
+                                                        {% if criterion[5] %}
+                                                            <div class="tutorial-btn">
+                                                                <input type="button" onclick="tutorial({{criterion[4]}})" value="?" />
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    <input type="radio" id="{{titles[i]}}unanswered" name="titles[i]" value=0 {% if unanswered[i] %} checked {% endif %} disabled hidden/>
+                                    <label hidden for="unanswered">unanswered</label>
+                                </div>
+                            </fieldset>
+                            {% for criterion in criteria[i] %}
+                                {% if criterion[0] == 3 %}
+                                    {{titles[i]}} Confidence Index
+                                    <div class="slidecontainer">
+                                      <input type="range" min="0" max="100" value="{{criterion[2]}}" class="slider" id="TrustScale{{i}}" oninput="updateValue({{i}}, {{case_id}}, {{criterion[4]}}, {{criterion[0]}})">
+                                      <p>Value: <span id="TrustValue{{i}}">{{criterion[2]}}</span></p>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}  
+                    </div> 
                 {% endfor %}
                 <p>
             </form>
             <div class="button_area">
-                <a href="/case_diagnose/{{case_id}}">
-                  <button>Continue to diagnosis</button>
-                </a>
                 <a href="/user_home/">
                   <button>Save and leave</button>
                 </a>
+                {% if nextcase != 0 %}<a href="/case_display/{{nextcase}}"><button>Next Case</button></a>
+                {% else %} <button type="button" disabled>Next Case</button>
+                {% endif %}
             </div>
             <br/>
         </div>

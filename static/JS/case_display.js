@@ -61,6 +61,46 @@ function user_home(){
     open ('/user_home/', '_self')
 }
 
+function updateValue(i, case_id, criterion_id, category){
+    var slider = document.getElementById( "TrustScale" + i);
+    var output = document.getElementById( "TrustValue" + i);
+    output.innerHTML = slider.value;
+    url = '/safeguard_model?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + slider.value;
+    $.getJSON(url, function(data){});
+    return false;
+}
+
+function updateVisibility(blockTitle, criterionName){
+    console.log(blockTitle);
+    if (blockTitle == "Diagnosis"){    
+        var blocks = document.getElementsByClassName( "Title_block" );
+        if (criterionName == "Melanoma"){
+            for (let i = 0; i < blocks.length; i++){
+                if (blocks[i].id != "Diagnosis"){
+                    blocks[i].style.display="block";
+                }
+            }
+        }
+        else {
+            for (let i = 0; i < blocks.length; i++){
+                if (blocks[i].id != "Diagnosis"){
+                    blocks[i].style.display="none";
+                }
+            }
+        }
+    }
+}
+
+function initVisibility(){
+     var melanomaInput= document.getElementById("Melanoma");
+     if (melanomaInput.checked){
+         updateVisibility("Diagnosis", "Melanoma");
+     }
+     else{
+         updateVisibility("Diagnosis", "");
+     }
+}
+
 // Function to update unanswered red borders
 function updateUnansweredBorders() {
     document.querySelectorAll('.options').forEach(function(optionGroup) {
@@ -77,6 +117,8 @@ function updateUnansweredBorders() {
 
 // Run on page load
 window.addEventListener('load', updateUnansweredBorders);
+window.addEventListener('load', initVisibility);
+
 
 // Update whenever any radio is clicked
 document.addEventListener('change', function(e) {

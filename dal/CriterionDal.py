@@ -216,8 +216,9 @@ def undo_all_but_one(user, case, critId, value, critType, engine):
     
     true_value = 1
     false_value = 2
+    one_of_category = 2
     
-    query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.type == critType).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
+    query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.type == critType).filter(CriterionPOCO.category == one_of_category).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
     ansCrit = query.all()
     criterionId = int(critId)
     # 0: answerCriterion, 1: answer, 2: criterion
@@ -229,6 +230,7 @@ def undo_all_but_one(user, case, critId, value, critType, engine):
         else:
             updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ans[1].id).where(AnswerCriterionPOCO.criterion == ans[2].id).values(value=false_value)
             session.execute(updatestmt)
+    
     session.commit()
     
     session.close()
@@ -239,17 +241,16 @@ def create_all_criterion(engine):
     
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence/delimitations.txt')) as delim_file:
+    with open(os.path.join(getcwd(), 'persistence', 'delimitations.txt')) as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
           
     critType = -1
-    critCategory = 0
     trust = False
     name = ""
     typeName = ""
     
-    criteriaWB = load_workbook(filename = getcwd() + '/data/WOW.xlsx')
+    criteriaWB = load_workbook(filename = os.path.join(getcwd(), 'data', 'WOW.xlsx'))
     criteriaWS = criteriaWB.active
     
     session = Session(engine)
@@ -271,8 +272,6 @@ def create_all_criterion(engine):
 
             critType +=1
             categoryName = categoryCell.value
-            print(typeName)
-            print(trustCell.value)
             trust = trustCell.value == "With Trust"
             if categoryName == "One Of":
                 category = 2
@@ -281,8 +280,9 @@ def create_all_criterion(engine):
            
         else:
             name = nameCell.value
-            tutorial_slide_path = getcwd() + '/data/tutorial_criteria/' + delimitations[critType] + '/' + name + '.jpeg'
-            newCrit = CriterionPOCO(name, tutorial_slide_path, critType, category, False)
+            tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', delimitations[critType], name, '.jpeg')
+            malignancy = (malCell.value == "Malignant")
+            newCrit = CriterionPOCO(name, tutorial_slide_path, critType, category, malignancy)
             newCrit.tutorial_path = tutorial_slide_path
             session.add(newCrit)
         

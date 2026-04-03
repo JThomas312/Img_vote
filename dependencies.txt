@@ -1,5 +1,6 @@
 flask
 flask-WTF
+flask_session
 sqlalchemy
 psycopg2-binary
 bcrypt

@@ -174,7 +174,7 @@ def create_all_cases(engine):
     
     cwd = getcwd()
     path = os.path.join(cwd,'data', 'Img_data')
-    wbpath = os.path.join(cwd , 'data', 'Data.xlsx')
+    wbpath = os.path.join(cwd , 'data', 'Data_WOW.xlsx')
     case_files = [file for file in listdir(path) if not file.startswith('.')]
     
     case_files = sorted(list(case_files), key=natural_sort_key)
@@ -188,7 +188,7 @@ def create_all_cases(engine):
         newpath = os.path.join(path, case_file)
         newname = sheet_obj.cell(row=counter, column=1).value
         #temp hardcoded column number
-        cell_value = sheet_obj.cell(row=counter, column=5).value
+        cell_value = sheet_obj.cell(row=counter, column=2).value
         gld_std_name = cell_value.removesuffix(' ')
         gld_std = criteriaDict[gld_std_name]
         newcase = CasePOCO(newpath, newname, gld_std)

@@ -95,8 +95,12 @@ def caseForDisplay(userId, case):
         except:
             (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], bytearray(), currentCriterion[5], False))
     
-    #temp demo confidance index
-    return (caseVM, delimitations, unanswered)
+    nextcase = 0
+    
+    if (exists_case_by_id(int(case) + 1)):
+        nextcase = int(case) + 1
+    
+    return (caseVM, delimitations, unanswered, nextcase)
 
 def caseForDiagnosis(userId, case):
 
