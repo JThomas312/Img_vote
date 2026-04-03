@@ -45,7 +45,7 @@ url_object = URL.create(
     database=db_name,
 )
 
-engine = create_engine(url_object)
+engine = create_engine(url_object, pool_size=300, max_overflow=500, pool_timeout=600, pool_recycle=18000, echo=False)
 
 #UserDal
 def get_reviewer_by_id(identifier):

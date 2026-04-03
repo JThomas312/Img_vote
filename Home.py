@@ -52,12 +52,11 @@ from controller.CaseController import checkProgress
 
 
 app = Flask(__name__)
-# pkfile = open(os.path.join(getcwd(), 'private_key.txt'))
-# pkcontent = pkfile.read()
-# pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
-pk = b'a62a3f0ecba55677e0e738b1ac3f6bb14333a9683a2de43d0146e06f95b5cdf9'
+pkfile = open(os.path.join(getcwd(), 'private_key.txt'))
+pkcontent = pkfile.read()
+pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
 app.secret_key = pk
-#pkfile.close()
+pkfile.close()
 
 csrf = CSRFProtect(app)
 

@@ -71,7 +71,6 @@ function updateValue(i, case_id, criterion_id, category){
 }
 
 function updateVisibility(blockTitle, criterionName){
-    console.log(blockTitle);
     if (blockTitle == "Diagnosis"){    
         var blocks = document.getElementsByClassName( "Title_block" );
         if (criterionName == "Melanoma"){
