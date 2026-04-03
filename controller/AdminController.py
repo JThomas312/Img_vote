@@ -62,7 +62,7 @@ def get_data_for_export():
     ws = wb.active
     ws.title = "Study_data"
     
-    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r') as fr:
+    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = (fr.read()).replace('\n', '')
     
     file_name = study_name + '_study_data.xlsx'

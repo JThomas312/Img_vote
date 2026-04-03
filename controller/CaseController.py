@@ -56,7 +56,7 @@ def caseForDisplay(userId, case):
      
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence/delimitations.txt')) as delim_file:
+    with open(os.path.join(getcwd(), 'persistence/delimitations.txt'), encoding="utf-8") as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
         
@@ -110,7 +110,7 @@ def caseForDiagnosis(userId, case):
          
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence/delim_diagnosis.txt')) as delim_file:
+    with open(os.path.join(getcwd(), 'persistence/delim_diagnosis.txt'), encoding="utf-8") as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
     

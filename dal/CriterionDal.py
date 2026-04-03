@@ -201,14 +201,22 @@ def safeguard_Criterion(user, case, critId, newValue, engine):
     session = Session(engine)
     
     query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.id == critId).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
-    ansCrit = query.one_or_none()[0]
+    
+    result = query.one_or_none()
+    
+    if result is None:
+        return
+    
+    ansCrit = result[0]
+            
     updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansCrit.answer).where(AnswerCriterionPOCO.criterion == ansCrit.criterion).values(value=newValue)
 
     session.execute(updatestmt)
 
     session.commit()
-    
+   
     session.close()
+
 
 def undo_all_but_one(user, case, critId, value, critType, engine):
     
@@ -234,14 +242,14 @@ def undo_all_but_one(user, case, critId, value, critType, engine):
     session.commit()
     
     session.close()
-
+    
     
 #one-time data creation
 def create_all_criterion(engine):
     
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence', 'delimitations.txt')) as delim_file:
+    with open(os.path.join(getcwd(), 'persistence', 'delimitations.txt'), encoding="utf-8") as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
           
@@ -287,9 +295,7 @@ def create_all_criterion(engine):
             session.add(newCrit)
         
         # add trust criterion at the end if need be
-        print(i)
         if (i == criteriaWS.max_row) and trust:
-            print("il est passé par ici")
             newCrit = CriterionPOCO(typeName, "", critType, 3, False)
             newCrit.tutorial_path = ""
             session.add(newCrit) 

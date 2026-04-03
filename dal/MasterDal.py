@@ -28,7 +28,7 @@ import img_vote.dal.CriterionDal as CriterionDal
 
 metadata_obj = MetaData()
 
-database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials.txt'))
+database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials.txt'), encoding="utf-8")
 orm_driver = database_credentials_file.readline().removesuffix('\n')
 usrname = database_credentials_file.readline().removesuffix('\n')
 passw = database_credentials_file.readline().removesuffix('\n')
@@ -45,7 +45,7 @@ url_object = URL.create(
     database=db_name,
 )
 
-engine = create_engine(url_object, pool_size=300, max_overflow=500, pool_timeout=600, pool_recycle=18000, echo=False)
+engine = create_engine(url_object, pool_size=40, max_overflow=60, pool_timeout=30, pool_recycle=1800, pool_pre_ping=True, client_encoding="utf8")
 
 #UserDal
 def get_reviewer_by_id(identifier):

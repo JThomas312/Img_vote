@@ -52,11 +52,12 @@ from controller.CaseController import checkProgress
 
 
 app = Flask(__name__)
-pkfile = open(os.path.join(getcwd(), 'private_key.txt'))
-pkcontent = pkfile.read()
-pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
+# pkfile = open(os.path.join(getcwd(), 'private_key.txt'), encoding="utf-8")
+# pkcontent = pkfile.read()
+# pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
+pk = b'a62a3f0ecba55677e0e738b1ac3f6bb14333a9683a2de43d0146e06f95b5cdf9'
 app.secret_key = pk
-pkfile.close()
+# pkfile.close()
 
 csrf = CSRFProtect(app)
 
@@ -112,10 +113,10 @@ def logout():
 def user_home():    
     if 'username' in session:
         user = user_for_home(session["username"])
-        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
             status = fr.read().replace('\n', '')
         if (status != 'stopped') and status != 'ended':
-            with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'r') as f:
+            with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'r', encoding="utf-8") as f:
                try:
                    study_end = datetime.strptime(f.read(), '%Y-%m-%d')
                    remaining_days = (study_end - datetime.today()).days
@@ -145,7 +146,7 @@ def begin_study():
         if 'admin' in session:
             if session['admin']:
                 error = None
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if status != 'stopped':
                     error = 'Study has already begun, current status is: ' + status 
@@ -159,18 +160,18 @@ def start_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 endDate = datetime.strptime(request.form['study_end'], '%Y-%m-%d')
                 if status == 'stopped':
                     init_data_study_start()
-                    with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
                         fw.write(endDate.strftime('%Y-%m-%d'))
                     
-                    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
                         fw.write(request.form['study_name'])
                         
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
                         fw.write('ongoing')
         return(redirect(url_for('user_home')))    
     else:
@@ -181,10 +182,10 @@ def pause_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'ongoing':
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                         fw.write('paused')
         return(redirect(url_for('user_home')))    
     else:
@@ -195,10 +196,10 @@ def resume_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'paused':
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                         fw.write('ongoing')
         return(redirect(url_for('user_home')))    
     else:
@@ -209,7 +210,7 @@ def confirm_end():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'paused':
                     return render_template('confirm_end.html')
@@ -222,10 +223,10 @@ def end_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'paused':
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                         fw.write('ended')
         return(redirect(url_for('user_home')))
     else:
@@ -257,11 +258,11 @@ def clear_users():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'ended':
                     clear_data()
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w') as fw:
+                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                         fw.write('stopped')
         return redirect(url_for('user_home'))
     else:
@@ -337,7 +338,7 @@ def new_user_creation():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r') as fr:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read()
                 error = None
                 login = request.form['login']
