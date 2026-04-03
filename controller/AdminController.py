@@ -30,7 +30,6 @@ from img_vote.dal.MasterDal import get_reviewer_by_login, create_reviewer, delet
 from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data
 from img_vote.dal.MasterDal import create_all_criterion, create_all_answer_to_criterion, create_user_answer_to_criterion, get_all_criteria_no_diagnosis, clear_all_criteria
 from img_vote.dal.MasterDal import create_user_answers
-from img_vote.dal.MasterDal import extract_all_data
 
 
 def find_name_and_login(userId):
@@ -74,7 +73,6 @@ def get_data_for_export():
     finalExtract = extract_all_data()
     
     nbCriteria = len(criteria)
-    print(nbCriteria)
     
     ws.cell(row=1, column=1, value='cases')
     ws.cell(row=1, column=2, value='reviewers')
@@ -93,7 +91,6 @@ def get_data_for_export():
     for i in range(len(finalExtract)):
         ws.cell(row=i + 2, column=1, value=finalExtract[i].case)
         ws.cell(row=i + 2, column=2, value=finalExtract[i].reviewer)
-        print(finalExtract[i].criteria)
         for j in range(nbCriteria):
             ws.cell(row=i + 2, column=j + 3, value=finalExtract[i].criteria[j])
         ws.cell(row=i + 2, column=nbCriteria + 3, value=finalExtract[i].reviewer_diagnosis)

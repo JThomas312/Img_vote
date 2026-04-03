@@ -114,6 +114,14 @@ def extract_all_data(engine):
             rev_malignity = 'na'
             rev_diag = 'na'
             
+            if queriedAnswer != None:
+                if queriedAnswer[1].malignity:
+                    rev_malignity = 'malignant'
+                else:
+                    rev_malignity = 'benign'
+                    
+                rev_diag = format_r_friendly(queriedAnswer[1].name)
+            
             diagnosis_confidence = -1
             depth_confidence = -1
             
@@ -124,24 +132,19 @@ def extract_all_data(engine):
             if queriedAnswer[0].value != None :
                 diagnosis_confidence = queriedAnswer[0].value
             
-            query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == confidence_category).where(CriterionPOCO.name == "Melanoma Depth Prediction")
-            queriedAnswer = query.one_or_none()
-            if queriedAnswer[0].value != None :
-                depth_confidence = queriedAnswer[0].value
-            
             gld_std_name = format_r_friendly(case[1].name)
+            
             if case[1].malignity:
                 gld_std_malignity = 'malignant'
             else:            
                 gld_std_malignity = 'benign'
             
-            if queriedAnswer != None:
-                if queriedAnswer[1].malignity:
-                    rev_malignity = 'malignant'
-                else:
-                    rev_malignity = 'benign'
-                    
-                rev_diag = format_r_friendly(queriedAnswer[1].name)
+            
+            
+            query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == confidence_category).where(CriterionPOCO.name == "Melanoma Depth Prediction")
+            queriedAnswer = query.one_or_none()
+            if queriedAnswer[0].value != None :
+                depth_confidence = queriedAnswer[0].value
             
             queryCriteria = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id). where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.type != diagnosisType).order_by(CriterionPOCO.id)
             ansCriteria = queryCriteria.all()    
