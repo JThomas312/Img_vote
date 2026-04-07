@@ -113,15 +113,22 @@ def get_all_non_admin_reviewers(engine):
     return users
     
 #CRUD    
-
-def advance_user_count(userId, engine):
+    
+def update_user_count(userId, done, engine):
     
     session = Session(engine)
     
     ans = session.query(ReviewerPOCO).filter(ReviewerPOCO.id == userId).one_or_none()
     
+    increment = 0
+    
+    if done:
+        increment = -1
+    else:
+        increment = 1
+    
     if ans != None:
-        updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == userId).values(remaining_cases=ans.remaining_cases - 1)
+        updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == userId).values(remaining_cases=ans.remaining_cases + increment)
     
         session.execute(updatestmt)
 

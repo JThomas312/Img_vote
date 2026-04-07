@@ -75,8 +75,8 @@ def clear_non_admin_users():
 def update_password(userId, newPassword):
     return UserDal.update_password(userId, newPassword, engine)
 
-def advance_user_count(userId):
-    return UserDal.advance_user_count(userId, engine)
+def update_user_count(userId, done):
+    return UserDal.update_user_count(userId, done, engine)
 
 
 #CaseDal
@@ -108,8 +108,8 @@ def get_answer_by_id(identifier):
 def get_cases_and_answers(userId):
     return AnswerDal.get_cases_and_answers(userId, engine)
 
-def mark_answer_done(userId, caseId):
-    return AnswerDal.mark_answer_done(userId, caseId, engine)
+def update_answer_status(userId, caseId, done):
+    return AnswerDal.update_answer_status(userId, caseId, done, engine)
 
 def create_all_answers():
     return AnswerDal.create_all_answers(engine)

@@ -48,13 +48,22 @@ def get_criterion_by_id(identifier, engine):
 def get_unfinished_criteria(userId, caseId, engine):
     
     session = Session(engine)
-    #criterion type 2 is diagnosis
-    diagnosis_type = 2 
+    
+    #criterion category 2 is one of
+    yes_no_category = 1
+    one_of_category = 2 
     unanswered_value = 0
     true_value = 1
     
-    query1 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type != diagnosis_type).filter(AnswerCriterionPOCO.value == unanswered_value)
-    query2 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type == diagnosis_type).filter(AnswerCriterionPOCO.value == true_value).order_by(CriterionPOCO.id)
+    # if diagnosis is not a melenoma, consider the case done
+    query0 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.name == "Melanoma").filter(AnswerCriterionPOCO.value == true_value)
+    ans0 = session.query(query0.exists()).scalar()
+    if not ans0:
+        return False
+    
+    
+    query1 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.category == yes_no_category).filter(AnswerCriterionPOCO.value == unanswered_value)
+    query2 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.category == one_of_category).filter(AnswerCriterionPOCO.value == true_value).order_by(CriterionPOCO.id)
     ans1 = session.query(query1.exists()).scalar()
     ans2 = session.query(query2.exists()).scalar()
     

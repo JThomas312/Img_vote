@@ -34,8 +34,8 @@ from img_vote.dal.MasterDal import save_Criterion
 from img_vote.dal.MasterDal import safeguard_Criterion
 from img_vote.dal.MasterDal import undo_all_but_one
 from img_vote.dal.MasterDal import get_unfinished_criteria
-from img_vote.dal.MasterDal import mark_answer_done
-from img_vote.dal.MasterDal import advance_user_count
+from img_vote.dal.MasterDal import update_answer_status
+from img_vote.dal.MasterDal import update_user_count
 from img_vote.dal.MasterDal import create_all_answers
 from img_vote.dal.MasterDal import create_all_criterion
 from img_vote.dal.MasterDal import create_all_cases
@@ -178,8 +178,8 @@ def safeguardDiagnosis(userId, case, criterionId, value, critType):
     undo_all_but_one(userId, case, criterionId, value, critType)
     
 def checkProgress(userId, case):
-    exists_unfinished = get_unfinished_criteria(userId, case)
-    if not exists_unfinished:
-        if mark_answer_done(userId, case):
-            advance_user_count(userId)
+    done = not get_unfinished_criteria(userId, case)
+    print(done)
+    if update_answer_status(userId, case, done):
+        update_user_count(userId, done)
 

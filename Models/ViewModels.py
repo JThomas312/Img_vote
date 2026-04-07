@@ -33,9 +33,62 @@ class CaseViewModel():
     imgs: list()
     imgs_sizes: list((int, int))
     criteria: list(list((int, str, int, bytearray, int, bool))) #category, name, value, image, id, hasTutorial
-    def __init__(self, nbCategories):
+    def __init__(self, nb_categories):
         self.imgs = []
         self.imgs_sizes = []
-        self.criteria = [[] for i in range(nbCategories)]
+        self.criteria = [[] for i in range(nb_categories)]
+ 
     
+# class CategoryViewModel():
+#     name: str
+#     type: int
+#     has_trust: bool
+#     has_tutorial: bool
+#     has_NA: bool
+#     optional: bool
+#     prerequisites: list(int)
+#     unanswered: bool
+#     def __init__(self, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites, unanswered):
+#         self.name = name
+#         self.type = cat_type
+#         self.has_trust = has_trust
+#         self.has_tutorial = has_tutorial
+#         self.has_NA = has_NA
+#         self.optional = optional
+#         self.prerequisites = prerequisites
+#         self.unanswered = unanswered
         
+# class CriterionViewModel():
+#     name: str
+#     value: int
+#     tutorial: bytearray
+#     id: int
+#     def __init__(self, name, value, tutorial, caseId):
+#         self.name = name
+#         self.value = value
+#         self.tutorial = tutorial
+#         self.id = caseId
+    
+# class CaseDisplayViewModel():
+#     case_id: int
+#     case_name: str 
+#     nb_imgs: int 
+#     imgs: list()
+#     imgs_sizes: list((int, int))
+#     categories: list(CategoryViewModel)
+#     criteria: list(CriterionViewModel)
+#     nb_categories: int 
+#     nextcase: int
+#     def __init__(self, case_id, case_name, nb_imgs, imgs, imgs_sizes, nb_categories):
+#         self.case_id = case_id
+#         self.case_name = case_name
+#         self.nb_imgs = nb_imgs
+#         self.imgs = []
+#         self.imgs_sizes = []
+#         self.categories = []
+#         self.criteria = [ [] for i in range (nb_categories) ]
+#         self.nb_categories = nb_categories
+
+
+
+

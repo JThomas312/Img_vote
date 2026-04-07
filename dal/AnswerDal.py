@@ -89,20 +89,24 @@ def get_cases_and_answers(userId, engine):
 
 #CRUD
 
-def mark_answer_done(userId, caseId, engine):
+def update_answer_status(userId, caseId, done, engine):
     
     session = Session(engine)
     
     ans = session.query(AnswerPOCO).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).one_or_none()
-    if ans != None and not ans.completed:
-        updatestmt = update(AnswerPOCO).where(AnswerPOCO.reviewer == userId).where(AnswerPOCO.study_case == caseId).values(completed=True)
+
+    databaseUpdated = False
+    
+    if ans != None and (ans.completed != done):
+        updatestmt = update(AnswerPOCO).where(AnswerPOCO.reviewer == userId).where(AnswerPOCO.study_case == caseId).values(completed=done)
         session.execute(updatestmt)
         session.commit()
         session.close()
-        return True
-    else:
-        session.close()
-        return False
+        databaseUpdated = True
+
+    #returns wether the database was updated
+    session.close()
+    return databaseUpdated
 
 #one-time data creation
 
