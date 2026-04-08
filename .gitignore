@@ -12,11 +12,22 @@
 **/data_old
 **/data_older
 
+# ignore persistancy stuff
+**/persistence
+**/results/*
+
+# database
+postgresql*
+
+# secrets
+cert_chain.pem
+certificate.txt
+private_key.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
 
 # Distribution / packaging
 .Python
@@ -44,6 +55,7 @@ pip-delete-this-directory.txt
 
 # Flask stuff:
 instance/
+**/sessions
 .webassets-cache
 
 # ignore package json
