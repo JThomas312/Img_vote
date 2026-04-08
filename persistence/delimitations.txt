@@ -1,5 +1,0 @@
-Diagnosis
-Surface Topography
-Colors
-Dermoscopy Findings
-Melanoma Depth Prediction
