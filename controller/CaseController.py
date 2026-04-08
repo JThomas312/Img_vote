@@ -82,15 +82,11 @@ def caseForDisplay(userId, case):
     for i in range (len(criterionForCase.criteria)):
         currentCriterion = criterionForCase.criteria[i]
         #currentCriterion 0: type, 1: category, 2: name, 3: value, 4: tutorial path, 5: id
-        # 0: category, 1: name, 2: value, 3: image, 4: id, 5: hasTutorial
         #category 2 is one of many where we need unanswered status
         if currentCriterion[1] == 2 and currentCriterion[3] == trueValue:
             unanswered[currentCriterion[0]] = False
         tutorial_slide_path = currentCriterion[4]
-        
-        # if tutorial_slide_path == "Melanoma Thick Invasive >1mm":
-        #     tutorial_slide_path = tutorial_slide_path.replace(">", "·")
-        
+       
         try:
             slide_im = Image.open(tutorial_slide_path)
             data = io.BytesIO()

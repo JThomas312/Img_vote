@@ -296,6 +296,7 @@ def create_all_criterion(engine):
                 category = 1
            
         else:
+            #dirty fix, remove later
             name = nameCell.value
             tutorial_name = name
             if tutorial_name.find(">") != -1:
