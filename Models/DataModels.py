@@ -59,11 +59,13 @@ class CriterionDataModel():
     critId: int
     name: str
     tutorial_path: str
+    critType: int
     critCategory: int   
-    def __init__(self, critId, name, tutorial_path, category):
+    def __init__(self, critId, name, tutorial_path, critType, category):
         self.critId = critId
         self.name = name
         self.tutorial_path = tutorial_path
+        self.critType = critType
         self.critCategory = category
  
 class DiagnosisDataModel():

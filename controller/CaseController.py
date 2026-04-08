@@ -56,7 +56,7 @@ def caseForDisplay(userId, case):
      
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence/delimitations.txt'), encoding="utf-8") as delim_file:
+    with open(os.path.join(getcwd(), 'persistence', 'delimitations.txt'), encoding="utf-8") as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
         
@@ -82,16 +82,23 @@ def caseForDisplay(userId, case):
     for i in range (len(criterionForCase.criteria)):
         currentCriterion = criterionForCase.criteria[i]
         #currentCriterion 0: type, 1: category, 2: name, 3: value, 4: tutorial path, 5: id
-        tutorial_slide_path = currentCriterion[3]
+        # 0: category, 1: name, 2: value, 3: image, 4: id, 5: hasTutorial
         #category 2 is one of many where we need unanswered status
         if currentCriterion[1] == 2 and currentCriterion[3] == trueValue:
             unanswered[currentCriterion[0]] = False
+        tutorial_slide_path = currentCriterion[4]
+        
+        # if tutorial_slide_path == "Melanoma Thick Invasive >1mm":
+        #     tutorial_slide_path = tutorial_slide_path.replace(">", "·")
+        
         try:
             slide_im = Image.open(tutorial_slide_path)
             data = io.BytesIO()
-            slide_im.save(data, 'JPEG')
+            slide_im.save(data, 'PNG')
             slide_encoded_img_data = base64.b64encode(data.getvalue())
-            (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], slide_encoded_img_data.decode('utf-8'), currentCriterion[5], True))
+            slide_img_data = slide_encoded_img_data.decode('utf-8')
+            # 0: category, 1: name, 2: value, 3: image, 4: id, 5: hasTutorial
+            (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], slide_img_data, currentCriterion[5], True))
         except:
             (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], bytearray(), currentCriterion[5], False))
     
@@ -110,7 +117,7 @@ def caseForDiagnosis(userId, case):
          
     # load delimiting words from config file
     delimitations = []
-    with open(os.path.join(getcwd(), 'persistence/delim_diagnosis.txt'), encoding="utf-8") as delim_file:
+    with open(os.path.join(getcwd(), 'persistence', 'delim_diagnosis.txt'), encoding="utf-8") as delim_file:
         for l in delim_file:
             delimitations.append(l.removesuffix('\n'))
     
@@ -162,7 +169,7 @@ def criterion_for_tutorial(idCriterion):
     tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
     slide_im = Image.open(tutorial_slide_path)
     data = io.BytesIO()
-    slide_im.save(data, 'JPEG')
+    slide_im.save(data, 'PNG')
     slide_encoded_img_data = base64.b64encode(data.getvalue())
     img_data = slide_encoded_img_data.decode('utf-8')
     return(img_data)
@@ -179,7 +186,6 @@ def safeguardDiagnosis(userId, case, criterionId, value, critType):
     
 def checkProgress(userId, case):
     done = not get_unfinished_criteria(userId, case)
-    print(done)
     if update_answer_status(userId, case, done):
         update_user_count(userId, done)
 

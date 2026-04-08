@@ -39,7 +39,7 @@ def get_criterion_by_id(identifier, engine):
     
     criterionPOCO = session.get(CriterionPOCO, identifier)
     
-    criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.type, criterionPOCO.category, criterionPOCO.trust)
+    criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.type, criterionPOCO.category)
     
     session.close()
     
@@ -297,7 +297,11 @@ def create_all_criterion(engine):
            
         else:
             name = nameCell.value
-            tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', delimitations[critType], name, '.jpeg')
+            tutorial_name = name
+            if tutorial_name.find(">") != -1:
+                tutorial_name = name.replace(">", "gt ")
+            tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', delimitations[critType], tutorial_name + '.png')
+            
             malignancy = (malCell.value == "Malignant")
             newCrit = CriterionPOCO(name, tutorial_slide_path, critType, category, malignancy)
             newCrit.tutorial_path = tutorial_slide_path
