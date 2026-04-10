@@ -1,0 +1,74 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Thu Apr  9 11:58:10 2026
+
+@author: jacques
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1.0"/>
+    <title>Category Configuration</title>
+
+    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='JS/category_configuration.js')}}"></script>
+    
+    <link rel="stylesheet" href="{{url_for('static', filename='CSS/category_configuration.css')}}"/>
+</head>
+
+<body>
+    {% if status_error %}
+        <h1>There has been an error during study configuration: {{ status_error }}!</h1>
+        <a href="/user_home/">
+            <button>go back</button>
+        </a>
+    {% else %}
+        {% if deletion_error %}
+            <div id="error_display">
+                {{deletion_error}}
+            </div>
+        {% endif %}    
+        {% block title %} Current Categories :{% endblock %}
+        {% block content %}
+        <ul>
+            {% for i in range(nb_categories) %}
+            <li>
+                <a> <h1>{{categories[i]}}</h1> 
+                <a href="/edit_category/{{i}}">
+                  <button class="editButton">Edit</button>
+                </a> 
+                <button class="removeButton" onclick="remove_category({{i}})">Remove</button> </a>
+                <ol>
+                {% for criterion in criteria[i] %}
+                    <li>
+                        <a> {{criterion[1]}} <button class="removeButton" onclick="remove_criterion({{criterion[0]}})">Remove</button> </a>
+                    </li>
+                {% endfor %}
+                </ol>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endblock %}
+        <a href="/add_category/">
+          <button>Add Category</button>
+        </a>
+        <br/>
+        <a href="/user_home/">
+          <button>Leave Configuration</button>
+        </a>
+        <br/>
+        <a href="/finish_category_configuration/">
+          <button>Finish Editing Categories</button>
+        </a>
+        <br/>
+    {% endif %}
+</body>
+
+
+{% endautoescape %}
+</html>

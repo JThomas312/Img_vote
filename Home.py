@@ -35,16 +35,16 @@ from markupsafe import escape
 from controller.UserController import user_for_home
 from controller.UserController import user_for_login
 from controller.UserController import modify_password
+from controller.AdminController import create_user
 from controller.AdminController import delete_user
 from controller.AdminController import regenerate_password
 from controller.AdminController import find_name_and_login
-from controller.AdminController import create_user
+from controller.AdminController import categories_for_editing
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 from controller.CaseController import caseForDisplay
 from controller.CaseController import caseForDiagnosis
 from controller.CaseController import init_data_study_start
-from controller.CaseController import saveProgress
 from controller.CaseController import safeguardProgress
 from controller.CaseController import safeguardDiagnosis
 from controller.CaseController import criterion_for_tutorial
@@ -137,6 +137,23 @@ def user_home():
                 return render_template('user_home.html', username=user.name, remaining_items=remaining_items, remaining_days=remaining_days, items=items)
             else:
                 return render_template('study_ended.html', username=user.name)
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/category_configuration/', methods=['GET'])
+def category_configuration():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                status_error = None
+                deletion_error = None
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'stopped':
+                    status_error = 'Categories are already locked, current status is: ' + status 
+                pending_categories = categories_for_editing()
+                return render_template('category_configuration.html', status_error=status_error, deletion_error=deletion_error)                        
+        return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
 

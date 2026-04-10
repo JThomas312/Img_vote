@@ -54,7 +54,10 @@ def create_user(login, name, admin, status):
             create_user_answers(revId)
             create_user_answer_to_criterion(revId)
     return password
-  
+
+def categories_for_editing():
+        
+
 def get_data_for_export():
 
     wb = Workbook()
