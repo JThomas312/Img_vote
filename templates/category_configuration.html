@@ -32,28 +32,39 @@ Created on Thu Apr  9 11:58:10 2026
             <div id="error_display">
                 {{deletion_error}}
             </div>
-        {% endif %}    
-        {% block title %} Current Categories :{% endblock %}
-        {% block content %}
-        <ul>
-            {% for i in range(nb_categories) %}
-            <li>
-                <a> <h1>{{categories[i]}}</h1> 
-                <a href="/edit_category/{{i}}">
-                  <button class="editButton">Edit</button>
-                </a> 
-                <button class="removeButton" onclick="remove_category({{i}})">Remove</button> </a>
-                <ol>
-                {% for criterion in criteria[i] %}
-                    <li>
-                        <a> {{criterion[1]}} <button class="removeButton" onclick="remove_criterion({{criterion[0]}})">Remove</button> </a>
-                    </li>
+        {% endif %} 
+        {% if categories != [] %}   
+            {% block title %} Current Categories :{% endblock %}
+            {% block content %}
+            <ul>
+                {% for category in categories %}
+                <li>
+                    <a> {% if category.name == '' %} Unnamed Category {% else %} {{category.name}} {% endif %} 
+                        <a href="/edit_category/{{category.id}}">
+                          <button class="editButton">Edit</button>
+                        </a> 
+                        <a href="/remove_category/{{category.id}}">
+                            <button class="removeButton">Remove</button>
+                        </a>
+                    </a>
+                    <ol>
+                    {% for criterion in category.criteria %}
+                        <li>
+                            <a> {{criterion.name}} 
+                                <a href="/remove_criterion/{{criterion.id}}">
+                                    <button class="removeButton">Remove</button>
+                                </a> 
+                            </a>
+                        </li>
+                    {% endfor %}
+                    </ol>
+                </li>
                 {% endfor %}
-                </ol>
-            </li>
-            {% endfor %}
-        </ul>
-        {% endblock %}
+            </ul>
+            {% endblock %}
+        {% else %}
+            <h1>No categories were created yet<h1>
+        {% endif %}
         <a href="/add_category/">
           <button>Add Category</button>
         </a>

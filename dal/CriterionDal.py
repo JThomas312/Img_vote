@@ -26,8 +26,8 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.DataModels import CriterionDataModel, CriterionForCaseDataModel, DiagnosisDataModel, FinalExtractDataModel
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO
+from img_vote.Models.DataModels import CriterionDataModel, CriterionForCaseDataModel, CategoryWithCriteriaDataModel, CategoryWithCriteriaAndPrerequisitesDataModel, DiagnosisDataModel, FinalExtractDataModel
+from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO, CategoryPOCO, PrerequisitePOCO
 from img_vote.dal.AnswerDal import get_all_answers
 from img_vote.dal.AnswerDal import get_user_answers
 
@@ -168,17 +168,107 @@ def get_all_diagnosis(engine):
     
     return diagnosis
 
+def categories_with_criteria(engine):
+    
+    session = Session(engine)
+    
+    query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).order_by(CategoryPOCO.id, CriterionPOCO.id)
+    
+    #0: category, 1:criterion
+    queriedAnswer = query.all()
+    
+    answer = []
+    currentCategory = -1
+    currentDataModel = None
+    
+    for ans in queriedAnswer:
+        if (ans[0].id != currentCategory):
+            if (currentCategory != -1):
+                answer.append(currentDataModel)
+            currentCategory += 1
+            currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional)
+        if ans[1] != None and not ans[1].is_trust:
+            currentDataModel.criteria.append((ans[1].id, ans[1].name))
+    
+    #avoid off by one
+    if currentDataModel != None:
+        answer.append(currentDataModel)
+    
+    return answer
+
+def category_with_criteria_and_prerequisites(catId, engine):
+    
+    session = Session(engine)
+    
+    query1 = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.id == catId).order_by(CategoryPOCO.id, CriterionPOCO.id)
+    query2 = session.query(CriterionPOCO, PrerequisitePOCO).join(PrerequisitePOCO, CriterionPOCO.id == PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == catId)
+    
+    #0: category, 1: criterion
+    queriedAnswer1 = query1.all()
+    #0: criterion, 1: prerequisite
+    queriedAnswer2 = query2.all()
+    
+    
+    answer = queriedAnswer1[0]
+    categoryDataModel = CategoryWithCriteriaAndPrerequisitesDataModel(answer[0].id, answer[0].name, answer[0].type, answer[0].has_tutorial, answer[0].has_trust, answer[0].has_na, answer[0].optional, answer[0].has_gold_standard, answer[0].has_malignancy)
+    
+    for ans in queriedAnswer1:
+        if ans[1] != None and not ans[1].is_trust:
+            categoryDataModel.criteria.append((ans[1].id, ans[1].name, ans[1].malignancy))
+    
+    for ans in queriedAnswer2:
+        categoryDataModel.prerequisites.append((ans[0].id, ans[0].name))
+    
+    
+    return categoryDataModel
+
 #CRUD
-def create_criterion(name, tutorial_path, critType, malignity, engine):
+def create_criterion(name, tutorial_path, category, is_trust, malignancy, engine):
     
     session = Session(engine)
 
-    newCrit = CriterionPOCO(name, tutorial_path, critType, malignity)
+    newCrit = CriterionPOCO(name, tutorial_path, category, is_trust, malignancy)
     if (newCrit.tutorial_path == None):
         newCrit.tutorial_path = tutorial_path
+        
     session.add(newCrit)
     session.commit()
     
+    session.close()
+
+def update_criterion(crit_id, crit_name, crit_malignancy, engine):
+    
+    session = Session(engine)
+    
+    updatestmt = update(CriterionPOCO).where(CriterionPOCO.id == crit_id).values(name=crit_name, malignancy=crit_malignancy)
+
+    session.execute(updatestmt)
+
+    session.commit()
+    
+    session.close()
+    
+
+def erase_criterion(identifier, engine):
+    
+    session = Session(engine)
+    
+    deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.id == identifier)
+    
+    session.execute(deleteStmt)
+    session.commit()
+
+    session.close()
+    
+def erase_category_criteria(identifier, engine):
+    
+    session = Session(engine)
+    
+    deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.category == identifier)
+    
+    session.execute(deleteStmt)
+    session.commit()
+
     session.close()
 
 def create_answer_to_criterion(answer, criterion, engine):

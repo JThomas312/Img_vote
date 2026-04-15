@@ -26,6 +26,7 @@ class ReviewerPOCO(Base):
     login: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(30))
     admin: Mapped[bool]
+    full_review: Mapped[bool]
     remaining_cases: Mapped[int]
     
     def __repr__(self) -> str:
@@ -41,27 +42,59 @@ class ReviewerPOCO(Base):
 class CategoryPOCO(Base):
     __tablename__ = "category"
     id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
     type: Mapped[int]
-    trust: Mapped[int]
+    has_tutorial: Mapped[bool]
+    has_trust: Mapped[bool]
+    has_na: Mapped[bool]
+    optional: Mapped[bool]
+    has_gold_standard: Mapped[bool]
+    has_malignancy: Mapped[bool]
+    
+    def __repr__(self) -> str:
+        return f"Category(id={self.id!r}, name={self.name!r}, type={self.type!r}, has_tutorial={self.has_tutorial!r}, has_trust={self.has_trust!r}, has_na={self.has_na!r}, optional={self.optional!r}, has_gold_standard={self.has_gold_standard!r}, has_malignancy={self.has_malignancy!r})"
+    
+    def __init__(self, name='', catType=0, has_tutorial=False, has_trust=False, has_na=False, optional=False, has_gold_standard=False, has_malignancy=False):
+        self.name = name
+        self.type = catType
+        self.has_tutorial = has_tutorial
+        self.has_trust = has_trust
+        self.has_na = has_na
+        self.optional = optional
+        self.has_gold_standard = has_gold_standard
+        self.has_malignancy = has_malignancy
+
 
 class CriterionPOCO(Base):
     __tablename__ = "criterion"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
     tutorial_path: Mapped[str] = mapped_column(String(200))
-    type: Mapped[int]
-    category: Mapped[int]
-    malignity: Mapped[bool]
+    category: Mapped[int] = mapped_column(ForeignKey("category.id"))
+    is_trust: Mapped[bool]
+    malignancy: Mapped[bool]
     
     def __repr__(self) -> str:
         return f"Criterion(id={self.id!r}, name={self.name!r}, tutorial_path={self.tutorial_path!r}, type={self.type!r})"
     
-    def __init__(self, name, path, critType, critCategory, mal):
+    def __init__(self, name, path, critCategory, trust, mal):
         self.name = name
-        self.path = path
-        self.type = critType
+        self.tutorial_path = path
         self.category = critCategory
-        self.malignity = mal
+        self.is_trust = trust
+        self.malignancy = mal
+
+class PrerequisitePOCO(Base):
+    __tablename__ = "prerequisite"
+    category: Mapped[int] = mapped_column(ForeignKey("category.id"), primary_key=True)
+    criterion: Mapped[int] = mapped_column(ForeignKey("criterion.id"), primary_key=True)
+    
+    def __repr__(self) -> str:
+        return f"Prerequisite(category={self.category!r}, criterion={self.criterion!r})"
+    
+    def __init__(self, category, criterion):
+        self.category = category
+        self.criterion = criterion
 
 class CasePOCO(Base):
     __tablename__ = "study_case"
@@ -83,6 +116,7 @@ class AnswerPOCO(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     study_case: Mapped[int] = mapped_column(ForeignKey("study_case.id"))
     reviewer: Mapped[int] = mapped_column(ForeignKey("reviewer.id"))
+    name: Mapped[str] = mapped_column(String(10))
     completed: Mapped[bool]
     
     def __repr__(self) -> str:

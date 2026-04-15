@@ -40,6 +40,16 @@ from controller.AdminController import delete_user
 from controller.AdminController import regenerate_password
 from controller.AdminController import find_name_and_login
 from controller.AdminController import categories_for_editing
+from controller.AdminController import category_for_editing
+from controller.AdminController import create_empty_category
+from controller.AdminController import update_category
+from controller.AdminController import delete_category
+from controller.AdminController import save_criterion
+from controller.AdminController import change_criterion
+from controller.AdminController import save_prerequisite
+from controller.AdminController import change_prerequisite
+from controller.AdminController import optional_category_allowed
+from controller.AdminController import gold_standard_category_allowed
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 from controller.CaseController import caseForDisplay
@@ -52,12 +62,11 @@ from controller.CaseController import checkProgress
 
 
 app = Flask(__name__)
-# pkfile = open(os.path.join(getcwd(), 'private_key.txt'), encoding="utf-8")
-# pkcontent = pkfile.read()
-# pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
-pk = b'a62a3f0ecba55677e0e738b1ac3f6bb14333a9683a2de43d0146e06f95b5cdf9'
+pkfile = open(os.path.join(getcwd(), 'private_key.txt'), encoding="utf-8")
+pkcontent = pkfile.read()
+pk = pkcontent.removeprefix('-----BEGIN RSA PRIVATE KEY-----\n').removesuffix('\n-----END RSA PRIVATE KEY-----\n')
 app.secret_key = pk
-# pkfile.close()
+pkfile.close()
 
 csrf = CSRFProtect(app)
 
@@ -152,10 +161,67 @@ def category_configuration():
                 if status != 'stopped':
                     status_error = 'Categories are already locked, current status is: ' + status 
                 pending_categories = categories_for_editing()
-                return render_template('category_configuration.html', status_error=status_error, deletion_error=deletion_error)                        
+                return render_template('category_configuration.html', status_error=status_error, deletion_error=deletion_error, categories=pending_categories)                        
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
+
+@app.route('/add_category/', methods=['GET'])
+def add_category():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'stopped':
+                    return(redirect(url_for('category_configuration')))                
+                category_id = create_empty_category()
+                return(redirect('/edit_category/' + str(category_id)))                       
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+
+
+@app.route('/edit_category/<categoryId>', methods=['GET', 'POST'])
+def edit_category(categoryId):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                error = None
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'stopped':
+                    return(redirect(url_for('category_configuration')))
+                optional_allowed = optional_category_allowed(categoryId)
+                gold_standard_allowed = gold_standard_category_allowed(categoryId)
+                if request.method == 'GET':
+                    categoryViewModel = category_for_editing(categoryId)
+                    return render_template('category_edition.html', category=categoryViewModel, error=error, formError=None, optional_allowed=optional_allowed, gold_standard_allowed=gold_standard_allowed)
+                    
+                if request.method == 'POST':
+                    answer = (request.form).copy()
+                    answer.pop('csrf_token')
+                    # problems = create_new_category(answer)
+                    # if len(problems) > 0:
+                    #     return render_template('category_edition.html', error=error, formError=problems, optional_allowed=optional_allowed, gold_standard_allowed=gold_standard_allowed)
+                    #return(redirect(url_for('create_category')))
+                    return '', 204
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/remove_category/<cat_id>')
+def remove_category(cat_id):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                delete_category(cat_id)
+                return(redirect(url_for('category_configuration')))    
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+    
 
 @app.route('/begin_study/', methods=['GET'])
 def begin_study():
@@ -291,8 +357,7 @@ def change_password():
     if 'userId' in session:    
         error = None
         if request.method == 'POST':
-            if valid_login(session['username'],
-                           request.form['oldPass']):
+            if valid_login(session['username'], request.form['oldPass']):
                 if request.form['newPass'] == request.form['confirmPass']:
                     modify_password(session['userId'], request.form['newPass'])
                     return redirect(url_for('user_home'))
@@ -300,8 +365,6 @@ def change_password():
                     error = 'New passwords do not match'
             else:
                 error = 'Invalid password'
-        # the code below is executed if the request method
-        # was GET or the credentials were invalid
         return render_template('change_password.html', error=error)
     else:
         return redirect(url_for('login'))
@@ -399,6 +462,106 @@ def display_tutorial(tuto):
         return render_template("tutorial.html", img_tuto=img_tuto)
     else:
         return '', 404    
+ 
+@app.route('/safeguard_category/')
+def safeguard_category():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                cat_id = int(request.args.get('cat_id'))
+                value = request.args.get('value')
+                field = request.args.get('field')
+                
+                update_category(cat_id, value, field)
+                return '', 204
+            
+        return(redirect(url_for('user_home')))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/safeguard_criterion/')
+def safeguard_criterion():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                cat_id = int(request.args.get('cat_id'))
+                name = request.args.get('name')
+                malignancy = request.args.get('malignancy')
+                print(cat_id)
+                print(name)
+                print(malignancy)
+                save_criterion(cat_id, name, malignancy)
+                return '', 204
+            
+        return(redirect(url_for('user_home')))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/edit_criterion/')
+def edit_criterion():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                cat_id = int(request.args.get('cat_id'))
+                crit_id = request.args.get('crit_id')
+                name = request.args.get('name')
+                malignancy = request.args.get('malignancy')
+                action = request.args.get('action')
+                change_criterion(cat_id, crit_id, name, malignancy, action)
+                return '', 204
+            
+        return(redirect(url_for('user_home')))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/safeguard_criterion_malignancy/')
+def safeguard_criterion_malignancy():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                cat_id = int(request.args.get('cat_id'))
+                value = request.args.get('value')
+                field = request.args.get('field')
+                
+                update_category(cat_id, value, field)
+                return '', 204
+            
+        return(redirect(url_for('user_home')))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/safeguard_prerequisite/')
+def safeguard_prerequisite():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                cat_id = int(request.args.get('cat_id'))
+                name = request.args.get('name')
+                
+                save_prerequisite(cat_id, name)
+                return '', 204
+            
+        return(redirect(url_for('user_home')))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/edit_prerequisite/')
+def edit_prerequisite():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                cat_id = int(request.args.get('cat_id'))
+                pre_id = request.args.get('pre_id')
+                name = request.args.get('name')
+                action = request.args.get('action')
+                change_prerequisite(cat_id, pre_id, name, action)
+                return '', 204
+            
+        return(redirect(url_for('user_home')))
+    else:
+        return redirect(url_for('login'))
+ 
+    
  
 @app.route('/safeguard_model/')    
 def safeguard_model():

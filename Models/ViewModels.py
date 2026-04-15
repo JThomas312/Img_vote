@@ -37,57 +37,119 @@ class CaseViewModel():
         self.imgs = []
         self.imgs_sizes = []
         self.criteria = [[] for i in range(nb_categories)]
- 
+
+
+# ViewModels for admins before study
+class CriterionEditingViewModel():
+    id: int
+    name: str
+    malignancy: bool
+    def __init__(self, crit_id, name, malignancy=False):
+        self.id = crit_id
+        self.name = name
+        self.malignancy = malignancy
     
-# class CategoryViewModel():
-#     name: str
-#     type: int
-#     has_trust: bool
-#     has_tutorial: bool
-#     has_NA: bool
-#     optional: bool
-#     prerequisites: list(int)
-#     unanswered: bool
-#     def __init__(self, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites, unanswered):
-#         self.name = name
-#         self.type = cat_type
-#         self.has_trust = has_trust
-#         self.has_tutorial = has_tutorial
-#         self.has_NA = has_NA
-#         self.optional = optional
-#         self.prerequisites = prerequisites
-#         self.unanswered = unanswered
+class CategoryConfigurationViewModel():
+    id: int
+    name: str
+    type: int
+    has_tutorial: bool
+    has_trust: bool
+    has_NA: bool
+    optional: bool
+    criteria: list(CriterionEditingViewModel)
+    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional):
+        self.id = cat_id
+        self.name = name
+        self.type = cat_type
+        self.has_trust = has_trust
+        self.has_tutorial = has_tutorial
+        self.has_NA = has_NA
+        self.optional = optional
+        self.criteria = []
+  
+class PrerequisiteEditingViewModel():
+    id: int #id of the criterion
+    name:str
+    def __init__(self, pre_id, name):
+        self.id = pre_id
+        self.name = name
+  
+class CategoryEditingViewModel():
+    id: int
+    name: str
+    type: int
+    has_trust: bool
+    has_tutorial: bool
+    has_NA: bool
+    optional: bool
+    has_gold_standard: bool
+    has_malignancy: bool
+    criteria: list(CriterionEditingViewModel)
+    prerequisites: list(PrerequisiteEditingViewModel)
+    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
+        self.id= cat_id
+        self.name = name
+        self.type = cat_type
+        self.has_trust = has_trust
+        self.has_tutorial = has_tutorial
+        self.has_NA = has_NA
+        self.optional = optional
+        self.has_gold_standard = has_gold_standard
+        self.has_malignancy = has_malignancy
+        self.criteria = []
+        self.prerequisites = []
+
+# ViewModels for user pages during study
+class CategoryViewModel():
+    name: str
+    type: int
+    has_trust: bool
+    has_tutorial: bool
+    has_NA: bool
+    optional: bool
+    prerequisites: list(int)
+    unanswered: bool
+    def __init__(self, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites, unanswered):
+        self.name = name
+        self.type = cat_type
+        self.has_trust = has_trust
+        self.has_tutorial = has_tutorial
+        self.has_NA = has_NA
+        self.optional = optional
+        self.prerequisites = []
+        self.unanswered = unanswered
         
-# class CriterionViewModel():
-#     name: str
-#     value: int
-#     tutorial: bytearray
-#     id: int
-#     def __init__(self, name, value, tutorial, caseId):
-#         self.name = name
-#         self.value = value
-#         self.tutorial = tutorial
-#         self.id = caseId
+class CriterionViewModel():
+    id: int
+    name: str
+    value: int
+    tutorial: bytearray
+    def __init__(self, name, value, tutorial, caseId):
+        self.name = name
+        self.value = value
+        self.tutorial = tutorial
+        self.id = caseId
     
-# class CaseDisplayViewModel():
-#     case_id: int
-#     case_name: str 
-#     nb_imgs: int 
-#     imgs: list()
-#     imgs_sizes: list((int, int))
-#     categories: list(CategoryViewModel)
-#     criteria: list(CriterionViewModel)
-#     nb_categories: int 
-#     nextcase: int
-#     def __init__(self, case_id, case_name, nb_imgs, imgs, imgs_sizes, nb_categories):
-#         self.case_id = case_id
-#         self.case_name = case_name
-#         self.nb_imgs = nb_imgs
-#         self.imgs = []
-#         self.imgs_sizes = []
-#         self.categories = []
-#         self.criteria = [ [] for i in range (nb_categories) ]
-#         self.nb_categories = nb_categories
+class CaseDisplayViewModel():
+    case_id: int
+    case_name: str 
+    nb_imgs: int 
+    imgs: list()
+    imgs_sizes: list((int, int))
+    categories: list(CategoryViewModel)
+    criteria: list(CriterionViewModel)
+    nb_categories: int 
+    nextcase: int
+    def __init__(self, case_id, case_name, nb_imgs, imgs, imgs_sizes, nb_categories):
+        self.case_id = case_id
+        self.case_name = case_name
+        self.nb_imgs = nb_imgs
+        self.imgs = []
+        self.imgs_sizes = []
+        self.categories = []
+        self.criteria = []
+        self.nb_categories = nb_categories
 
 
 

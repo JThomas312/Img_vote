@@ -24,7 +24,9 @@ sys.path.append(str(path_root))
 import img_vote.dal.UserDal as UserDal
 import img_vote.dal.CaseDal as CaseDal
 import img_vote.dal.AnswerDal as AnswerDal
+import img_vote.dal.CategoryDal as CategoryDal
 import img_vote.dal.CriterionDal as CriterionDal
+import img_vote.dal.PrerequisiteDal as PrerequisiteDal
 
 metadata_obj = MetaData()
 
@@ -117,9 +119,39 @@ def create_all_answers():
 def create_user_answers(userId):
     return AnswerDal.create_user_answers(userId, engine)
 
+#CategoryDal
+def get_category_by_id(catId):
+    return CategoryDal.get_category_by_id(catId, engine)
+
+def at_least_one_other_mandatory_category(catId):
+    return CategoryDal.at_least_one_other_mandatory_category(catId, engine)
+
+def gold_standard_exists(cat_id):
+    return CategoryDal.gold_standard_exists(cat_id, engine)
+
+def new_empty_category():
+    return CategoryDal.new_empty_category(engine)
+
+def update_category_value(cat_id, value, parameter):
+    return CategoryDal.update_category_value(cat_id, value, parameter, engine)
+
+def erase_category(catId):
+    return CategoryDal.erase_category(catId, engine)
+
+
+#PrerequisiteDal
+def get_category_prerequisites(catId):
+    return PrerequisiteDal.get_category_prerequisites(catId, engine)
+
+def new_prerequisite(catId, name):
+    return PrerequisiteDal.new_prerequisite(catId, name, engine)
+
+def delete_prerequisite(catId, critId):
+    return PrerequisiteDal.delete_prerequisite(catId, critId, engine)
+
 #CriterionDal
-def get_criterion_by_id(identifier):
-    return CriterionDal.get_criterion_by_id(identifier, engine)
+def get_criterion_by_id(critId):
+    return CriterionDal.get_criterion_by_id(critId, engine)
 
 def get_criterion_for_case(userId, caseId):
     return CriterionDal.get_criterion_for_case(userId, caseId, engine)
@@ -135,6 +167,24 @@ def get_all_criteria_no_diagnosis():
 
 def get_all_diagnosis():
     return CriterionDal.get_all_diagnosis()
+
+def categories_with_criteria():
+    return CriterionDal.categories_with_criteria(engine)
+
+def category_with_criteria_and_prerequisites(catId):
+    return CriterionDal.category_with_criteria_and_prerequisites(catId, engine)
+
+def create_criterion(name, tutorial_path, category, is_trust, malignancy):
+    return CriterionDal.create_criterion(name, tutorial_path, category, is_trust, malignancy, engine)
+
+def update_criterion(crit_id, name, malignancy):
+    return CriterionDal.update_criterion(crit_id, name, malignancy, engine)
+
+def erase_criterion(critId):
+    return CriterionDal.erase_criterion(critId, engine)
+    
+def erase_category_criteria(catId):
+    return CriterionDal.erase_category_criteria(catId, engine)
 
 def create_all_criterion():
     return CriterionDal.create_all_criterion(engine)
@@ -159,4 +209,3 @@ def undo_all_but_one(user, case, critId, value, critType):
 
 def get_unfinished_criteria(userId, caseId):
     return CriterionDal.get_unfinished_criteria(userId, caseId, engine)
-
