@@ -26,6 +26,7 @@ sys.path.append(str(path_root))
 #local modules
 from img_vote.Models.ViewModels import CaseViewModel
 
+from img_vote.dal.MasterDal import get_case_by_id
 from img_vote.dal.MasterDal import get_criterion_for_case
 from img_vote.dal.MasterDal import get_diagnosis_for_case
 from img_vote.dal.MasterDal import get_criterion_by_id
@@ -52,7 +53,7 @@ def caseForDisplay(userId, case):
     trueValue = 1
     
     criterionForCase = get_criterion_for_case(userId, case)
-    
+    caseName = get_case_by_id(case).name
      
     # load delimiting words from config file
     delimitations = []
@@ -66,7 +67,7 @@ def caseForDisplay(userId, case):
     img_files = listdir(path)
     img_files.sort()
 
-    caseVM = CaseViewModel(len(delimitations))
+    caseVM = CaseViewModel(caseName, len(delimitations))
     
     for img_file in img_files:
         im = Image.open(os.path.join(path, img_file))

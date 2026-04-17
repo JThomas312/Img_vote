@@ -363,7 +363,7 @@ def new_user_creation():
 def case_display(case):
     if 'userId' in session:
         (caseVM, criteriaTitles, unanswered, nextcase) = caseForDisplay(session['userId'], case)
-        return render_template("case_display.html", case_id=case, case_name=case, nb_imgs=len(caseVM.imgs), imgs=caseVM.imgs, imgs_sizes=caseVM.imgs_sizes, criteria=caseVM.criteria, titles=criteriaTitles, nbTitles=len(criteriaTitles), unanswered=unanswered, nextcase=nextcase)
+        return render_template("case_display.html", case_id=case, case_name=caseVM.name, nb_imgs=len(caseVM.imgs), imgs=caseVM.imgs, imgs_sizes=caseVM.imgs_sizes, criteria=caseVM.criteria, titles=criteriaTitles, nbTitles=len(criteriaTitles), unanswered=unanswered, nextcase=nextcase)
     else:
         return redirect(url_for('login'))
     

@@ -30,10 +30,12 @@ class AdminHomeViewModel():
         self.admin = True
   
 class CaseViewModel():
+    name: str
     imgs: list()
     imgs_sizes: list((int, int))
     criteria: list(list((int, str, int, bytearray, int, bool))) #category, name, value, image, id, hasTutorial
-    def __init__(self, nb_categories):
+    def __init__(self, name, nb_categories):
+        self.name = name
         self.imgs = []
         self.imgs_sizes = []
         self.criteria = [[] for i in range(nb_categories)]
