@@ -26,19 +26,19 @@ sys.path.append(str(path_root))
 
 #local imports
 from img_vote.Models.DataModels import CategoryDataModel, CategoryWithCriteriaDataModel
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CategoryPOCO, CriterionPOCO, AnswerCriterionPOCO
+from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CategoryPOCO, CriterionPOCO, PrerequisitePOCO, AnswerCriterionPOCO
 
 
 #read-only 
 def get_category_by_id(identifier, engine):
     
     session = Session(engine)
-    
-    categoryPOCO = session.get(CategoryPOCO, identifier)
-    
-    category = CategoryDataModel(categoryPOCO.id, categoryPOCO.name, categoryPOCO.type, categoryPOCO.has_tutorial, categoryPOCO.has_trust, categoryPOCO.has_na, categoryPOCO.optional)
-    
-    session.close()
+    try:
+        categoryPOCO = session.get(CategoryPOCO, identifier)
+        
+        category = CategoryDataModel(categoryPOCO.id, categoryPOCO.name, categoryPOCO.type, categoryPOCO.has_tutorial, categoryPOCO.has_trust, categoryPOCO.has_na, categoryPOCO.optional)
+    finally:
+        session.close()
     
     return category
 
@@ -46,22 +46,138 @@ def at_least_one_other_mandatory_category(identifier, engine):
     
     session = Session(engine)
     
-    query = session.query(CategoryPOCO).filter(CategoryPOCO.optional == False).filter(CategoryPOCO.id != identifier)
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.optional == False).filter(CategoryPOCO.id != identifier)
+        
+        ans = session.query(query.exists()).scalar()
+    finally:
+        session.close()
+        
+    return ans
+
+def at_least_one_mandatory_category(engine):
     
-    ans = session.query(query.exists()).scalar()
+    session = Session(engine)
     
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.optional == False)
+        
+        ans = session.query(query.exists()).scalar()
+    finally:
+        session.close()
+        
+    return ans
+
+def mandatory_categories_with_prerequisites(engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO.name).join(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == False)
+        
+        ans = query.all()
+    finally:
+        session.close()
+        
+    return ans
+
+def optional_categories_without_prerequisites(engine):
+    
+    session = Session(engine)
+    
+    try:
+                
+        query = session.query(CategoryPOCO, PrerequisitePOCO).outerjoin(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == True)
+        
+        queriedAnswer = query.all()
+        
+        answer = []
+        
+        for ans in queriedAnswer:
+            if ans[1] == None:
+                answer.append(ans[0].name)
+        
+    finally:
+        session.close()
+    
+    return answer
+
+def categories_without_criteria(engine):
+    
+    session = Session(engine)
+    
+    try:
+                
+        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category)
+        
+        queriedAnswer = query.all()
+        
+        answer = []
+        
+        for ans in queriedAnswer:
+            if ans[1] == None:
+                answer.append(ans[0].name)
+        
+    finally:
+        session.close()
+    
+    return answer
+
+def malignant_categories_in_non_gold_standard_category(engine):
+
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO.name).filter(CategoryPOCO.has_malignancy == True).filter(CategoryPOCO.has_gold_standard == False)
+        
+        ans = query.all()
+    finally:
+        session.close()
+        
     return ans
 
 def gold_standard_exists(cat_id, engine):
     
     session = Session(engine)
     
-    query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.id != cat_id)
-    
-    ans = session.query(query.exists()).scalar()
-    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.id != cat_id)
+        
+        ans = session.query(query.exists()).scalar()
+    finally:
+        session.close()
+        
     return ans
+ 
+def several_gold_standards(engine):
     
+    session = Session(engine)
+
+    answer = False
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True)
+        
+        ans = query.count()
+        
+        answer = (ans > 1)
+            
+    finally:
+        session.close()
+        
+    return answer
+ 
+def categories_without_name(engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.name.regexp_match('^[ ]*$'))
+        answer = session.query(query.exists()).scalar()
+    finally:
+        session.close()
+    
+    return answer
 
 #CRUD
 def new_empty_category(engine):

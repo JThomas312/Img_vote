@@ -44,7 +44,11 @@ from controller.AdminController import category_for_editing
 from controller.AdminController import create_empty_category
 from controller.AdminController import update_category
 from controller.AdminController import delete_category
+from controller.AdminController import check_category
+from controller.AdminController import check_categories
+from controller.AdminController import delete_criterion
 from controller.AdminController import save_criterion
+from controller.AdminController import save_criterion_malignancy
 from controller.AdminController import change_criterion
 from controller.AdminController import save_prerequisite
 from controller.AdminController import change_prerequisite
@@ -202,28 +206,32 @@ def edit_category(categoryId):
                 if request.method == 'POST':
                     answer = (request.form).copy()
                     answer.pop('csrf_token')
-                    # problems = create_new_category(answer)
-                    # if len(problems) > 0:
-                    #     return render_template('category_edition.html', error=error, formError=problems, optional_allowed=optional_allowed, gold_standard_allowed=gold_standard_allowed)
-                    #return(redirect(url_for('create_category')))
-                    return '', 204
+                    formError = check_category(categoryId, answer)
+                    if formError != None:
+                        categoryViewModel = category_for_editing(categoryId)
+                        return render_template('category_edition.html', category=categoryViewModel, error=error, formError=formError, optional_allowed=optional_allowed, gold_standard_allowed=gold_standard_allowed)
+                    return(redirect(url_for('category_configuration')))
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
-
-@app.route('/remove_category/<cat_id>')
-def remove_category(cat_id):
+ 
+@app.route('/finish_category_configuration/', methods=['GET'])
+def finish_category_configuration():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                delete_category(cat_id)
-                return(redirect(url_for('category_configuration')))    
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'stopped':
+                    return(redirect(url_for('category_configuration')))
+                check_categories()
+                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                    fw.write('categories_done')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
-    
-
-@app.route('/begin_study/', methods=['GET'])
+ 
+@app.route('/begin_study/', methods=['GET', 'POST'])
 def begin_study():
     if 'userId' in session:
         if 'admin' in session:
@@ -231,32 +239,23 @@ def begin_study():
                 error = None
                 with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
-                if status != 'stopped':
-                    error = 'Study has already begun, current status is: ' + status 
-                return render_template('study_begining.html', error=error)
-        return(redirect(url_for('user_home'))) 
-    else:
-        return(redirect(url_for('login')))
-
-@app.route('/begin_study/', methods=['POST'])
-def start_study():
-    if 'userId' in session:
-        if 'admin' in session:
-            if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
-                endDate = datetime.strptime(request.form['study_end'], '%Y-%m-%d')
-                if status == 'stopped':
-                    init_data_study_start()
-                    with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write(endDate.strftime('%Y-%m-%d'))
-                    
-                    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write(request.form['study_name'])
+                if request.method == 'GET':
+                    if status != 'stopped':
+                        error = 'Study has already begun, current status is: ' + status 
+                    return render_template('study_begining.html', error=error)
+                if request.method == 'POST':
+                    endDate = datetime.strptime(request.form['study_end'], '%Y-%m-%d')
+                    if status == 'stopped':
+                        init_data_study_start()
+                        with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write(endDate.strftime('%Y-%m-%d'))
                         
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('ongoing')
-        return(redirect(url_for('user_home')))    
+                        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write(request.form['study_name'])
+                            
+                        with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write('ongoing')
+        return(redirect(url_for('user_home'))) 
     else:
         return(redirect(url_for('login')))
 
@@ -519,11 +518,9 @@ def safeguard_criterion_malignancy():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                cat_id = int(request.args.get('cat_id'))
-                value = request.args.get('value')
-                field = request.args.get('field')
-                
-                update_category(cat_id, value, field)
+                crit_id = int(request.args.get('crit_id'))
+                malignancy = request.args.get('malignancy')
+                save_criterion_malignancy(crit_id, malignancy)
                 return '', 204
             
         return(redirect(url_for('user_home')))
@@ -561,7 +558,27 @@ def edit_prerequisite():
     else:
         return redirect(url_for('login'))
  
-    
+@app.route('/remove_category/<cat_id>')
+def remove_category(cat_id):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                delete_category(cat_id)
+                return(redirect(url_for('category_configuration')))    
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/remove_criterion/<crit_id>')
+def remove_criterion(crit_id):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                delete_criterion(crit_id)
+                return(redirect(url_for('category_configuration')))    
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))    
  
 @app.route('/safeguard_model/')    
 def safeguard_model():

@@ -126,11 +126,32 @@ def get_category_by_id(catId):
 def at_least_one_other_mandatory_category(catId):
     return CategoryDal.at_least_one_other_mandatory_category(catId, engine)
 
+def at_least_one_mandatory_category():
+    return CategoryDal.at_least_one_other_mandatory_category(engine)
+
+def mandatory_categories_with_prerequisites():
+    return CategoryDal.mandatory_categories_with_prerequisites(engine)
+
+def optional_categories_without_prerequisites():
+    return CategoryDal.optional_categories_without_prerequisites(engine)
+
+def categories_without_criteria():
+    return CategoryDal.categories_without_criteria(engine)
+
+def malignant_categories_in_non_gold_standard_category():
+    return CategoryDal.malignant_categories_in_non_gold_standard_category(engine)
+
 def gold_standard_exists(cat_id):
     return CategoryDal.gold_standard_exists(cat_id, engine)
 
+def several_gold_standards():
+    return CategoryDal.several_gold_standards(engine)
+
 def new_empty_category():
     return CategoryDal.new_empty_category(engine)
+
+def categories_without_name():
+    return CategoryDal.categories_without_name(engine)
 
 def update_category_value(cat_id, value, parameter):
     return CategoryDal.update_category_value(cat_id, value, parameter, engine)
@@ -168,6 +189,9 @@ def get_all_criteria_no_diagnosis():
 def get_all_diagnosis():
     return CriterionDal.get_all_diagnosis()
 
+def malignant_criteria_in_non_malignant_category():
+    return CriterionDal.malignant_criteria_in_non_malignant_category(engine)
+
 def categories_with_criteria():
     return CriterionDal.categories_with_criteria(engine)
 
@@ -180,11 +204,17 @@ def create_criterion(name, tutorial_path, category, is_trust, malignancy):
 def update_criterion(crit_id, name, malignancy):
     return CriterionDal.update_criterion(crit_id, name, malignancy, engine)
 
+def update_criterion_malignancy(crit_id, malignancy):
+    return CriterionDal.update_criterion_malignancy(crit_id, malignancy, engine)
+
 def erase_criterion(critId):
     return CriterionDal.erase_criterion(critId, engine)
     
 def erase_category_criteria(catId):
     return CriterionDal.erase_category_criteria(catId, engine)
+
+def create_trust_criteria():
+    return CriterionDal.create_trust_criteria(engine)
 
 def create_all_criterion():
     return CriterionDal.create_all_criterion(engine)

@@ -168,6 +168,26 @@ def get_all_diagnosis(engine):
     
     return diagnosis
 
+def malignant_criteria_in_non_malignant_category(engine):
+    
+    session = Session(engine)
+    
+    try:
+        
+        query = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CriterionPOCO.malignancy == True).filter(CategoryPOCO.has_malignancy == False)
+        queriedAnswer = query.all()
+        
+        answer = []
+        #0: criterion, 1: category
+        
+        for ans in queriedAnswer:
+            answer.append(ans[0].name)
+            
+    finally:
+        session.close()
+    
+    return answer
+
 def categories_with_criteria(engine):
     
     session = Session(engine)
@@ -185,7 +205,7 @@ def categories_with_criteria(engine):
         if (ans[0].id != currentCategory):
             if (currentCategory != -1):
                 answer.append(currentDataModel)
-            currentCategory += 1
+            currentCategory = ans[0].id
             currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional)
         if ans[1] != None and not ans[1].is_trust:
             currentDataModel.criteria.append((ans[1].id, ans[1].name))
@@ -248,6 +268,17 @@ def update_criterion(crit_id, crit_name, crit_malignancy, engine):
     
     session.close()
     
+def update_criterion_malignancy(crit_id, crit_malignancy, engine):
+    
+    session = Session(engine)
+    
+    updatestmt = update(CriterionPOCO).where(CriterionPOCO.id == crit_id).values(malignancy=crit_malignancy)
+
+    session.execute(updatestmt)
+
+    session.commit()
+    
+    session.close()
 
 def erase_criterion(identifier, engine):
     
@@ -344,6 +375,27 @@ def undo_all_but_one(user, case, critId, value, critType, engine):
     
     
 #one-time data creation
+def create_trust_criteria(engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_trust == True).order_by(CategoryPOCO.id)
+        
+        answer = query.all()
+        
+        for ans in answer:
+            newCrit = CriterionPOCO(ans.name + '_trust_scale', '', ans.id, True, False)
+                
+            if (newCrit.tutorial_path == None):
+                newCrit.tutorial_path = ''
+                
+            session.add(newCrit)
+            
+        session.commit()
+    finally:
+        session.close()
+
 def create_all_criterion(engine):
     
     # load delimiting words from config file

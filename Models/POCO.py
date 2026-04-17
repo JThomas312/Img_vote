@@ -75,7 +75,7 @@ class CriterionPOCO(Base):
     malignancy: Mapped[bool]
     
     def __repr__(self) -> str:
-        return f"Criterion(id={self.id!r}, name={self.name!r}, tutorial_path={self.tutorial_path!r}, type={self.type!r})"
+        return f"Criterion(id={self.id!r}, name={self.name!r}, tutorial_path={self.tutorial_path!r}, category={self.category!r})"
     
     def __init__(self, name, path, critCategory, trust, mal):
         self.name = name

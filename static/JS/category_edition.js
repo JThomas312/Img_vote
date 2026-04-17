@@ -164,6 +164,12 @@ function edit_criterion(event, crit_id, element, malignancyElement, cat_id, acti
     return false;
 }
 
+function safeguard_criterion_malignancy(crit_id, malignancy){
+    url = '/safeguard_criterion_malignancy?crit_id=' + crit_id + '&malignancy=' + malignancy
+    $.getJSON(url, function(data){});
+    return false;
+}
+
 document.getElementById('addCriterionButton').addEventListener('click', function(event) {
   event.preventDefault();
 

@@ -28,6 +28,10 @@ Created on Fri Apr 10 16:07:16 2026
             <button>go back</button>
         </a>
     {% else %}
+        {% if formError %}
+            {{formError}}
+            <br/>
+        {% endif %}
         <form id="category_configuration_form" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <a> Name </a>
@@ -120,9 +124,9 @@ Created on Fri Apr 10 16:07:16 2026
                         <button class="removeCriterionButton" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">Remove</button>
                         <button class="saveCriterionButton" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'edit')">Save</button>
                         <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
-                            <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" value=1 {% if criterion.malignancy %} checked {% endif %}>
+                            <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value=1 {% if criterion.malignancy %} checked {% endif %}>
                             <label for="criterionMalignancy{{ns.j}}">Malignant</label>
-                            <input type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" value=1 {% if not criterion.malignancy %} checked {% endif %}>
+                            <input type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value=1 {% if not criterion.malignancy %} checked {% endif %}>
                             <label for="criterionMalignancy{{ns.j}}">Begnin</label>
                         </div> 
                     </div>
@@ -298,6 +302,12 @@ Created on Fri Apr 10 16:07:16 2026
         var name = element.value;
         var malignancy = malignancyElement.checked;
         url = '/edit_criterion?cat_id=' + cat_id + '&crit_id=' + crit_id + '&name=' + name + '&malignancy=' + malignancy + '&action=' + action;
+        $.getJSON(url, function(data){});
+        return false;
+    }
+    
+    function safeguard_criterion_malignancy(crit_id, malignancy){
+        url = '/safeguard_criterion_malignancy?crit_id=' + crit_id + '&malignancy=' + malignancy
         $.getJSON(url, function(data){});
         return false;
     }

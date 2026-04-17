@@ -15,6 +15,7 @@ from openpyxl import Workbook
 from os import getcwd
 import os.path
 from re import sub
+from re import match
 
 #enable imports from local modules
 from pathlib import Path
@@ -28,9 +29,12 @@ from img_vote.Models.ViewModels import UserHomeViewModel, CriterionEditingViewMo
 
 from img_vote.dal.MasterDal import get_reviewer_by_login, create_reviewer, delete_reviewer_by_id, update_password, get_reviewer_by_id, clear_non_admin_users
 from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data
-from img_vote.dal.MasterDal import create_criterion, update_criterion, erase_criterion, erase_category_criteria, create_all_criterion, create_all_answer_to_criterion, create_user_answer_to_criterion, get_all_criteria_no_diagnosis, clear_all_criteria
+from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, erase_criterion, erase_category_criteria
+from img_vote.dal.MasterDal import create_trust_criteria, create_all_criterion, create_all_answer_to_criterion, create_user_answer_to_criterion, get_all_criteria_no_diagnosis, clear_all_criteria
 from img_vote.dal.MasterDal import create_user_answers
-from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria, category_with_criteria_and_prerequisites, update_category_value, at_least_one_other_mandatory_category, gold_standard_exists
+from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria, category_with_criteria_and_prerequisites, categories_without_name, at_least_one_mandatory_category
+from img_vote.dal.MasterDal import update_category_value, at_least_one_other_mandatory_category, categories_without_criteria, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, gold_standard_exists
+from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_in_non_gold_standard_category, malignant_criteria_in_non_malignant_category, several_gold_standards
 from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite
 
 
@@ -88,6 +92,8 @@ def update_category(cat_id, value, parameter):
     param = parameter
     #this way if either the DAL of front changes parameter, only this needs to be updated --> no dependency between front and DAL
     if parameter == 'name':
+        if value == '' or not sanitize(value):
+            return
         param = 'name'
     if parameter == 'type':
         val = int(value)
@@ -113,7 +119,8 @@ def update_category(cat_id, value, parameter):
     return
 
 def save_criterion(cat_id, name, malignancy):
-    
+    if not sanitize(name) or name == '':
+        return
     category_name = get_category_by_id(cat_id).name
     tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', category_name, name + '.png')
     mal = malignancy == 'true'
@@ -122,15 +129,24 @@ def save_criterion(cat_id, name, malignancy):
 def change_criterion(cat_id, crit_id, name, malignancy, action):
     if action == 'remove':
         erase_criterion(crit_id)    
+    if not sanitize(name) or name == '':
+        return
     if action == 'edit':
         mal = malignancy == 'true'
         update_criterion(crit_id, name, mal)
 
+def save_criterion_malignancy(crit_id, malignancy):
+    mal = malignancy == 'true'
+    update_criterion_malignancy(crit_id, mal)
+
 def save_prerequisite(cat_id, name):
+    if not sanitize(name) or name == '':
+        return
     new_prerequisite(cat_id, name)
 
 def change_prerequisite(cat_id, crit_id, name, action):
-    
+    if not sanitize(name) or name == '':
+        return
     if action == 'remove':
         delete_prerequisite(cat_id, crit_id)    
     if action == 'edit':
@@ -141,6 +157,60 @@ def change_prerequisite(cat_id, crit_id, name, action):
 def delete_category(cat_id):
     erase_category_criteria(cat_id)
     erase_category(cat_id)
+
+def check_category(cat_id, form_answers):
+
+    if (not 'name' in form_answers) or (form_answers['name'] == '') or (not sanitize(form_answers['name'])):
+        return 'invalid category : your category must have a valid name'
+    if not 'type' in form_answers:
+        return 'invalid category : choosing type is mandatory'
+    
+    prerequisites_ok = True
+    if 'optional' in form_answers and form_answers['optional'] == 1:
+        prerequisites_ok = False
+    
+    for ans in form_answers:
+        if ans.find('prerequisiteField') != -1:
+            val = form_answers[ans]
+            if val == '':
+                return 'invalid category : one of your answers is unnamed'
+            if not sanitize(val):
+                return 'invalid prerequisite : ' + val + ' is not a valid name'
+            prerequisites_ok = True
+        if ans.find('criterionField') != -1:
+            val = form_answers[ans]
+            if val == '':
+                return 'invalid category : one of your answers is unnamed'
+            if not sanitize(val):
+                return 'invalid answer : ' + val + ' is not a valid name'
+    
+    if not prerequisites_ok:
+        return 'invalid category : an optional category needs at least one prerequisite'
+    
+    return None
+
+def check_categories():
+    
+    incorrect_categories = []
+    incorrect_criteria = []
+
+    categories_without_name()
+    at_least_one_mandatory_category()
+    several_gold_standards()
+    
+    incorrect_categories.append(mandatory_categories_with_prerequisites())
+    incorrect_categories.append(optional_categories_without_prerequisites())
+    incorrect_categories.append(categories_without_criteria())
+    incorrect_categories.append(malignant_categories_in_non_gold_standard_category())
+    
+
+    incorrect_criteria.append(malignant_criteria_in_non_malignant_category())
+
+    if len(incorrect_categories) > 0:
+        return incorrect_categories
+
+    create_trust_criteria()
+    
 
 def delete_criterion(crit_id):
     erase_criterion(crit_id)
@@ -235,3 +305,6 @@ def generate_password():
 
 def format_r_friendly(name):
     return sub(r'[^A-Za-z0-9_]+', "_", name).lower()
+
+def sanitize(userinput):
+    return bool(match(r'^[a-zA-Z0-9_\s]{3,20}$', userinput))
