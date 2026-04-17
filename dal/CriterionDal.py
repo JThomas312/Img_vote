@@ -50,24 +50,41 @@ def get_unfinished_criteria(userId, caseId, engine):
     session = Session(engine)
     
     #criterion category 2 is one of
+    #diagnosis is type 0
+    diagnosis_type = 0
     yes_no_category = 1
     one_of_category = 2 
+    trust_category = 3 
     unanswered_value = 0
     true_value = 1
     
-    # if diagnosis is not a melenoma, consider the case done
-    query0 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.name == "Melanoma").filter(AnswerCriterionPOCO.value == true_value)
-    ans0 = session.query(query0.exists()).scalar()
-    if not ans0:
-        return False
+    # if diagnosis is not a melenoma, and trustscal was completed, consider the case done
+    queryMel = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type == diagnosis_type).filter(AnswerCriterionPOCO.value == true_value).filter(CriterionPOCO.category == one_of_category).filter(CriterionPOCO.name != "Melanoma")
+    ansMel = session.query(queryMel.exists()).scalar()
+    queryMelTrust = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type == diagnosis_type).filter(AnswerCriterionPOCO.value != unanswered_value).filter(CriterionPOCO.category == trust_category)
+    ansMelTrust = session.query(queryMelTrust.exists()).scalar()
     
+    if ansMel :
+        if ansMelTrust:
+            return False
+    
+    
+    # still need to check 
     
     query1 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.category == yes_no_category).filter(AnswerCriterionPOCO.value == unanswered_value)
-    query2 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.category == one_of_category).filter(AnswerCriterionPOCO.value == true_value).order_by(CriterionPOCO.id)
+    query2 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type == 1).filter(CriterionPOCO.category == one_of_category).filter(AnswerCriterionPOCO.value == true_value).group_by(CriterionPOCO.category)
+    query3 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type == 4).filter(CriterionPOCO.category == one_of_category).filter(AnswerCriterionPOCO.value == true_value).group_by(CriterionPOCO.category)
+   
+    queryTrust = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type != diagnosis_type).filter(AnswerCriterionPOCO.value != unanswered_value).filter(CriterionPOCO.category == trust_category)
+    ansTrust = session.query(queryTrust.exists()).scalar()
+    
     ans1 = session.query(query1.exists()).scalar()
     ans2 = session.query(query2.exists()).scalar()
+    ans3 = session.query(query3.exists()).scalar()
     
-    finalAnswer = ans1 or (not ans2)
+    
+    finalAnswer = ans1 or (not ans2) or (not ans3) or (not ansTrust) or (not ansMelTrust)
+    
     
     return finalAnswer
 
