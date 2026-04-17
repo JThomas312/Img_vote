@@ -73,7 +73,7 @@ def mandatory_categories_with_prerequisites(engine):
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO.name).join(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == False)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).join(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == False)
         
         ans = query.all()
     finally:
@@ -95,7 +95,7 @@ def optional_categories_without_prerequisites(engine):
         
         for ans in queriedAnswer:
             if ans[1] == None:
-                answer.append(ans[0].name)
+                answer.append((ans[0].id, ans[0].name))
         
     finally:
         session.close()
@@ -116,7 +116,7 @@ def categories_without_criteria(engine):
         
         for ans in queriedAnswer:
             if ans[1] == None:
-                answer.append(ans[0].name)
+                answer.append((ans[0].id, ans[0].name))
         
     finally:
         session.close()
@@ -128,7 +128,7 @@ def malignant_categories_in_non_gold_standard_category(engine):
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO.name).filter(CategoryPOCO.has_malignancy == True).filter(CategoryPOCO.has_gold_standard == False)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_malignancy == True).filter(CategoryPOCO.has_gold_standard == False)
         
         ans = query.all()
     finally:
@@ -149,18 +149,16 @@ def gold_standard_exists(cat_id, engine):
         
     return ans
  
-def several_gold_standards(engine):
+def get_gold_standards(engine):
     
     session = Session(engine)
 
-    answer = False
+    answer = []
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True)
         
-        ans = query.count()
-        
-        answer = (ans > 1)
+        answer = query.all()
             
     finally:
         session.close()

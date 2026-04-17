@@ -1,5 +1,4 @@
 
-
 DROP TABLE answer_to_criterion;;
 
 DROP TABLE answer;;
@@ -13,4 +12,3 @@ DROP TABLE criterion;;
 DROP TABLE category;;
 
 DROP TABLE reviewer;;
-

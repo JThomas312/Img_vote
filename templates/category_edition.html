@@ -84,9 +84,9 @@ Created on Fri Apr 10 16:07:16 2026
                         {% set ns = namespace(i = 1) %}
                         {% for prerequisite in category.prerequisites %}
                             <div class="prerequisiteWrapper">
-                                <input type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite[1]}}">
-                                <button class="removePrerequisiteButton" onclick="edit_prerequisite(event, {{prerequisite[0]}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
-                                <button class="savePrerequisiteButton" onclick="edit_prerequisite(event, {{prerequisite[0]}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
+                                <input type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}">
+                                <button class="removePrerequisiteButton" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
+                                <button class="savePrerequisiteButton" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
                             </div>
                             {% set ns.i = ns.i + 1 %}
                         {% endfor %}
@@ -211,9 +211,6 @@ Created on Fri Apr 10 16:07:16 2026
     function safeguard_name(event, cat_id){
         event.preventDefault();
         var name = document.getElementById("category_name").value;
-        console.log('il est passé par ici');
-        console.log(name);
-        console.log(cat_id);
         url = '/safeguard_category?cat_id=' + cat_id + '&value=' + name + '&field=name';
         $.getJSON(url, function(data){});
         return false;
@@ -271,24 +268,20 @@ Created on Fri Apr 10 16:07:16 2026
     function safeguard_prerequisite(event, elementId, cat_id){
         event.preventDefault();
         var name = document.getElementById(elementId).value;
-        console.log('il est passé par ici');
-        console.log(name);
-        console.log(cat_id);
         url = '/safeguard_prerequisite?cat_id=' + cat_id + '&name=' + name;
         $.getJSON(url, function(data){}).then(() => { location.reload(); });
         return false;
     }
     
-    function edit_prerequisite(event, pre_id, elementId, cat_id, action){
+    function edit_prerequisite(event, pre_id, element, cat_id, action){
         event.preventDefault();
-        var name = document.getElementById(elementId).value;
+        var name = element.value;
         url = '/edit_prerequisite?cat_id=' + cat_id + '&pre_id=' + pre_id + '&name=' + name + '&action=' + action;
-        $.getJSON(url, function(data){});
+        $.getJSON(url, function(data){}).then(() => { location.reload(); });
         return false;
     }
     
     function safeguard_criterion(event, nameElementId, malignancyElementId, cat_id){
-        console.log('il est passé par ici');
         event.preventDefault();
         var name = document.getElementById(nameElementId).value;
         var malignancy = document.getElementById(malignancyElementId).checked;
@@ -302,7 +295,7 @@ Created on Fri Apr 10 16:07:16 2026
         var name = element.value;
         var malignancy = malignancyElement.checked;
         url = '/edit_criterion?cat_id=' + cat_id + '&crit_id=' + crit_id + '&name=' + name + '&malignancy=' + malignancy + '&action=' + action;
-        $.getJSON(url, function(data){});
+        $.getJSON(url, function(data){}).then(() => { location.reload(); });
         return false;
     }
     

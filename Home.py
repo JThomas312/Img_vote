@@ -224,7 +224,9 @@ def finish_category_configuration():
                     status = fr.read().replace('\n', '')
                 if status != 'stopped':
                     return(redirect(url_for('category_configuration')))
-                check_categories()
+                (errors, incorrect_categories) = check_categories()
+                if len(errors) > 0 or len(incorrect_categories) > 0:
+                    return render_template('category_errors.html', errors=errors, incorrect_categories=incorrect_categories, nb_incorrect_categories=len(incorrect_categories))                        
                 with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
                     fw.write('categories_done')
         return(redirect(url_for('user_home')))    
@@ -486,9 +488,6 @@ def safeguard_criterion():
                 cat_id = int(request.args.get('cat_id'))
                 name = request.args.get('name')
                 malignancy = request.args.get('malignancy')
-                print(cat_id)
-                print(name)
-                print(malignancy)
                 save_criterion(cat_id, name, malignancy)
                 return '', 204
             
@@ -619,5 +618,5 @@ def log_the_user_in(username):
     return (redirect(url_for('user_home')))
     
 def sanitize(userinput):
-    return bool(match(r'^[a-zA-Z0-9_\s]{3,20}$', userinput))
+    return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))
 

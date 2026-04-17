@@ -127,7 +127,7 @@ def at_least_one_other_mandatory_category(catId):
     return CategoryDal.at_least_one_other_mandatory_category(catId, engine)
 
 def at_least_one_mandatory_category():
-    return CategoryDal.at_least_one_other_mandatory_category(engine)
+    return CategoryDal.at_least_one_mandatory_category(engine)
 
 def mandatory_categories_with_prerequisites():
     return CategoryDal.mandatory_categories_with_prerequisites(engine)
@@ -144,8 +144,8 @@ def malignant_categories_in_non_gold_standard_category():
 def gold_standard_exists(cat_id):
     return CategoryDal.gold_standard_exists(cat_id, engine)
 
-def several_gold_standards():
-    return CategoryDal.several_gold_standards(engine)
+def get_gold_standards():
+    return CategoryDal.get_gold_standards(engine)
 
 def new_empty_category():
     return CategoryDal.new_empty_category(engine)
@@ -189,9 +189,6 @@ def get_all_criteria_no_diagnosis():
 def get_all_diagnosis():
     return CriterionDal.get_all_diagnosis()
 
-def malignant_criteria_in_non_malignant_category():
-    return CriterionDal.malignant_criteria_in_non_malignant_category(engine)
-
 def categories_with_criteria():
     return CriterionDal.categories_with_criteria(engine)
 
@@ -206,6 +203,9 @@ def update_criterion(crit_id, name, malignancy):
 
 def update_criterion_malignancy(crit_id, malignancy):
     return CriterionDal.update_criterion_malignancy(crit_id, malignancy, engine)
+
+def clear_malignant_criteria_in_non_malignant_category():
+    return CriterionDal.clear_malignant_criteria_in_non_malignant_category(engine)
 
 def erase_criterion(critId):
     return CriterionDal.erase_criterion(critId, engine)

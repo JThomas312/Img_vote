@@ -137,11 +137,11 @@ function safeguard_prerequisite(event, elementId, cat_id){
     return false;
 }
 
-function edit_prerequisite(event, pre_id, elementId, cat_id, action){
+function edit_prerequisite(event, pre_id, element, cat_id, action){
     event.preventDefault();
-    var name = document.getElementById(elementId).value;
+    var name = element.value;
     url = '/edit_prerequisite?cat_id=' + cat_id + '&pre_id=' + pre_id + '&name=' + name + '&action=' + action;
-    $.getJSON(url, function(data){});
+    $.getJSON(url, function(data){}).then(() => { location.reload(); });
     return false;
 }
 
@@ -160,7 +160,7 @@ function edit_criterion(event, crit_id, element, malignancyElement, cat_id, acti
     var name = element.value;
     var malignancy = malignancyElement.checked;
     url = '/edit_criterion?cat_id=' + cat_id + '&crit_id=' + crit_id + '&name=' + name + '&malignancy=' + malignancy + '&action=' + action;
-    $.getJSON(url, function(data){});
+    $.getJSON(url, function(data){}).then(() => { location.reload(); });
     return false;
 }
 

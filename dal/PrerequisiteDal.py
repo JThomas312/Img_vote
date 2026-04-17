@@ -63,6 +63,7 @@ def new_prerequisite(catId, name, engine):
             newPrerequisite = PrerequisitePOCO(catId, crit.id)
             
             session.add(newPrerequisite)
+            
             session.commit()
                         
     finally:
@@ -76,6 +77,8 @@ def delete_prerequisite(catId, critId, engine):
         deleteStmt = delete(PrerequisitePOCO).where(PrerequisitePOCO.category == catId).where(PrerequisitePOCO.criterion == critId)
         
         session.execute(deleteStmt)
+        
+        session.commit()
         
     finally:
         session.close()

@@ -34,7 +34,7 @@ from img_vote.dal.MasterDal import create_trust_criteria, create_all_criterion, 
 from img_vote.dal.MasterDal import create_user_answers
 from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria, category_with_criteria_and_prerequisites, categories_without_name, at_least_one_mandatory_category
 from img_vote.dal.MasterDal import update_category_value, at_least_one_other_mandatory_category, categories_without_criteria, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, gold_standard_exists
-from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_in_non_gold_standard_category, malignant_criteria_in_non_malignant_category, several_gold_standards
+from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_in_non_gold_standard_category, clear_malignant_criteria_in_non_malignant_category, get_gold_standards
 from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite
 
 
@@ -150,7 +150,7 @@ def change_prerequisite(cat_id, crit_id, name, action):
     if action == 'remove':
         delete_prerequisite(cat_id, crit_id)    
     if action == 'edit':
-        delete_prerequisite(cat_id, crit_id)    
+        delete_prerequisite(cat_id, crit_id) 
         new_prerequisite(cat_id, name)
         
 
@@ -191,26 +191,50 @@ def check_category(cat_id, form_answers):
 
 def check_categories():
     
+    errors = []
+    
     incorrect_categories = []
-    incorrect_criteria = []
 
-    categories_without_name()
-    at_least_one_mandatory_category()
-    several_gold_standards()
+    if categories_without_name():
+        errors.append('Some of your categories are still unnamed')
+    if not at_least_one_mandatory_category():
+        errors.append('All of your categories are optional, you need at least one mandatory category')
     
-    incorrect_categories.append(mandatory_categories_with_prerequisites())
-    incorrect_categories.append(optional_categories_without_prerequisites())
-    incorrect_categories.append(categories_without_criteria())
-    incorrect_categories.append(malignant_categories_in_non_gold_standard_category())
+    gold_standards = get_gold_standards()
+    if len(gold_standards) > 1:
+        errors.append('Several categories are marked as having a gold standard but only one is allowed per study')
+        incorrect_categories.extend(gold_standards)
+    
+    mandatory_categories = mandatory_categories_with_prerequisites()
+    if len(mandatory_categories) > 0:
+        errors.append('Some mandatory categories have prerequisites, please remove them of make them optional')
+        incorrect_categories.extend(mandatory_categories)
+    
+    optional_categories = optional_categories_without_prerequisites()
+    if len(optional_categories) > 0:
+        errors.append('Some optional categories have no prerequisites, please add at least one or make them mandatory')
+        incorrect_categories.extend(optional_categories)
+    
+    no_criteria = categories_without_criteria()
+    if len(no_criteria) > 0:
+        errors.append('Some categories have no possible answer, please add at least one or delete the category')
+        incorrect_categories.extend(no_criteria)
+    
+    malignant_categories = malignant_categories_in_non_gold_standard_category()        
+    if len(malignant_categories) > 0:
+        errors.append('Some categories are marked as having malignancy but not gold standard, please check them')
+        incorrect_categories.extend(malignant_categories)
     
 
-    incorrect_criteria.append(malignant_criteria_in_non_malignant_category())
 
-    if len(incorrect_categories) > 0:
-        return incorrect_categories
+    if len(errors) > 0:
+        return (errors, incorrect_categories)
 
+    clear_malignant_criteria_in_non_malignant_category()
+    
     create_trust_criteria()
-    
+
+    return ([], [])
 
 def delete_criterion(crit_id):
     erase_criterion(crit_id)
@@ -307,4 +331,4 @@ def format_r_friendly(name):
     return sub(r'[^A-Za-z0-9_]+', "_", name).lower()
 
 def sanitize(userinput):
-    return bool(match(r'^[a-zA-Z0-9_\s]{3,20}$', userinput))
+    return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))

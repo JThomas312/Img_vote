@@ -168,26 +168,6 @@ def get_all_diagnosis(engine):
     
     return diagnosis
 
-def malignant_criteria_in_non_malignant_category(engine):
-    
-    session = Session(engine)
-    
-    try:
-        
-        query = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CriterionPOCO.malignancy == True).filter(CategoryPOCO.has_malignancy == False)
-        queriedAnswer = query.all()
-        
-        answer = []
-        #0: criterion, 1: category
-        
-        for ans in queriedAnswer:
-            answer.append(ans[0].name)
-            
-    finally:
-        session.close()
-    
-    return answer
-
 def categories_with_criteria(engine):
     
     session = Session(engine)
@@ -279,6 +259,30 @@ def update_criterion_malignancy(crit_id, crit_malignancy, engine):
     session.commit()
     
     session.close()
+
+def clear_malignant_criteria_in_non_malignant_category(engine):
+    
+    session = Session(engine)
+    
+    try:
+        
+        query = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CriterionPOCO.malignancy == True).filter(CategoryPOCO.has_malignancy == False)
+        queriedAnswer = query.all()
+        
+        answer = []
+        #0: criterion, 1: category
+        
+        for ans in queriedAnswer:
+            answer.append(ans[0].id)
+        
+        updatestmt = update(CriterionPOCO).where(CriterionPOCO.id in answer).values(malignancy=False)
+        
+        session.execute(updatestmt)
+        
+        session.commit()
+        
+    finally:
+        session.close()
 
 def erase_criterion(identifier, engine):
     
