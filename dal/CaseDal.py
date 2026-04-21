@@ -33,7 +33,7 @@ sys.path.append(str(path_root))
 #local imports
 from img_vote.Models.DataModels import CaseDataModel, FinalExtractDataModel
 from img_vote.Models.POCO import CasePOCO, ReviewerPOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO
-from img_vote.dal.CriterionDal import get_all_diagnosis
+from img_vote.dal.CriterionDal import get_gold_standard_criteria
 from img_vote.dal.UserDal import get_all_non_admin_reviewers
 
 
@@ -166,45 +166,61 @@ def extract_all_data(engine):
 def create_all_cases(engine):
     
     session = Session(engine)
-    
-    criteria = get_all_diagnosis(engine)
-    criteriaDict = dict()
-    
-    
-    for criterion in criteria:
-        criteriaDict[criterion.name] = criterion.diagId
-    
-    
-    cwd = getcwd()
-    path = os.path.join(cwd,'data', 'Img_data')
-    wbpath = os.path.join(cwd , 'data', 'Data_WOW.xlsx')
-    case_files = [file for file in listdir(path) if not file.startswith('.')]
-    
-    case_files = sorted(list(case_files), key=natural_sort_key)
-    
-    wb_obj = load_workbook(wbpath)
-    sheet_obj = wb_obj.active
-    
-    counter = 2
-    
-    for case_file in case_files:
-        newpath = os.path.join(path, case_file)
-        newname = sheet_obj.cell(row=counter, column=1).value
-        #temp hardcoded column number
-        cell_value = sheet_obj.cell(row=counter, column=2).value
-        gld_std_name = cell_value.removesuffix(' ')
-        gld_std = criteriaDict[gld_std_name]
-        newcase = CasePOCO(newpath, newname, gld_std)
+    try:
+        criteria = get_gold_standard_criteria(engine)
+        gold_standard = len(criteria) > 0
         
-        counter += 1
+        if gold_standard:
+            criteriaDict = dict()
+            
+            
+            for criterion in criteria:
+                criteriaDict[criterion[1]] = criterion[0]
         
-        session.add(newcase)
-    
-    
-    session.commit()
+        
+        cwd = getcwd()
+        path = os.path.join(cwd,'data', 'Img_data')
+        wbfolderpath = os.path.join(cwd, 'data')
+        for filename in os.listdir(wbfolderpath):
+            if filename.startswith('case_data'):
+                wbpath = os.path.join(wbfolderpath, filename)
+        case_files = [file for file in listdir(path) if not file.startswith('.')]
+        
+        case_files = sorted(list(case_files), key=natural_sort_key)
+        print(wbpath)
+        wb_obj = load_workbook(wbpath)
+        sheet_obj = wb_obj.active
+        
+        counter = 2
+        
+        for case_file in case_files:
+            newname = str(sheet_obj.cell(row=counter, column=1).value)
+            if newname != case_file:
+                session.rollback()
+                session.close()
+                
+                return (filename, newname)
+            
+            newpath = os.path.join(path, case_file)
+            if gold_standard:
+                cell_value = sheet_obj.cell(row=counter, column=2).value
+                gld_std_name = cell_value.removesuffix(' ')
+                gld_std = criteriaDict[gld_std_name]
+                newcase = CasePOCO(newpath, newname, gld_std)
+            else:
+                newcase = CasePOCO(newpath, newname)
+                
+            counter += 1
+            
+            session.add(newcase)
+        
+        
+        session.commit()
+        
+    finally: 
+        session.close()
      
-    session.close()
-     
+    return None
    
 def clear_all_cases(engine):
     

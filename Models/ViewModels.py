@@ -100,6 +100,11 @@ class CategoryEditingViewModel():
         self.criteria = []
         self.prerequisites = []
 
+class UploadStatusViewModel():
+    case_images_uploaded: bool
+    tutorial_images_uploaded: bool
+    case_data_uploaded: bool
+
 # ViewModels for user pages during study
 class CategoryViewModel():
     name: str

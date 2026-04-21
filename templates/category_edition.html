@@ -34,8 +34,8 @@ Created on Fri Apr 10 16:07:16 2026
         {% endif %}
         <form id="category_configuration_form" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <a> Name </a>
-            <p><input id="category_name" type=text name=name value={{category.name}}>
+            <h3> Name </h3>
+            <p><input id="category_name" type=text name=name value="{{category.name}}">
             <button class="saveNameButton" onclick="safeguard_name(event, {{category.id}})">Save</button>
             <br/>
             <fieldset>
@@ -45,7 +45,7 @@ Created on Fri Apr 10 16:07:16 2026
             <input type="radio" id="one_of" name="type" value=2 onclick="safeguard_type({{category.id}}, 2)" {% if category.type == 2 %} checked {% endif %}/>
             <label for="type">one from several</label>
             <input type="radio" id="number" name="type" value=3 onclick="safeguard_type({{category.id}}, 3)" {% if category.type == 3 %} checked {% endif %}/>
-            <label for="type">numerical value</label>
+            <label for="type">numerical values</label>
             </fieldset>
             <fieldset>
             <legend>Add a trust scale to your category ?</legend>
@@ -135,7 +135,7 @@ Created on Fri Apr 10 16:07:16 2026
             </div>
             <button id="addCriterionButton">Add Answer Field</button>
             </br>
-            <p><input type=submit value=Create Category>
+            <p><input type=submit value="Validate Category">
         </form>
         <a href="/category_configuration/">
             <button>Leave</button>

@@ -13,6 +13,7 @@ from flask import request
 from flask import render_template
 from flask import session
 from flask import send_file
+from flask import flash
 
 from flask_session import Session
 from cachelib.file import FileSystemCache
@@ -30,6 +31,7 @@ import os.path
 from bcrypt import checkpw
 
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.utils import secure_filename
 
 from markupsafe import escape
 from controller.UserController import user_for_home
@@ -54,6 +56,13 @@ from controller.AdminController import save_prerequisite
 from controller.AdminController import change_prerequisite
 from controller.AdminController import optional_category_allowed
 from controller.AdminController import gold_standard_category_allowed
+from controller.AdminController import upload_status
+from controller.AdminController import unzip_and_move
+from controller.AdminController import move
+from controller.AdminController import remove_case_images
+from controller.AdminController import remove_tutorial_images
+from controller.AdminController import remove_case_data
+from controller.AdminController import check_uploads_and_create_cases
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 from controller.CaseController import caseForDisplay
@@ -64,6 +73,8 @@ from controller.CaseController import safeguardDiagnosis
 from controller.CaseController import criterion_for_tutorial
 from controller.CaseController import checkProgress
 
+UPLOAD_FOLDER = os.path.join(getcwd(), 'uploads')
+ALLOWED_EXTENSIONS = {'xls', 'xlsx', 'zip'}
 
 app = Flask(__name__)
 pkfile = open(os.path.join(getcwd(), 'private_key.txt'), encoding="utf-8")
@@ -78,6 +89,7 @@ app.wsgi_app = ProxyFix(
     app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
 )
 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config["SESSION_TYPE"] = "cachelib"
 SESSION_SERIALIZATION_FORMAT = 'json'
 SESSION_CACHELIB = FileSystemCache(threshold=500, cache_dir=os.path.join(getcwd(), "sessions"))
@@ -232,7 +244,219 @@ def finish_category_configuration():
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
- 
+
+@app.route('/manage_uploads/', methods=['GET', 'POST'])
+def manage_uploads():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'categories_done':
+                    return(redirect(url_for('user_home')))
+                if request.method == 'GET':
+                    uploadStatusVM = upload_status()
+                    return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=None)
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+    
+@app.route('/upload_case_images/', methods=['GET', 'POST'])
+def upload_case_images():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'categories_done':
+                    return(redirect(url_for('user_home')))
+                
+                if request.method == 'GET':
+                    return render_template('upload_case_images.html', errors=None)
+                
+                if request.method == 'POST':
+                    # check if the post request has the file part
+                    if 'file' not in request.files:
+                        flash('No file part')
+                        return redirect(request.url)
+                    file = request.files['file']
+                    # If the user does not select a file, the browser submits an
+                    # empty file without a filename.
+                    if file.filename == '':
+                        flash('No selected file')
+                        return redirect(request.url)
+                    if file and allowed_file(file.filename):
+                        save_path = os.path.join(app.config['UPLOAD_FOLDER'], 'case_images.zip')
+                        file.save(save_path)
+                        problems = unzip_and_move(save_path, 'case')
+                        if problems != None:
+                            return render_template('upload_case_images.html', errors=problems)
+                    return redirect(url_for('manage_uploads'))
+                    
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+    
+@app.route('/upload_tutorial_images/', methods=['GET', 'POST'])
+def upload_tutorial_images():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'categories_done':
+                    return(redirect(url_for('user_home')))
+                
+                if request.method == 'GET':
+                    return render_template('upload_tutorial_images.html')
+                
+                if request.method == 'POST':
+                    # check if the post request has the file part
+                    if 'file' not in request.files:
+                        flash('No file part')
+                        return redirect(request.url)
+                    file = request.files['file']
+                    # If the user does not select a file, the browser submits an
+                    # empty file without a filename.
+                    if file.filename == '':
+                        flash('No selected file')
+                        return redirect(request.url)
+                    if file and allowed_file(file.filename):
+                        save_path = os.path.join(app.config['UPLOAD_FOLDER'], 'tutorial_images.zip')
+                        file.save(save_path)
+                        problems = unzip_and_move(save_path, 'tutorial')
+                        if problems != None:
+                            return render_template('upload_case_images.html', errors=problems)
+                    return redirect(url_for('manage_uploads'))
+                
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/upload_case_data/', methods=['GET', 'POST'])
+def upload_case_data():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'categories_done':
+                    return(redirect(url_for('user_home')))
+                
+                if request.method == 'GET':
+                    return render_template('upload_case_data.html')
+                
+                if request.method == 'POST':
+                    # check if the post request has the file part
+                    if 'file' not in request.files:
+                        flash('No file part')
+                        return redirect(request.url)
+                    file = request.files['file']
+                    # If the user does not select a file, the browser submits an
+                    # empty file without a filename.
+                    if file.filename == '':
+                        flash('No selected file')
+                        return redirect(request.url)
+                    if file and allowed_file(file.filename):
+                        filename = secure_filename(file.filename)
+                        filename = 'case_data.' + filename.rsplit('.', 1)[1]
+                        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename.rsplit('.', 1)[0])
+                        file.save(save_path)
+                        move(save_path, os.path.join(getcwd(), 'data', filename))
+                    return redirect(url_for('manage_uploads'))
+                
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_case_images/', methods=['GET'])
+def delete_case_images():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'categories_done':
+                    return(redirect(url_for('user_home')))
+                remove_case_images()
+                return redirect(url_for('manage_uploads'))
+
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_tutorial_images/', methods=['GET'])
+def delete_tutorial_images():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'categories_done':
+                    return(redirect(url_for('user_home')))
+                remove_tutorial_images()
+                return redirect(url_for('manage_uploads'))
+
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_case_data/', methods=['GET'])
+def delete_case_data():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status != 'categories_done':
+                    return(redirect(url_for('user_home')))
+                remove_case_data()
+                return redirect(url_for('manage_uploads'))
+
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/finish_uploading/', methods=['GET'])
+def finish_uploading():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status == 'categories_done':
+                    errors = check_uploads_and_create_cases()
+                    if errors != None:
+                        uploadStatusVM = upload_status()
+                        return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
+                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                        fw.write('uploads_done')
+                return redirect(url_for('user_home'))
+
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/manage_reviewer_repartition/', methods=['GET'])
+def manage_reviewer_repartition():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status == 'uploads_done':
+                    errors = check_uploads_and_create_cases()
+                    if errors != None:
+                        uploadStatusVM = upload_status()
+                        return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
+                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                        fw.write('uploads_done')
+                return redirect(url_for('user_home'))
+
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
 @app.route('/begin_study/', methods=['GET', 'POST'])
 def begin_study():
     if 'userId' in session:
@@ -242,7 +466,7 @@ def begin_study():
                 with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if request.method == 'GET':
-                    if status != 'stopped':
+                    if status != 'ready':
                         error = 'Study has already begun, current status is: ' + status 
                     return render_template('study_begining.html', error=error)
                 if request.method == 'POST':
@@ -620,3 +844,5 @@ def log_the_user_in(username):
 def sanitize(userinput):
     return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

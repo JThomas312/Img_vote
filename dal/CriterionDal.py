@@ -150,23 +150,17 @@ def get_all_criteria_no_diagnosis(engine):
     
     return critNoDiag
 
-def get_all_diagnosis(engine):
+def get_gold_standard_criteria(engine):
     
     session = Session(engine)
+
+    try:
+        query = session.query(CriterionPOCO.id, CriterionPOCO.name).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.has_gold_standard == True)
+        answer = query.all()
+    finally:
+        session.close()
     
-    diagnosis_type = 0
-    
-    query = session.query(CriterionPOCO).filter(CriterionPOCO.type == diagnosis_type)
-    ans = query.all()
-    
-    diagnosis = []
-    
-    for i in range(len(ans)):
-        diagnosis.append(DiagnosisDataModel(ans[i].id, ans[i].name))
-    
-    session.close()
-    
-    return diagnosis
+    return answer
 
 def categories_with_criteria(engine):
     

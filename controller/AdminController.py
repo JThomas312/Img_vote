@@ -14,6 +14,10 @@ from bcrypt import gensalt, hashpw
 from openpyxl import Workbook
 from os import getcwd
 import os.path
+from os import remove
+from zipfile import ZipFile
+from shutil import rmtree
+from shutil import copyfile
 from re import sub
 from re import match
 
@@ -25,7 +29,8 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.Models.DataModels import UserDataModel
-from img_vote.Models.ViewModels import UserHomeViewModel, CriterionEditingViewModel, CategoryConfigurationViewModel, CategoryEditingViewModel, PrerequisiteEditingViewModel
+from img_vote.Models.ViewModels import UserHomeViewModel, CriterionEditingViewModel, CategoryConfigurationViewModel
+from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
 
 from img_vote.dal.MasterDal import get_reviewer_by_login, create_reviewer, delete_reviewer_by_id, update_password, get_reviewer_by_id, clear_non_admin_users
 from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data
@@ -122,7 +127,7 @@ def save_criterion(cat_id, name, malignancy):
     if not sanitize(name) or name == '':
         return
     category_name = get_category_by_id(cat_id).name
-    tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', category_name, name + '.png')
+    tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', category_name, name)
     mal = malignancy == 'true'
     create_criterion(name, tutorial_slide_path, cat_id, False, mal)
 
@@ -161,31 +166,45 @@ def delete_category(cat_id):
 def check_category(cat_id, form_answers):
 
     if (not 'name' in form_answers) or (form_answers['name'] == '') or (not sanitize(form_answers['name'])):
-        return 'invalid category : your category must have a valid name'
+        return 'Invalid category : your category must have a valid name'
+
+    update_category(cat_id, form_answers['name'], 'name')
+
     if not 'type' in form_answers:
-        return 'invalid category : choosing type is mandatory'
+        return 'Invalid category : choosing type is mandatory'
+    
+    update_category(cat_id, form_answers['type'], 'type')
     
     prerequisites_ok = True
-    if 'optional' in form_answers and form_answers['optional'] == 1:
+    if 'optional' in form_answers and form_answers['optional'] == '1':
         prerequisites_ok = False
+    
+    nb_answers = 0
     
     for ans in form_answers:
         if ans.find('prerequisiteField') != -1:
             val = form_answers[ans]
             if val == '':
-                return 'invalid category : one of your answers is unnamed'
+                return 'Invalid category : one of your answers is unnamed'
             if not sanitize(val):
                 return 'invalid prerequisite : ' + val + ' is not a valid name'
             prerequisites_ok = True
         if ans.find('criterionField') != -1:
             val = form_answers[ans]
             if val == '':
-                return 'invalid category : one of your answers is unnamed'
+                return 'Invalid category : one of your answers is unnamed'
             if not sanitize(val):
                 return 'invalid answer : ' + val + ' is not a valid name'
+            nb_answers += 1
     
     if not prerequisites_ok:
-        return 'invalid category : an optional category needs at least one prerequisite'
+        return 'Invalid category : an optional category needs at least one prerequisite'
+    
+    if form_answers['type'] == '2' and nb_answers < 2:
+        return 'Invalid category : this type of category needs at least two answers'
+    
+    if nb_answers == 0:
+        return 'Invalid category : every category needs at least one answer'
     
     return None
 
@@ -194,7 +213,6 @@ def check_categories():
     errors = []
     
     incorrect_categories = []
-
     if categories_without_name():
         errors.append('Some of your categories are still unnamed')
     if not at_least_one_mandatory_category():
@@ -207,7 +225,7 @@ def check_categories():
     
     mandatory_categories = mandatory_categories_with_prerequisites()
     if len(mandatory_categories) > 0:
-        errors.append('Some mandatory categories have prerequisites, please remove them of make them optional')
+        errors.append('Some mandatory categories have prerequisites, please remove them or make them optional')
         incorrect_categories.extend(mandatory_categories)
     
     optional_categories = optional_categories_without_prerequisites()
@@ -224,11 +242,13 @@ def check_categories():
     if len(malignant_categories) > 0:
         errors.append('Some categories are marked as having malignancy but not gold standard, please check them')
         incorrect_categories.extend(malignant_categories)
+
+    unique_incorrect_categories = list(dict.fromkeys(incorrect_categories))
     
-
-
-    if len(errors) > 0:
-        return (errors, incorrect_categories)
+    for i in range(len(unique_incorrect_categories)):
+        if bool(match('^[\s]*$', incorrect_categories[i][1])):
+            unique_incorrect_categories[i] = (unique_incorrect_categories[i][0], 'unnamed category')
+    return (errors, unique_incorrect_categories)
 
     clear_malignant_criteria_in_non_malignant_category()
     
@@ -246,6 +266,55 @@ def optional_category_allowed(categoryId):
 def gold_standard_category_allowed(categoryId):
     allowed = not gold_standard_exists(categoryId)
     return allowed
+
+def upload_status():
+    VM = UploadStatusViewModel()
+    VM.case_images_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'case_images.zip'))
+    VM.tutorial_images_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'tutorial_images.zip'))
+    VM.case_data_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'case_data'))
+    return VM
+
+def unzip_and_move(path, version):
+    if version == 'case':
+        extract_path = os.path.join(getcwd(), 'data', 'Img_data')
+    elif version == 'tutorial':
+        extract_path = os.path.join(getcwd(), 'data', 'tutorial_data')
+    else:
+        return 'something went wrong'
+    try:
+        zippy = ZipFile(path)
+        zippy.extractall(extract_path)
+    except Exception as e:
+        return e
+    return None
+
+def move(ogpath, newpath):
+    copyfile(ogpath, newpath)
+
+def remove_case_images():
+    upload_path = os.path.join(getcwd(), 'uploads', 'case_images.zip')
+    remove(upload_path)
+    unziped_path = os.path.join(getcwd(), 'data', 'Img_data')
+    rmtree(unziped_path)
+
+def remove_tutorial_images():
+    upload_path = os.path.join(getcwd(), 'uploads', 'tutorial_images.zip')
+    remove(upload_path)
+    unziped_path = os.path.join(getcwd(), 'data', 'tutorial_data')
+    rmtree(unziped_path)
+
+def remove_case_data():
+    upload_path = os.path.join(getcwd(), 'uploads', 'case_data')
+    remove(upload_path)
+    for filename in os.listdir(os.path.join(getcwd(), 'data')):
+        if bool(match('case_data', filename)):
+            remove(os.path.join(getcwd(), 'data', filename))
+
+def check_uploads_and_create_cases():
+    problems = create_all_cases()
+    if problems != None:
+        return 'error : file ' + str(problems[0])   + ' does not correspond to case ' + problems[1] + ' in data file, please check your data and upload it again'
+    return problems
 
 def get_data_for_export():
 

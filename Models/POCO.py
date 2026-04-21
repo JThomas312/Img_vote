@@ -106,7 +106,7 @@ class CasePOCO(Base):
     def __repr__(self) -> str:
         return f"Case(id={self.id!r}, path={self.path!r}, name={self.name!r})"
     
-    def __init__(self, path, name, gld_std):
+    def __init__(self, path, name, gld_std=None):
         self.path = path
         self.name = name
         self.gold_standard = gld_std

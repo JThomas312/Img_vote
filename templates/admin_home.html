@@ -45,7 +45,19 @@ Created on Tue Sep 16 16:36:19 2025
 <br/>
 {% if study_status == 'stopped' %}
 <a href="/category_configuration/">
-  <button>Configure Categories</button>
+  <button>Manage Categories</button>
+</a>
+<br/>
+{% endif %}
+{% if study_status == 'categories_done' %}
+<a href="/manage_uploads/">
+  <button>Manage uploads</button>
+</a>
+<br/>
+{% endif %}
+{% if study_status == 'uploads_done' %}
+<a href="/manage_reviewer_repartition/">
+  <button>Manage Reviewer repartition</button>
 </a>
 <br/>
 {% endif %}
@@ -89,7 +101,7 @@ Created on Tue Sep 16 16:36:19 2025
 {% block content %}
   <ol>
   {% for otherUser in otherUsers %}
-    <li><a>{{otherUser[1]}}</a> : <a>{{otherUser[2]}}</a> {% if otherUser[3] %} <a>Study Administrator</a> {% else %} {% if otherUser[4] and not otherUser[3] and study_status != 'stopped' %} <a>Reviews finished ! </a> {% endif %} {% endif %} 
+    <li><a>{{otherUser[1]}}</a> : <a>{{otherUser[2]}}</a> {% if otherUser[3] %} <a>Study Administrator</a> {% else %} <a>Reviewer</a> {% if otherUser[4] and not otherUser[3] and (study_status in ['ongoing', 'paused']) %} <a>Reviews finished ! </a> {% endif %} {% endif %} 
         {% if study_status != 'ongoing' %} <a href="/confirm_delete_user/{{otherUser[0]}}"><button>delete user</button></a>{% endif %}
         <a href="/reset_password/{{otherUser[0]}}">
           <button>reset password</button>
