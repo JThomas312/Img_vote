@@ -105,6 +105,15 @@ class UploadStatusViewModel():
     tutorial_images_uploaded: bool
     case_data_uploaded: bool
 
+class ReviewerRepartitionViewmodel():
+    nb_cases: int
+    nb_reviewers: int
+    nb_full_reviewers: int
+    def __init__(self, nb_cases=0, nb_reviewers=0, nb_full_reviewers=0):
+        self.nb_cases = nb_cases
+        self.nb_reviewers = nb_reviewers
+        self.nb_full_reviewers = nb_full_reviewers
+
 # ViewModels for user pages during study
 class CategoryViewModel():
     name: str

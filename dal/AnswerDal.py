@@ -9,10 +9,13 @@ Created on Thu Aug 28 14:49:10 2025
 #general imports
 from sqlalchemy import select
 from sqlalchemy import update
+from sqlalchemy import delete
 
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+
+from random import randint, shuffle
 
 from sqlalchemy.orm import Session
 
@@ -40,16 +43,17 @@ def get_answer_by_id(identifier, engine):
 def get_all_answers(engine):
     
     session = Session(engine)
+    try:
+        answers = []
+        
+        answersQuery = select(AnswerPOCO)
+        answersPOCO = session.execute(answersQuery).all()
+        
+        for i in range(len(answersPOCO)):
+            answers.append(answersPOCO[i][0]) #no time to investigate all(), mayhap later
     
-    answers = []
-    
-    answersQuery = select(AnswerPOCO)
-    answersPOCO = session.execute(answersQuery).all()
-    
-    for i in range(len(answersPOCO)):
-        answers.append(answersPOCO[i][0]) #no time to investigate all(), mayhap later
-
-    session.close()
+    finally:
+        session.close()
 
     return answers
 
@@ -81,7 +85,7 @@ def get_cases_and_answers(userId, engine):
     #0: Case, 1: Answer
     
     for i in range(len(queriedAns)):
-        casesAns.append(CaseAnsDataModel(queriedAns[i][0].id, queriedAns[i][0].name, queriedAns[i][1].completed))
+        casesAns.append(CaseAnsDataModel(queriedAns[i][0].id, queriedAns[i][1].name, queriedAns[i][1].completed))
         
     session.close()
     
@@ -110,39 +114,90 @@ def update_answer_status(userId, caseId, done, engine):
 
 #one-time data creation
 
-def create_all_answers(engine):
-    
-    session = Session(engine)
-    cases = session.query(CasePOCO).all()
-    users = session.query(ReviewerPOCO).filter(ReviewerPOCO.admin == False).all()
-    for user in users:
-        counter = 0
-        for case in cases:
-            newAns = AnswerPOCO(case.id, user.id)
-            session.add(newAns)
-            counter += 1
-        updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == user.id).values(remaining_cases=counter)
-        session.execute(updatestmt)
-        
-    session.commit()
-        
-    session.close()
-
-def create_user_answers(userId, engine):
+def create_all_answers(rev_per_case, engine):
     
     session = Session(engine)
     
-    cases = session.query(CasePOCO).all()
+    try:
+        cases = session.query(CasePOCO.id).all()
+        nb_cases = len(cases)
+        full_reviewers = session.query(ReviewerPOCO.id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.full_review == True).all()
     
-    counter = 0
-    
-    for case in cases:
-        newAns = AnswerPOCO(case.id, userId)
-        session.add(newAns)
-        counter += 1
+        
+        for full_reviewer in full_reviewers:
+            for case in cases:
+                newAns = AnswerPOCO(case.id, full_reviewer.id)
+                session.add(newAns)
             
-    updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == userId).values(remaining_cases=counter)
-    session.execute(updatestmt)    
-    session.commit()
+        standard_reviewers = session.query(ReviewerPOCO.id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.full_review == False).all()
     
-    session.close()
+        if len(standard_reviewers) > 0:    
+    
+            ahead_group = []
+            behind_group = [rev.id for rev in standard_reviewers]
+            
+            for i in range(nb_cases):
+                for j in range(rev_per_case):
+                    k = randint(0, len(behind_group) - 1)
+                    newAns = AnswerPOCO(cases[i].id, behind_group[k])
+                    session.add(newAns)
+                    ahead_group.append(behind_group[k])
+                    behind_group.pop(k)
+                    if len(behind_group) == 0:
+                        behind_group = ahead_group.copy()
+                        ahead_group = []
+        
+        total_reviewers = []
+        total_reviewers.extend(full_reviewers)
+        total_reviewers.extend(standard_reviewers)
+        
+        
+        for reviewer in total_reviewers:
+            
+            counter = 0
+            assigned_cases = session.query(AnswerPOCO.study_case).filter(AnswerPOCO.reviewer == reviewer.id).all()
+            shuffle(assigned_cases)
+            
+            for i in range(len(assigned_cases)):
+                name = str(i + 1)
+                updateans = update(AnswerPOCO).where(AnswerPOCO.reviewer == reviewer.id).where(AnswerPOCO.study_case == assigned_cases[i].study_case).values(name=name)
+                session.execute(updateans)
+                counter += 1
+            
+            updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == reviewer.id).values(remaining_cases=counter)
+                
+            session.execute(updatestmt)
+    
+        session.commit()
+    
+    except Exception as e:
+        deletestmt = delete(AnswerPOCO)
+        session.execute(deletestmt)
+        raise e
+    
+    finally:
+        session.close()
+
+def create_user_answers(userId, case_per_rev, engine):
+    
+    session = Session(engine)
+    
+    try:    
+        cases = session.query(CasePOCO.id).all()
+        
+        caseIds = [i.id for i in cases]
+        
+        shuffle(caseIds)
+        
+        
+        for i in range(case_per_rev):
+            name = str(i + 1)
+            newAns = AnswerPOCO(caseIds[i], userId, name)
+            session.add(newAns)
+                
+        updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == userId).values(remaining_cases=case_per_rev)
+        session.execute(updatestmt)    
+        session.commit()
+
+    finally:
+        session.close()

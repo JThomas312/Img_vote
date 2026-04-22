@@ -32,11 +32,12 @@ class ReviewerPOCO(Base):
     def __repr__(self) -> str:
         return f"Reviewer(id={self.id!r}, name={self.name!r}, login={self.login!r}, admin={self.admin!r})"
     
-    def __init__(self, name, login, password, admin):
+    def __init__(self, name, login, password, admin, full_review):
         self.name = name
         self.login = login
         self.password = password
         self.admin = admin
+        self.full_review = full_review
         self.remaining_cases = 0
 
 class CategoryPOCO(Base):
@@ -122,9 +123,11 @@ class AnswerPOCO(Base):
     def __repr__(self) -> str:
         return f"Answer(id={self.id!r}, case={self.study_case!r}, reviewer={self.reviewer!r}, completed={self.completed!r})"
     
-    def __init__(self, case, rev):
+    def __init__(self, case, rev, name='', completed = False):
         self.study_case = case
         self.reviewer = rev
+        self.name = name
+        self.completed = completed
         
 class AnswerCriterionPOCO(Base):
     __tablename__ = "answer_to_criterion"

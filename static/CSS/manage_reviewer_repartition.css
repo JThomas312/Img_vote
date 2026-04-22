@@ -1,0 +1,36 @@
+/*# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr 22 10:01:39 2026
+
+@author: j.thomas
+"""*/
+
+/* Layout splits */
+.split {
+    height: 100%;
+    position: fixed;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    z-index: 1;
+}
+
+.split.left {
+    left: 0;
+    width: calc(59% - 10px);
+    background-color: #f7f7f7;
+    border-left: 10px solid #f7f7f7;
+    border-right: 5px solid black;
+}
+
+
+.split.right {
+    left: calc(59% + 5px);
+    width: calc(39% - 5px);
+    background-color: #f7f7f7;
+    border-left: 5px solid #f7f7f7;
+    border-right: 5px solid #f7f7f7;
+    padding-bottom: 80px;
+}
+

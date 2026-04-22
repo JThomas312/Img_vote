@@ -65,13 +65,28 @@ def get_all_cases(engine):
     session.close()
     
     return cases
+
+def count_all_cases(engine):
+    
+    session = Session(engine)
+
+    try:
+        query = session.query(CasePOCO)
+        answer = query.count()
+    finally:
+        session.close()
+    
+    return answer
     
 def exists_case_by_id(identifier, engine):
     
     session = Session(engine)
+    try:
+        query = session.query(CasePOCO).filter(CasePOCO.id == identifier)
+        ans = session.query(query.exists()).scalar()
+    finally:
+        session.close()
     
-    query = session.query(CasePOCO).filter(CasePOCO.id == identifier)
-    ans = session.query(query.exists()).scalar()
     
     return ans
 

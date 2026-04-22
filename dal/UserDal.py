@@ -111,7 +111,21 @@ def get_all_non_admin_reviewers(engine):
     session.close()
 
     return users
+ 
+def count_all_reviewers(full, engine):
     
+    session = Session(engine)
+    
+    try:
+        query = session.query(ReviewerPOCO).filter(ReviewerPOCO.full_review == full).filter(ReviewerPOCO.admin == False)
+            
+        answer = query.count()
+    
+    finally:
+        session.close()
+    
+    return answer
+   
 #CRUD    
     
 def update_user_count(userId, done, engine):
@@ -136,11 +150,11 @@ def update_user_count(userId, done, engine):
     
     session.close()
 
-def create_reviewer(name, login, password, admin, engine):
+def create_reviewer(name, login, password, admin, full_review, engine):
     
     session = Session(engine)
 
-    newReviewer = ReviewerPOCO(name, login, password, admin)
+    newReviewer = ReviewerPOCO(name, login, password, admin, full_review)
     # if newReviewer.admin == None:
     session.add(newReviewer)
     session.commit()

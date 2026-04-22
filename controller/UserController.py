@@ -7,11 +7,8 @@ Created on Mon Mar 31 16:04:36 2025
 """
 
 #general modules
-from os import getcwd
-from os import listdir
 from re import split
 
-from random import randint
 from bcrypt import gensalt, hashpw
 
 #enable imports from local modules
@@ -21,7 +18,6 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.DataModels import UserDataModel
 from img_vote.Models.ViewModels import UserHomeViewModel, AdminHomeViewModel
 
 from img_vote.dal.MasterDal import get_reviewer_by_login, get_cases_and_answers, get_users_for_admin, get_reviewer_for_login, update_password

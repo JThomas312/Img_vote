@@ -62,8 +62,11 @@ def get_reviewer_for_login(login):
 def get_users_for_admin(identifier):
     return UserDal.get_users_for_admin(identifier, engine)
 
-def create_reviewer(name, login, password, admin):
-    return UserDal.create_reviewer(name, login, password, admin, engine)
+def count_all_reviewers(full):
+    return UserDal.count_all_reviewers(full, engine)
+
+def create_reviewer(name, login, password, admin, full_review):
+    return UserDal.create_reviewer(name, login, password, admin, full_review, engine)
 
 def delete_reviewer_by_id(identifier):
     return UserDal.delete_reviewer_by_id(identifier, engine)
@@ -87,6 +90,9 @@ def get_case_by_id(identifier):
 
 def get_all_cases():
     return CaseDal.get_all_cases(engine)
+
+def count_all_cases():
+    return CaseDal.count_all_cases(engine)
 
 def exists_case_by_id(identifier):
     return CaseDal.exists_case_by_id(identifier, engine)
@@ -113,11 +119,11 @@ def get_cases_and_answers(userId):
 def update_answer_status(userId, caseId, done):
     return AnswerDal.update_answer_status(userId, caseId, done, engine)
 
-def create_all_answers():
-    return AnswerDal.create_all_answers(engine)
+def create_all_answers(rev_per_case):
+    return AnswerDal.create_all_answers(rev_per_case, engine)
     
-def create_user_answers(userId):
-    return AnswerDal.create_user_answers(userId, engine)
+def create_user_answers(userId, case_per_rev):
+    return AnswerDal.create_user_answers(userId, case_per_rev, engine)
 
 #CategoryDal
 def get_category_by_id(catId):

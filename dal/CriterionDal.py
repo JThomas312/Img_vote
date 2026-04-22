@@ -118,16 +118,18 @@ def get_diagnosis_for_case(userId, caseId, engine):
 def get_all_criteria(engine):
     
     session = Session(engine)
-    
-    criteria = []
-    
-    criteriaQuery = select(CriterionPOCO)
-    criteriaPOCO = session.execute(criteriaQuery).all()
-    
-    for i in range(len(criteriaPOCO)):
-        criteria.append(criteriaPOCO[i][0]) #no time to investigate all(), mayhap later
 
-    session.close()
+    try:
+        criteria = []
+        
+        criteriaQuery = select(CriterionPOCO)
+        criteriaPOCO = session.execute(criteriaQuery).all()
+        
+        for i in range(len(criteriaPOCO)):
+            criteria.append(criteriaPOCO[i][0]) #no time to investigate all(), mayhap later
+
+    finally:
+        session.close()
 
     return criteria
 
@@ -464,15 +466,16 @@ def create_all_answer_to_criterion(engine):
     criteria = get_all_criteria(engine)
     
     session = Session(engine)
+    try:
+        for i in range(len(answers)):
+            for j in range(len(criteria)):
+                newAnsCrit = AnswerCriterionPOCO(answers[i].id, criteria[j].id)
+                session.add(newAnsCrit)
     
-    for i in range(len(answers)):
-        for j in range(len(criteria)):
-            newAnsCrit = AnswerCriterionPOCO(answers[i].id, criteria[j].id)
-            session.add(newAnsCrit)
+        session.commit()
 
-    session.commit()
-    
-    session.close()
+    finally:
+        session.close()
 
 def create_user_answer_to_criterion(userId, engine):
         

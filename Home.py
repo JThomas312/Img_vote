@@ -23,9 +23,6 @@ from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 
 from re import match
-from PIL import Image
-import base64
-import io
 from os import getcwd
 import os.path
 from bcrypt import checkpw
@@ -63,11 +60,12 @@ from controller.AdminController import remove_case_images
 from controller.AdminController import remove_tutorial_images
 from controller.AdminController import remove_case_data
 from controller.AdminController import check_uploads_and_create_cases
+from controller.AdminController import data_for_repartition
+from controller.AdminController import handle_repartition
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 from controller.CaseController import caseForDisplay
 from controller.CaseController import caseForDiagnosis
-from controller.CaseController import init_data_study_start
 from controller.CaseController import safeguardProgress
 from controller.CaseController import safeguardDiagnosis
 from controller.CaseController import criterion_for_tutorial
@@ -437,7 +435,7 @@ def finish_uploading():
     else:
         return(redirect(url_for('login')))
 
-@app.route('/manage_reviewer_repartition/', methods=['GET'])
+@app.route('/manage_reviewer_repartition/', methods=['GET', 'POST'])
 def manage_reviewer_repartition():
     if 'userId' in session:
         if 'admin' in session:
@@ -445,14 +443,17 @@ def manage_reviewer_repartition():
                 with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
                     status = fr.read().replace('\n', '')
                 if status == 'uploads_done':
-                    errors = check_uploads_and_create_cases()
-                    if errors != None:
-                        uploadStatusVM = upload_status()
-                        return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('uploads_done')
-                return redirect(url_for('user_home'))
-
+                    if request.method == 'GET':
+                        viewModel = data_for_repartition()
+                        return render_template('manage_reviewer_repartition.html', VM=viewModel)
+                    if request.method == 'POST':    
+                        repartition_method = request.form['repartition']
+                        reviewer_per_case = request.form['reviewer_per_case']
+                        cases_per_reviewer = request.form['cases_per_reviewer']
+                        percentage = request.form['percentage']
+                        handle_repartition(repartition_method, reviewer_per_case, cases_per_reviewer, percentage)
+                        with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write('ready')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -470,16 +471,15 @@ def begin_study():
                         error = 'Study has already begun, current status is: ' + status 
                     return render_template('study_begining.html', error=error)
                 if request.method == 'POST':
-                    endDate = datetime.strptime(request.form['study_end'], '%Y-%m-%d')
-                    if status == 'stopped':
-                        init_data_study_start()
+                    if status == 'ready':
+                        endDate = datetime.strptime(request.form['study_end'], '%Y-%m-%d')
                         with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
                             fw.write(endDate.strftime('%Y-%m-%d'))
                         
                         with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
                             fw.write(request.form['study_name'])
                             
-                        with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('ongoing')
         return(redirect(url_for('user_home'))) 
     else:
@@ -649,10 +649,11 @@ def new_user_creation():
                 login = request.form['login']
                 fullname = request.form['fullname']
                 admin = request.form['admin'] == '1'
+                full_review = request.form['full_review'] == '1'
                 password = ''
                 if sanitize(fullname) and sanitize(login):
                     try:
-                        password = create_user(login, fullname, admin, status)
+                        password = create_user(login, fullname, admin, status, full_review)
                     except Exception as e:
                         error = f"{e}"
                 else:

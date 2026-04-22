@@ -15,6 +15,7 @@ from openpyxl import Workbook
 from os import getcwd
 import os.path
 from os import remove
+from math import ceil
 from zipfile import ZipFile
 from shutil import rmtree
 from shutil import copyfile
@@ -30,12 +31,13 @@ sys.path.append(str(path_root))
 #local modules
 from img_vote.Models.DataModels import UserDataModel
 from img_vote.Models.ViewModels import UserHomeViewModel, CriterionEditingViewModel, CategoryConfigurationViewModel
-from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
+from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerRepartitionViewmodel
 
-from img_vote.dal.MasterDal import get_reviewer_by_login, create_reviewer, delete_reviewer_by_id, update_password, get_reviewer_by_id, clear_non_admin_users
-from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data
+from img_vote.dal.MasterDal import get_reviewer_by_login, create_reviewer, delete_reviewer_by_id, update_password, get_reviewer_by_id
+from img_vote.dal.MasterDal import count_all_reviewers, clear_non_admin_users
+from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data, count_all_cases
 from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, erase_criterion, erase_category_criteria
-from img_vote.dal.MasterDal import create_trust_criteria, create_all_criterion, create_all_answer_to_criterion, create_user_answer_to_criterion, get_all_criteria_no_diagnosis, clear_all_criteria
+from img_vote.dal.MasterDal import create_trust_criteria, create_all_answers, create_all_answer_to_criterion, create_user_answer_to_criterion, get_all_criteria_no_diagnosis, clear_all_criteria
 from img_vote.dal.MasterDal import create_user_answers
 from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria, category_with_criteria_and_prerequisites, categories_without_name, at_least_one_mandatory_category
 from img_vote.dal.MasterDal import update_category_value, at_least_one_other_mandatory_category, categories_without_criteria, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, gold_standard_exists
@@ -50,19 +52,27 @@ def find_name_and_login(userId):
     return (usrName, usrLogin)
 
 
-def create_user(login, name, admin, status):
+def create_user(login, name, admin, status, full_review):
     existing = get_reviewer_by_login(login)
+    full = full_review and not admin
+    with open(os.path.join(getcwd(), 'persistence', 'repartition.txt'), 'r', encoding="utf-8") as fr:
+        repartition = fr.readline().removesuffix('\n')
+        case_per_r = fr.readline().removesuffix('\n')
+        percentage = fr.readline().removesuffix('\n')
     if ((not admin) and (status == 'ended')):
         raise Exception('While the study is ended only administrator users can be created')
+    elif not full and repartition == 'n per case' and status in ['ready', 'ongoing', 'paused']:
+        raise Exception('You can now only create full reviewers with your chosen repartition')
     elif existing != None:
         raise Exception('User already exists with login ' + login)
     else:
         password = generate_password()
         s = gensalt()
         hashPass = hashpw(password.encode('utf-8'), s).decode('utf-8')
-        revId = create_reviewer(name, login, hashPass, admin)
-        if status != 'stopped':
-            create_user_answers(revId)
+        revId = create_reviewer(name, login, hashPass, admin, full)
+        if not admin and status in ['ready', 'ongoing', 'paused']:
+            case_per_rev = compute_case_per_rev(full, repartition, case_per_r, percentage)
+            create_user_answers(revId, case_per_rev)
             create_user_answer_to_criterion(revId)
     return password
 
@@ -316,6 +326,63 @@ def check_uploads_and_create_cases():
         return 'error : file ' + str(problems[0])   + ' does not correspond to case ' + problems[1] + ' in data file, please check your data and upload it again'
     return problems
 
+def data_for_repartition():
+    nb_cases = count_all_cases()
+    nb_standard_reviewers = count_all_reviewers(False)
+    nb_full_reviewers = count_all_reviewers(True)
+    
+    repartitionVM = ReviewerRepartitionViewmodel(nb_cases, nb_standard_reviewers + nb_full_reviewers, nb_full_reviewers)
+    
+    return repartitionVM
+
+def handle_repartition(method, r_per_case, case_per_r, percentage):
+
+    rev_per_case= compute_rev_per_case(method, r_per_case, case_per_r, percentage)
+
+    create_all_answers(rev_per_case)    
+    create_all_answer_to_criterion()
+    
+    with open(os.path.join(getcwd(), 'persistence', 'repartition.txt'), 'w', encoding="utf-8") as fw:
+        fw.writelines([method, '\n', case_per_r, '\n', percentage])
+    
+    return None
+ 
+def compute_rev_per_case(method, r_per_case, case_per_r, percentage):
+    nb_cases = count_all_cases()
+    nb_standard_reviewers = count_all_reviewers(False)
+    nb_full_reviewers = count_all_reviewers(True)
+    
+    if method == 'all for all' or nb_standard_reviewers == 0:
+        rev_per_case = nb_standard_reviewers
+    
+    if method == 'n per case':
+        rev_per_case = int(r_per_case) - nb_full_reviewers
+        if rev_per_case > nb_standard_reviewers:
+            rev_per_case = nb_standard_reviewers
+ 
+    if method == 'n per reviewer':
+        rev_per_case = ceil(float(nb_standard_reviewers * int(case_per_r)) / float(nb_cases))
+    
+    if method == 'percent per reviewer':
+        rev_per_case = ceil( float( nb_standard_reviewers * int( ceil( float( nb_cases * int( percentage ) ) / float(100) ) ) ) / float(nb_cases) )
+    
+    return rev_per_case
+ 
+def compute_case_per_rev(full, method, case_per_r, percentage):
+    nb_cases = count_all_cases()
+    nb_standard_reviewers = count_all_reviewers(False)
+    
+    if full or method == 'all for all' or nb_standard_reviewers == 0:
+        case_per_rev = nb_cases
+ 
+    if method == 'n per reviewer':
+        case_per_rev = case_per_r
+    
+    if method == 'percent per reviewer':
+        case_per_rev = ceil( float( nb_cases * int( percentage ) ) / float(100) )
+    
+    return case_per_rev
+
 def get_data_for_export():
 
     wb = Workbook()
@@ -382,13 +449,6 @@ def regenerate_password(userId):
     update_password(userId, hashPass)
     
     return newPass
-
-
-def start_study():
-    create_all_criterion()
-    create_all_cases()
-    create_all_answer_to_criterion()
-
 
 def generate_password():
     length = random.randint(8, 32)

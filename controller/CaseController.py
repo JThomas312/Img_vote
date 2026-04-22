@@ -13,9 +13,6 @@ import os.path
 from PIL import Image
 import base64
 import io
-from openpyxl import load_workbook
-
-from random import randint
 
 #enable imports from local modules
 from pathlib import Path
@@ -29,23 +26,14 @@ from img_vote.Models.ViewModels import CaseViewModel
 from img_vote.dal.MasterDal import get_criterion_for_case
 from img_vote.dal.MasterDal import get_diagnosis_for_case
 from img_vote.dal.MasterDal import get_criterion_by_id
-from img_vote.dal.MasterDal import create_all_answer_to_criterion
 from img_vote.dal.MasterDal import save_Criterion
 from img_vote.dal.MasterDal import safeguard_Criterion
 from img_vote.dal.MasterDal import undo_all_but_one
 from img_vote.dal.MasterDal import get_unfinished_criteria
 from img_vote.dal.MasterDal import update_answer_status
 from img_vote.dal.MasterDal import update_user_count
-from img_vote.dal.MasterDal import create_all_answers
-from img_vote.dal.MasterDal import create_all_criterion
-from img_vote.dal.MasterDal import create_all_cases
 from img_vote.dal.MasterDal import exists_case_by_id
 
-def init_data_study_start():
-    create_all_criterion()
-    create_all_cases()
-    create_all_answers()
-    create_all_answer_to_criterion()
 
 def caseForDisplay(userId, case):
     
