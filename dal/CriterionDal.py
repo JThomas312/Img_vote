@@ -39,13 +39,13 @@ def get_criterion_by_id(identifier, engine):
     
     criterionPOCO = session.get(CriterionPOCO, identifier)
     
-    criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.type, criterionPOCO.category)
+    criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.category, criterionPOCO.is_trust)
     
     session.close()
     
     return criterion
 
-def get_unfinished_criteria(userId, caseId, engine):
+def is_answer_done(userId, caseId, engine):
     
     session = Session(engine)
     
@@ -53,44 +53,67 @@ def get_unfinished_criteria(userId, caseId, engine):
     yes_no_category = 1
     one_of_category = 2 
     unanswered_value = 0
+    unanswered_trust_value = 0
     true_value = 1
     
-    # if diagnosis is not a melenoma, consider the case done
-    query0 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.name == "Melanoma").filter(AnswerCriterionPOCO.value == true_value)
-    ans0 = session.query(query0.exists()).scalar()
-    if not ans0:
-        return False
+    # prefiltered query with all necessary joins
+    query0 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO, CategoryPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId)
     
-    
-    query1 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.category == yes_no_category).filter(AnswerCriterionPOCO.value == unanswered_value)
-    query2 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.category == one_of_category).filter(AnswerCriterionPOCO.value == true_value).order_by(CriterionPOCO.id)
-    ans1 = session.query(query1.exists()).scalar()
-    ans2 = session.query(query2.exists()).scalar()
-    
-    finalAnswer = ans1 or (not ans2)
-    
-    return finalAnswer
-
-def get_criterion_for_case(userId, caseId, engine):
-    
-    session = Session(engine)
-    #criterion category 3 is trustScale
-    #trustCategory = 3    
-
-    query = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).order_by(CriterionPOCO.id)
-    #.filter(CriterionPOCO.category != trustCategory)
-
-    queriedAnswer = query.all()
-    
-    #0: Case, 1: Answer, 2: Criterion, 3: AnswerCriterion
+    categories = session.query(CategoryPOCO).all()
+    #0: case, 1:answer, 2: criterion, 3:answercriterion, 4: category
+    for category in categories:
         
-    answer = CriterionForCaseDataModel(queriedAnswer[0][0].path)
+        mandatory = True
+        
+        if category.optional:
+            
+            prerequisites = session.query(PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == category.id).all()
+            #check if all prerequisites are checked
+            for prerequisite in prerequisites:
+                prerequisitesQuery = query0.filter(CriterionPOCO.id == prerequisite.criterion).filter(AnswerCriterionPOCO.value != true_value)
+                if session.query(prerequisitesQuery.exists()).scalar():
+                    mandatory = False
+                    
+        if mandatory:
+            if category.type == yes_no_category:
+                #check if any criterion is still unanswered
+                unanswered_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_value).filter(CriterionPOCO.is_trust == False)
+                if session.query(unanswered_query.exists()).scalar():
+                    return False
+            
+            if category.type == one_of_category:
+                #check if any criterion has been chosen
+                answered_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == true_value).filter(CriterionPOCO.is_trust == False)
+                if not session.query(answered_query.exists()).scalar():
+                    return False
+            
+            if category.has_trust:
+                #check if trust criterion was left unanswered
+                trust_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_trust_value).filter(CriterionPOCO.is_trust == True)
+                if session.query(trust_query.exists()).scalar():
+                    return False
+        
+    return True
+
+def get_criteria_for_case(userId, caseId, catId, engine):
+
+    session = Session(engine)
+
+    try:
+        query = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.category == catId).filter(AnswerPOCO.reviewer == userId).filter(CasePOCO.id == caseId).order_by(CriterionPOCO.category, CriterionPOCO.id)
     
-    for i in range(len(queriedAnswer)):
-        answer.criteria.append((queriedAnswer[i][2].type, queriedAnswer[i][2].category, queriedAnswer[i][2].name, queriedAnswer[i][3].value, queriedAnswer[i][2].tutorial_path, queriedAnswer[i][2].id))
+        queriedAnswers = query.all()
     
-    session.close()
     
+        answer = []
+    
+        # 0: Case, 1: Answer, 2: Criterion, 3: AnswerCriterion
+        for queriedAnswer in queriedAnswers:
+            answer.append(CriterionForCaseDataModel(queriedAnswer[2].id, queriedAnswer[2].name, queriedAnswer[3].value, queriedAnswer[2].category, queriedAnswer[2].is_trust, queriedAnswer[2].tutorial_path))
+    
+    finally:
+        session.close()
+
     return answer
 
 
@@ -256,6 +279,31 @@ def update_criterion_malignancy(crit_id, crit_malignancy, engine):
     
     session.close()
 
+def update_criteria_path(path, engine):
+    
+    session = Session(engine)
+    
+    try:    
+        no_tutorial = session.query(CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.has_tutorial == False).all()
+        
+        for no_tuto in no_tutorial:
+        
+            updatestmt = update(CriterionPOCO).where(CriterionPOCO.id == no_tuto.id).values(tutorial_path='')
+            
+            session.execute(updatestmt)
+        
+        has_tutorial = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.has_tutorial == True).all()
+        
+        #0: Criterion, 1: Category
+        
+        for answer in has_tutorial:
+            path = os.path.join(path, answer[1].name, answer[0].name)
+            updatestmt = update(CriterionPOCO).where(CriterionPOCO.id == answer[0].id).values(tutorial_path=path)
+            session.execute(updatestmt)
+    
+    finally:
+        session.close()
+
 def clear_malignant_criteria_in_non_malignant_category(engine):
     
     session = Session(engine)
@@ -265,15 +313,11 @@ def clear_malignant_criteria_in_non_malignant_category(engine):
         query = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CriterionPOCO.malignancy == True).filter(CategoryPOCO.has_malignancy == False)
         queriedAnswer = query.all()
         
-        answer = []
         #0: criterion, 1: category
         
         for ans in queriedAnswer:
-            answer.append(ans[0].id)
-        
-        updatestmt = update(CriterionPOCO).where(CriterionPOCO.id in answer).values(malignancy=False)
-        
-        session.execute(updatestmt)
+            updatestmt = update(CriterionPOCO).where(CriterionPOCO.id == ans[0].id).values(malignancy=False)
+            session.execute(updatestmt)
         
         session.commit()
         
@@ -329,49 +373,54 @@ def save_Criterion(user, case, critName, newValue, engine):
 def safeguard_Criterion(user, case, critId, newValue, engine):
     
     session = Session(engine)
+     
+    try:
+        query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.id == critId).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
+        
+        result = query.one_or_none()
+        
+        if result is None:
+            return
+        
+        ansCrit = result[0]
+                
+        updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansCrit.answer).where(AnswerCriterionPOCO.criterion == ansCrit.criterion).values(value=newValue)
     
-    query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.id == critId).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
+        session.execute(updatestmt)
     
-    result = query.one_or_none()
-    
-    if result is None:
-        return
-    
-    ansCrit = result[0]
-            
-    updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansCrit.answer).where(AnswerCriterionPOCO.criterion == ansCrit.criterion).values(value=newValue)
-
-    session.execute(updatestmt)
-
-    session.commit()
-   
-    session.close()
+        session.commit()
+        
+    finally:
+        session.close()
 
 
-def undo_all_but_one(user, case, critId, value, critType, engine):
+def undo_all_but_one(userId, case, criterionId, value, category, engine):
     
     session = Session(engine)
     
-    true_value = 1
-    false_value = 2
-    one_of_category = 2
+    try:
+        true_value = 1
+        false_value = 2
+        
+        query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.category == category).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == case).filter(CriterionPOCO.id != criterionId).filter(CriterionPOCO.is_trust == False)
+        ansCrit = query.all()
     
-    query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.type == critType).filter(CriterionPOCO.category == one_of_category).filter(AnswerPOCO.study_case == case).filter(AnswerPOCO.reviewer == user)
-    ansCrit = query.all()
-    criterionId = int(critId)
-    # 0: answerCriterion, 1: answer, 2: criterion
-    for ans in ansCrit:
-        currentCritId = ans[2].id
-        if (currentCritId == criterionId):
-            updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ans[1].id).where(AnswerCriterionPOCO.criterion == ans[2].id).values(value=true_value)
+        # 0: answerCriterion, 1: answer, 2: criterion
+        ansId = ansCrit[0][1].id
+        
+        for ans in ansCrit:
+            
+            updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion == ans[2].id).values(value=false_value)
             session.execute(updatestmt)
-        else:
-            updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ans[1].id).where(AnswerCriterionPOCO.criterion == ans[2].id).values(value=false_value)
-            session.execute(updatestmt)
-    
-    session.commit()
-    
-    session.close()
+        
+        
+        updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion == criterionId).values(value=value)
+        session.execute(updatestmt)
+        
+        session.commit()
+     
+    finally:
+        session.close()
     
     
 #one-time data creation

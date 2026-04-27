@@ -116,6 +116,12 @@ def get_answer_by_id(identifier):
 def get_cases_and_answers(userId):
     return AnswerDal.get_cases_and_answers(userId, engine)
 
+def get_answer_name(userId, caseId):
+    return AnswerDal.get_answer_name(userId, caseId, engine)
+
+def get_case_by_answer_name(answerName, userId):
+    return AnswerDal.get_case_by_answer_name(answerName, userId, engine)
+
 def update_answer_status(userId, caseId, done):
     return AnswerDal.update_answer_status(userId, caseId, done, engine)
 
@@ -128,6 +134,9 @@ def create_user_answers(userId, case_per_rev):
 #CategoryDal
 def get_category_by_id(catId):
     return CategoryDal.get_category_by_id(catId, engine)
+
+def get_categories():
+    return CategoryDal.get_categories(engine)
 
 def at_least_one_other_mandatory_category(catId):
     return CategoryDal.at_least_one_other_mandatory_category(catId, engine)
@@ -180,8 +189,8 @@ def delete_prerequisite(catId, critId):
 def get_criterion_by_id(critId):
     return CriterionDal.get_criterion_by_id(critId, engine)
 
-def get_criterion_for_case(userId, caseId):
-    return CriterionDal.get_criterion_for_case(userId, caseId, engine)
+def get_criteria_for_case(userId, caseId, catId):
+    return CriterionDal.get_criteria_for_case(userId, caseId, catId, engine)
 
 def get_diagnosis_for_case(userId, caseId):
     return CriterionDal.get_diagnosis_for_case(userId, caseId, engine)
@@ -209,6 +218,9 @@ def update_criterion(crit_id, name, malignancy):
 
 def update_criterion_malignancy(crit_id, malignancy):
     return CriterionDal.update_criterion_malignancy(crit_id, malignancy, engine)
+
+def update_criteria_path():
+    return CriterionDal.update_criteria_path(engine)
 
 def clear_malignant_criteria_in_non_malignant_category():
     return CriterionDal.clear_malignant_criteria_in_non_malignant_category(engine)
@@ -240,8 +252,8 @@ def save_Criterion(user, case, critName, newValue):
 def safeguard_Criterion(user, case, critId, newValue):
     return CriterionDal.safeguard_Criterion(user, case, critId, newValue, engine)    
     
-def undo_all_but_one(user, case, critId, value, critType):
-    return CriterionDal.undo_all_but_one(user, case, critId, value, critType, engine)    
+def undo_all_but_one(userId, case, criterionId, value, category):
+    return CriterionDal.undo_all_but_one(userId, case, criterionId, value, category, engine)    
 
-def get_unfinished_criteria(userId, caseId):
-    return CriterionDal.get_unfinished_criteria(userId, caseId, engine)
+def is_answer_done(userId, caseId):
+    return CriterionDal.is_answer_done(userId, caseId, engine)

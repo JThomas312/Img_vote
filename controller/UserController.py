@@ -8,6 +8,8 @@ Created on Mon Mar 31 16:04:36 2025
 
 #general modules
 from re import split
+from os import getcwd
+import os.path
 
 from bcrypt import gensalt, hashpw
 
@@ -26,6 +28,9 @@ from img_vote.dal.MasterDal import get_reviewer_by_login, get_cases_and_answers,
 def user_for_home(username):
     
     user = get_reviewer_by_login(username)
+
+    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
+        study_name = fr.readline().removesuffix('\n')
    
     if user.admin:
         usr = AdminHomeViewModel()
@@ -41,7 +46,8 @@ def user_for_home(username):
         usr.remaing_users = sum(1 for x in usr.otherUsers if (not x[3] and not x[4]))
         usr.total_users = sum(1 for x in usr.otherUsers if not x[3])
         
-        return usr
+        return (usr, study_name)
+    
     
     usr = UserHomeViewModel()
     
@@ -57,7 +63,7 @@ def user_for_home(username):
     
     usr.remaing_items = len(usr.items) - sum(1 for x in usr.items if x[2])
     
-    return usr
+    return (usr, study_name)
 
 def user_for_login(username):
     usr = get_reviewer_for_login(username)

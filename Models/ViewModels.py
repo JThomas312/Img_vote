@@ -113,9 +113,22 @@ class ReviewerRepartitionViewmodel():
         self.nb_cases = nb_cases
         self.nb_reviewers = nb_reviewers
         self.nb_full_reviewers = nb_full_reviewers
+        
+class CriterionViewModel():
+    id: int
+    name: str
+    value: int
+    isTrust: bool
+    tutorial: bytearray
+    def __init__(self, critId, name, value, isTrust):
+        self.id = critId
+        self.name = name
+        self.value = value
+        self.isTrust = isTrust
 
 # ViewModels for user pages during study
 class CategoryViewModel():
+    cat_id: int
     name: str
     type: int
     has_trust: bool
@@ -123,47 +136,41 @@ class CategoryViewModel():
     has_NA: bool
     optional: bool
     prerequisites: list(int)
+    criteria: list(CriterionViewModel)
+    trust_criterion: CriterionViewModel
     unanswered: bool
-    def __init__(self, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites, unanswered):
+    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites=[], criteria=[], trust_criterion=None, unanswered=True):
+        self.cat_id = cat_id
         self.name = name
         self.type = cat_type
         self.has_trust = has_trust
         self.has_tutorial = has_tutorial
         self.has_NA = has_NA
         self.optional = optional
-        self.prerequisites = []
+        self.prerequisites = prerequisites
+        self.criteria = criteria
+        self.trust_criterion = trust_criterion
         self.unanswered = unanswered
-        
-class CriterionViewModel():
-    id: int
-    name: str
-    value: int
-    tutorial: bytearray
-    def __init__(self, name, value, tutorial, caseId):
-        self.name = name
-        self.value = value
-        self.tutorial = tutorial
-        self.id = caseId
     
 class CaseDisplayViewModel():
     case_id: int
-    case_name: str 
+    case_name: str
+    study_name: str
     nb_imgs: int 
     imgs: list()
     imgs_sizes: list((int, int))
     categories: list(CategoryViewModel)
-    criteria: list(CriterionViewModel)
     nb_categories: int 
     nextcase: int
-    def __init__(self, case_id, case_name, nb_imgs, imgs, imgs_sizes, nb_categories):
+    def __init__(self, case_id, case_name, study_name, nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):
         self.case_id = case_id
         self.case_name = case_name
-        self.nb_imgs = nb_imgs
-        self.imgs = []
-        self.imgs_sizes = []
-        self.categories = []
-        self.criteria = []
+        self.study_name = study_name
         self.nb_categories = nb_categories
+        self.nb_imgs = nb_imgs
+        self.imgs = imgs
+        self.imgs_sizes = imgs_sizes
+        self.categories = []
 
 
 

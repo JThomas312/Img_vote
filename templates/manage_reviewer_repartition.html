@@ -42,12 +42,12 @@ Created on Tue Apr 21 14:29:57 2026
                 <br/>
                 <br/>
                 <a>How many more reviewers are expected ?</a>
-                <p><input id="expected_additional_reviewers" type="number" name="additional_reviewers" value="0" min="0" onchange="update_figures()">
+                <p><input id="expected_additional_reviewers" type="number" name="additional_reviewers" value="0" min="0" oninput="update_figures()">
                 <br/>
                 <br/>
                 <br/>
                 <a>How many of them will be full reviewers ?</a>
-                <p><input id="expected_additional_full_reviewers" type="number" name="additional_full_reviewers" value="0" min="0" onchange="update_figures()">
+                <p><input id="expected_additional_full_reviewers" type="number" name="additional_full_reviewers" value="0" min="0" oninput="update_figures()">
                 <br/>
                 <br/>
                 <br/>
@@ -95,15 +95,15 @@ Created on Tue Apr 21 14:29:57 2026
                 </fieldset>
                 </br>
                 <div id="select_n_per_case">
-                    <input type="number" id="reviewers_per_case" name="reviewer_per_case" value="{{VM.nb_reviewers}}" min="0" step="1" onchange="update_figures()"/>
+                    <input type="number" id="reviewers_per_case" name="reviewer_per_case" value="{{VM.nb_reviewers}}" min="0" step="1" oninput="update_figures()"/>
                     <label for="reviewer_per_case">The number of reviewer that will review each case</label>
                 </div>
                 <div id="select_n_per_reviewer">
-                    <input type="number" id="cases_per_reviewer" name="cases_per_reviewer" value="{{VM.nb_cases}}" min="0" max="{{VM.nb_cases}}" step="1" onchange="update_figures()"/>
+                    <input type="number" id="cases_per_reviewer" name="cases_per_reviewer" value="{{VM.nb_cases}}" min="0" max="{{VM.nb_cases}}" step="1" oninput="update_figures()"/>
                     <label for="cases_per_reviewer">The number of cases that will be attributed to each reviewer</label>
                 </div>
                 <div id="select_percent_per_reviewer">
-                    <input type="number" id="percentage" name="percentage" value="100" min="0" max="100" step="1" onchange="update_figures()"/>
+                    <input type="number" id="percentage" name="percentage" value="100" min="0" max="100" step="1" oninput="update_figures()"/>
                     <span class="input-group-text">%</span>
                     <label for="percentage">The percentage of cases that will be attributed to each reviewer</label>
                 </div>

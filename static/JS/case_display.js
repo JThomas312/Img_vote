@@ -19,15 +19,9 @@ const viewer = new Viewer(gallery, {
     tooltip: 1, //gives zoom ratio after a change
 });
 
-function safeguard(case_id, criterion_id, value, category, type) {
-    if (category === 1) {
-        url = '/safeguard_model?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value;
-    } else {
-        if (category === 2) {
-            url = '/safeguard_diagnosis?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value + '&type=' + type;
-        }
-        //else
-    }
+function safeguard(case_id, criterion_id, value, category) {
+    url = '/safeguard_diagnosis?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value + '&category=' + category;
+    
     $.getJSON(url, function(data){});
     return false;
 }
@@ -61,43 +55,44 @@ function user_home(){
     open ('/user_home/', '_self')
 }
 
-function updateValue(i, case_id, criterion_id, category){
-    var slider = document.getElementById( "TrustScale" + i);
-    var output = document.getElementById( "TrustValue" + i);
-    output.innerHTML = slider.value;
-    url = '/safeguard_model?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + slider.value;
-    $.getJSON(url, function(data){});
+function updateValue(cat_name, case_id, criterion_id, category){
+    slider_name = cat_name + 'TrustScale';
+    output_name = cat_name + 'TrustValue';
+    var slider = document.getElementById(slider_name);
+    var output = document.getElementById(output_name);
+    var value = slider.value;
+    output.innerHTML = value;
+    safeguard(case_id, criterion_id, slider.value, category)
     return false;
 }
 
-function updateVisibility(blockTitle, criterionName){
-    if (blockTitle == "Diagnosis"){    
-        var blocks = document.getElementsByClassName( "Title_block" );
-        if (criterionName == "Melanoma"){
-            for (let i = 0; i < blocks.length; i++){
-                if (blocks[i].id != "Diagnosis"){
-                    blocks[i].style.display="block";
-                }
-            }
-        }
-        else {
-            for (let i = 0; i < blocks.length; i++){
-                if (blocks[i].id != "Diagnosis"){
-                    blocks[i].style.display="none";
-                }
-            }
-        }
-    }
+function save(case_id, criterion_id, category){
+    var input = document.getElementById(criterion_id);
+    var value = input.value
+    safeguard(case_id, criterion_id, value, category)
 }
 
-function initVisibility(){
-     var melanomaInput= document.getElementById("Melanoma");
-     if (melanomaInput.checked){
-         updateVisibility("Diagnosis", "Melanoma");
-     }
-     else{
-         updateVisibility("Diagnosis", "");
-     }
+function updateVisibility(){
+    var prerequisites = document.getElementsByClassName( 'category_prerequisite' );
+    for (let i = 0; i < prerequisites.length; i++){
+        var prerequisite = prerequisites[i];
+        var conditions = JSON.parse(prerequisite.dataset.conditions);
+        var display = true;
+        for (let j = 0; j < conditions.length; j++){
+            var requirement_id = conditions[j];
+            var requirement = document.getElementById(requirement_id);
+            var checked = requirement.checked;
+            display = display && checked;
+        }
+        var category_name = prerequisite.id.split( '_prerequisites' )[0];
+        var category = document.getElementById(category_name);
+        if (display){
+            category.style.display = 'block';
+        }
+        else{
+            category.style.display = 'none';
+        }
+    }
 }
 
 // Function to update unanswered red borders
@@ -116,7 +111,7 @@ function updateUnansweredBorders() {
 
 // Run on page load
 window.addEventListener('load', updateUnansweredBorders);
-window.addEventListener('load', initVisibility);
+window.addEventListener('load', updateVisibility);
 
 
 // Update whenever any radio is clicked

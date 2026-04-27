@@ -21,41 +21,88 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.ViewModels import CaseViewModel
+from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseViewModel
 
-from img_vote.dal.MasterDal import get_criterion_for_case
-from img_vote.dal.MasterDal import get_diagnosis_for_case
+from img_vote.dal.MasterDal import get_case_by_id
+from img_vote.dal.MasterDal import get_answer_name
+from img_vote.dal.MasterDal import get_category_by_id
+from img_vote.dal.MasterDal import get_categories
+from img_vote.dal.MasterDal import get_criteria_for_case
 from img_vote.dal.MasterDal import get_criterion_by_id
 from img_vote.dal.MasterDal import save_Criterion
 from img_vote.dal.MasterDal import safeguard_Criterion
 from img_vote.dal.MasterDal import undo_all_but_one
-from img_vote.dal.MasterDal import get_unfinished_criteria
+from img_vote.dal.MasterDal import is_answer_done
 from img_vote.dal.MasterDal import update_answer_status
 from img_vote.dal.MasterDal import update_user_count
-from img_vote.dal.MasterDal import exists_case_by_id
+from img_vote.dal.MasterDal import get_case_by_answer_name
 
 
 def caseForDisplay(userId, case):
     
     trueValue = 1
+    naValue = 3
+    one_of_type = 2
     
-    criterionForCase = get_criterion_for_case(userId, case)
+    caseDM = get_case_by_id(case)
+    name = get_answer_name(userId, case)
+
+    categories = get_categories()
     
-     
-    # load delimiting words from config file
-    delimitations = []
-    with open(os.path.join(getcwd(), 'persistence', 'delimitations.txt'), encoding="utf-8") as delim_file:
-        for l in delim_file:
-            delimitations.append(l.removesuffix('\n'))
+    categoriesVM = []
+    
+    for category in categories:
+            
+        newCatVM = CategoryViewModel(category.catId, category.name, category.catType, category.hasTrust, category.hasTutorial, category.hasNA, category.optional, category.prerequisites)
         
-    path = criterionForCase.path
+        criteriaForCase = get_criteria_for_case(userId, case, category.catId)
+        
+        criteriaVM = []
+        
+        for criterion in criteriaForCase:
+            
+            newCritVM = CriterionViewModel(criterion.critId, criterion.name, criterion.value, criterion.isTrust)
+            
+            tutorial_slide_path = criterion.path_to_tutorial
+            
+            try:
+                slide_im = Image.open(tutorial_slide_path)
+                data = io.BytesIO()
+                slide_im.save(data, 'PNG')
+                slide_encoded_img_data = base64.b64encode(data.getvalue())
+                slide_img_data = slide_encoded_img_data.decode('utf-8')
+                newCritVM.tutorial = slide_img_data
+            except:
+                newCritVM.tutorial = bytearray()
+                
+            if newCritVM.isTrust:
+                newCatVM.trust_criterion = newCritVM
+            else:
+                criteriaVM.append(newCritVM)
+        
+        newCatVM.criteria = criteriaVM
+        
+        if category.catId == one_of_type and bool(list(filter(lambda x: x.value == trueValue or x.value == naValue, newCatVM.criteria))):
+            newCatVM.unanswered = False
+            
+        categoriesVM.append(newCatVM)
     
+    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
+        study_name = fr.readline().removesuffix('\n')
+    
+    caseVM = CaseDisplayViewModel(caseDM.caseId, name, study_name, len(categoriesVM))
+    
+    caseVM.categories = categoriesVM
+
+    caseVM.criteria = criteriaVM
+
+    path = caseDM.path
     
     img_files = listdir(path)
     img_files.sort()
-
-    caseVM = CaseViewModel(len(delimitations))
     
+    caseVM.nb_imgs = 0
+
     for img_file in img_files:
         im = Image.open(os.path.join(path, img_file))
         data = io.BytesIO()
@@ -64,90 +111,16 @@ def caseForDisplay(userId, case):
         caseVM.imgs.append(encoded_img_data.decode('utf-8'))
         w, h = im.size
         caseVM.imgs_sizes.append((w, h))
+        caseVM.nb_imgs += 1
     
-    unanswered = [True for a in range (len(delimitations))]
+    nextName = str(int(name) + 1)
     
-    for i in range (len(criterionForCase.criteria)):
-        currentCriterion = criterionForCase.criteria[i]
-        #currentCriterion 0: type, 1: category, 2: name, 3: value, 4: tutorial path, 5: id
-        #category 2 is one of many where we need unanswered status
-        if currentCriterion[1] == 2 and currentCriterion[3] == trueValue:
-            unanswered[currentCriterion[0]] = False
-        tutorial_slide_path = currentCriterion[4]
-       
-        try:
-            slide_im = Image.open(tutorial_slide_path)
-            data = io.BytesIO()
-            slide_im.save(data, 'PNG')
-            slide_encoded_img_data = base64.b64encode(data.getvalue())
-            slide_img_data = slide_encoded_img_data.decode('utf-8')
-            # 0: category, 1: name, 2: value, 3: image, 4: id, 5: hasTutorial
-            (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], slide_img_data, currentCriterion[5], True))
-        except:
-            (caseVM.criteria[currentCriterion[0]]).append((currentCriterion[1], currentCriterion[2], currentCriterion[3], bytearray(), currentCriterion[5], False))
-    
-    nextcase = 0
-    
-    if (exists_case_by_id(int(case) + 1)):
-        nextcase = int(case) + 1
-    
-    return (caseVM, delimitations, unanswered, nextcase)
+    nextcase = get_case_by_answer_name(nextName, userId)
 
-def caseForDiagnosis(userId, case):
+    caseVM.nextcase = nextcase
+    
+    return caseVM
 
-    trueValue = 1
-    
-    criterionForCase = get_diagnosis_for_case(userId, case)
-         
-    # load delimiting words from config file
-    delimitations = []
-    with open(os.path.join(getcwd(), 'persistence', 'delim_diagnosis.txt'), encoding="utf-8") as delim_file:
-        for l in delim_file:
-            delimitations.append(l.removesuffix('\n'))
-    
-    path = criterionForCase.path
-    
-    
-    img_files = listdir(path)
-    img_files.sort()
-
-    caseVM = CaseViewModel(len(delimitations))
-    
-    for img_file in img_files:
-        im = Image.open(os.path.join(path, img_file))
-        data = io.BytesIO()
-        im.save(data, 'JPEG')
-        encoded_img_data = base64.b64encode(data.getvalue())
-        caseVM.imgs.append(encoded_img_data.decode('utf-8'))
-        w, h = im.size
-        caseVM.imgs_sizes.append((w, h))
-    
-    unanswered = True
-    
-    for i in range (len(criterionForCase.criteria)):
-        currentCriterion = criterionForCase.criteria[i]
-        #currentCriterion 0: type, 1: name, 2: value, 3: tutorial path, 4: id
-        tutorial_slide_path = currentCriterion[3]
-        if currentCriterion[2] == trueValue:
-            unanswered = False
-        try:
-            slide_im = Image.open(tutorial_slide_path)
-            data = io.BytesIO()
-            slide_im.save(data, 'JPEG')
-            slide_encoded_img_data = base64.b64encode(data.getvalue())
-            #only one type of criterion, diagnosis, and its id is 2 so out of range
-            caseVM.criteria[0].append((currentCriterion[1], currentCriterion[2], slide_encoded_img_data.decode('utf-8'), currentCriterion[4]))
-        except:
-            caseVM.criteria[0].append((currentCriterion[1], currentCriterion[2], bytearray(), currentCriterion[4]))
-    
-    nextcase = 0
-    
-    if (exists_case_by_id(int(case) + 1)):
-        nextcase = int(case) + 1
-    
-    return (caseVM, delimitations, unanswered, nextcase)
-
-    
 
 def criterion_for_tutorial(idCriterion):
     tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
@@ -165,11 +138,24 @@ def saveProgress(userId, case, answers):
 def safeguardProgress(userId, case, criterionId, value):
     safeguard_Criterion(userId, case, criterionId, value)
     
-def safeguardDiagnosis(userId, case, criterionId, value, critType):
-    undo_all_but_one(userId, case, criterionId, value, critType)
+def safeguardDiagnosis(userId, case, criterionId, value, category):
+    
+    one_of_type = 2
+    
+    full_category = get_category_by_id(category)
+    criterion = get_criterion_by_id(criterionId)
+    
+    if full_category.catType == one_of_type and not criterion.isTrust:
+        undo_all_but_one(userId, case, criterionId, value, category)
+        
+    else:
+        safeguard_Criterion(userId, case, criterionId, value)
+
     
 def checkProgress(userId, case):
-    done = not get_unfinished_criteria(userId, case)
+    
+    done = is_answer_done(userId, case)
+    
     if update_answer_status(userId, case, done):
         update_user_count(userId, done)
 

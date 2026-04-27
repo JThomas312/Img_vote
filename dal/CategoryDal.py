@@ -33,6 +33,7 @@ from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CategoryPOC
 def get_category_by_id(identifier, engine):
     
     session = Session(engine)
+    
     try:
         categoryPOCO = session.get(CategoryPOCO, identifier)
         
@@ -41,6 +42,28 @@ def get_category_by_id(identifier, engine):
         session.close()
     
     return category
+
+def get_categories(engine):
+    
+    session = Session(engine)
+    
+    categoriesDM = []
+    
+    try:
+        categories = session.query(CategoryPOCO).order_by(CategoryPOCO.id).all()
+        
+        for category in categories:
+            cDM = CategoryDataModel(category.id, category.name, category.type, category.has_tutorial, category.has_trust, category.has_na, category.optional, [])
+            if category.optional:
+                prerequisites = session.query(PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == category.id).all()
+                for prerequisite in prerequisites:
+                    cDM.prerequisites.append(prerequisite.criterion)
+            categoriesDM.append(cDM)
+                
+    finally:
+        session.close()
+
+    return categoriesDM
 
 def at_least_one_other_mandatory_category(identifier, engine):
     

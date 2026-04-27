@@ -73,6 +73,36 @@ def get_user_answers(userId, engine):
 
     return answers
 
+def get_answer_name(userId, caseId, engine):
+    
+    session = Session(engine)
+    
+    try:
+        
+        query = session.query(AnswerPOCO.name).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).one_or_none()
+        answer = query.name
+        
+    finally:
+        session.close()
+    
+    return answer
+
+def get_case_by_answer_name(answerName, userId, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(AnswerPOCO.study_case).filter(AnswerPOCO.name == answerName).filter(AnswerPOCO.reviewer == userId)
+        answer = query.one_or_none()
+        if answer == None:
+            answer = -1
+        else:
+            answer = answer[0]
+    finally:
+        session.close()
+    
+    return answer
+
 def get_cases_and_answers(userId, engine):
     
     session = Session(engine)

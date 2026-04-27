@@ -65,7 +65,6 @@ from controller.AdminController import handle_repartition
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 from controller.CaseController import caseForDisplay
-from controller.CaseController import caseForDiagnosis
 from controller.CaseController import safeguardProgress
 from controller.CaseController import safeguardDiagnosis
 from controller.CaseController import criterion_for_tutorial
@@ -135,7 +134,7 @@ def logout():
 @app.route('/user_home/', methods=['GET'])
 def user_home():    
     if 'username' in session:
-        user = user_for_home(session["username"])
+        (user, study_name) = user_for_home(session["username"])
         with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
             status = fr.read().replace('\n', '')
         if (status != 'stopped') and status != 'ended':
@@ -152,12 +151,12 @@ def user_home():
             total_users = user.total_users
             otherUsers = user.otherUsers
             display_others = len(otherUsers) > 0
-            return render_template('admin_home.html', remaining_days= remaining_days, username=user.name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
+            return render_template('admin_home.html', remaining_days= remaining_days, username=user.name, studyname=study_name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
         else:   
             if status == 'ongoing':
                 items = user.items
                 remaining_items = user.remaing_items             
-                return render_template('user_home.html', username=user.name, remaining_items=remaining_items, remaining_days=remaining_days, items=items)
+                return render_template('user_home.html', username=user.name, studyname=study_name, remaining_items=remaining_items, remaining_days=remaining_days, items=items)
             else:
                 return render_template('study_ended.html', username=user.name)
     else:
@@ -668,16 +667,8 @@ def new_user_creation():
 @app.route('/case_display/<case>', methods=['GET'])
 def case_display(case):
     if 'userId' in session:
-        (caseVM, criteriaTitles, unanswered, nextcase) = caseForDisplay(session['userId'], case)
-        return render_template("case_display.html", case_id=case, case_name=case, nb_imgs=len(caseVM.imgs), imgs=caseVM.imgs, imgs_sizes=caseVM.imgs_sizes, criteria=caseVM.criteria, titles=criteriaTitles, nbTitles=len(criteriaTitles), unanswered=unanswered, nextcase=nextcase)
-    else:
-        return redirect(url_for('login'))
-    
-@app.route('/case_diagnose/<case>', methods=['GET'])
-def case_diagnose(case):
-    if 'userId' in session:
-        (caseVM, criteriaTitles, unanswered, nextcase) = caseForDiagnosis(session['userId'], case)
-        return render_template("case_diagnose.html", case_id=case, case_name=case, nb_imgs=len(caseVM.imgs), imgs=caseVM.imgs, imgs_sizes=caseVM.imgs_sizes, criteria=caseVM.criteria, titles=criteriaTitles, nbTitles=len(criteriaTitles), unanswered=unanswered, nextcase=nextcase)
+        caseVM = caseForDisplay(session['userId'], case)
+        return render_template("case_display.html", ViewModel=caseVM)
     else:
         return redirect(url_for('login'))
  
@@ -820,8 +811,8 @@ def safeguard_diagnosis():
         case_id = request.args.get('case_id')
         criterion_id = request.args.get('criterion_id')
         value = request.args.get('value')
-        critType = request.args.get('type')
-        safeguardDiagnosis(session['userId'], case_id, criterion_id, value, critType)
+        category = request.args.get('category')
+        safeguardDiagnosis(session['userId'], case_id, criterion_id, value, category)
         checkProgress(session['userId'], int(request.args.get('case_id')))
         return '', 204
     
@@ -836,7 +827,7 @@ def valid_login(username, password):
     return checkpw(ePass, eHash)
 
 def log_the_user_in(username):
-    user = user_for_home(username)
+    (user, study_name) = user_for_home(username)
     session['username'] = username
     session['userId'] = user.userId
     session['admin'] = user.admin

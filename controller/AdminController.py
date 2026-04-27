@@ -38,6 +38,7 @@ from img_vote.dal.MasterDal import count_all_reviewers, clear_non_admin_users
 from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data, count_all_cases
 from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, erase_criterion, erase_category_criteria
 from img_vote.dal.MasterDal import create_trust_criteria, create_all_answers, create_all_answer_to_criterion, create_user_answer_to_criterion, get_all_criteria_no_diagnosis, clear_all_criteria
+from img_vote.dal.MasterDal import clear_all_criteria, update_criteria_path
 from img_vote.dal.MasterDal import create_user_answers
 from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria, category_with_criteria_and_prerequisites, categories_without_name, at_least_one_mandatory_category
 from img_vote.dal.MasterDal import update_category_value, at_least_one_other_mandatory_category, categories_without_criteria, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, gold_standard_exists
@@ -134,8 +135,10 @@ def update_category(cat_id, value, parameter):
     return
 
 def save_criterion(cat_id, name, malignancy):
+    
     if not sanitize(name) or name == '':
         return
+    
     category_name = get_category_by_id(cat_id).name
     tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', category_name, name)
     mal = malignancy == 'true'
@@ -261,6 +264,8 @@ def check_categories():
     return (errors, unique_incorrect_categories)
 
     clear_malignant_criteria_in_non_malignant_category()
+    
+    update_criteria_path()
     
     create_trust_criteria()
 

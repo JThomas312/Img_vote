@@ -67,11 +67,10 @@ class CriterionDataModel():
     critCategory: int 
     isTrust: bool
     
-    def __init__(self, critId, name, tutorial_path, critType, category, trust):
+    def __init__(self, critId, name, tutorial_path, category, trust):
         self.critId = critId
         self.name = name
         self.tutorial_path = tutorial_path
-        self.critType = critType
         self.critCategory = category
         self.isTrust = trust
  
@@ -98,9 +97,9 @@ class CategoryDataModel():
      hasTrust: bool
      hasNA: bool
      optional: bool
-     prerequisites: list(int, str) #ids and names of criterions to display category
+     prerequisites: list(int) #ids of criterions to display category
      
-     def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional):
+     def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional, prerequisites = []):
          self.catId = catId
          self.name = name
          self.catType = catType
@@ -108,7 +107,7 @@ class CategoryDataModel():
          self.hasTrust = hasTrust
          self.hasNA = hasNA
          self.optional = optional
-         self.prerequisites = []
+         self.prerequisites = prerequisites
 
 class CategoryCreationDataModel():
      name: str
@@ -175,12 +174,16 @@ class CriterionForCaseDataModel():
     critId: int
     name: str
     value: int
+    category: int
+    isTrust: bool
     path_to_tutorial: str
     
-    def __init__(self, critId, name, value, path_to_tutorial):
+    def __init__(self, critId, name, value, category, isTrust, path_to_tutorial):
         self.critId = critId
         self.name = name
         self.value = value
+        self.category = category
+        self.isTrust = isTrust
         self.path_to_tutorial = path_to_tutorial
         
     
@@ -194,32 +197,34 @@ class CriteriaForCase():
         self.categories = []
         self.criteria = []
     
+class CategoryExtractDataModel():
+    criteria: list[int]
+    diagnosis: str
+    confidence: int
  
 class FinalExtractDataModel():
     case: str
     reviewer: str
-    criteria: list[int]
-    reviewer_diagnosis: str
-    diagnosis_confidence: int
-    depth_confidence: int
-    gold_standard_diagnosis: str
-    gold_standard_diagnosis_comparison: bool
-    malignant_diagnosis: str
-    gold_standard_malignity: str
-    gold_standard_malignity_comparison: bool
+    categories: list[CategoryExtractDataModel]
+    reviewer_gold_standard_answer: str
+    gold_standard_confidence: int
+    gold_standard_answer: str
+    gold_standard_comparison: bool
+    reviewer_gold_standard_malignancy: str
+    gold_standard_malignancy: str
+    gold_standard_malignancy_comparison: bool
     
-    def __init__(self, case, reviewer, criteria, reviewer_diagnosis, diag_conf, depth_conf, gold_standard_diagnosis, gold_standard_diagnosis_comparison, malignant_diagnosis, gold_standard_malignity, gold_standard_malignity_comparison):
+    def __init__(self, case, reviewer, categories, reviewer_gold_standard_answer, gold_standard_confidence, gold_standard_answer, gold_standard_comparison, reviewer_gold_standard_malignancy, gold_standard_malignancy, gold_standard_malignancy_comparison):
         self.case = case
         self.reviewer = reviewer
-        self.criteria = criteria
-        self.reviewer_diagnosis = reviewer_diagnosis
-        self.diagnosis_confidence = diag_conf
-        self.depth_confidence = depth_conf
-        self.gold_standard_diagnosis = gold_standard_diagnosis
-        self.gold_standard_diagnosis_comparison = gold_standard_diagnosis_comparison
-        self.malignant_diagnosis = malignant_diagnosis
-        self.gold_standard_malignity = gold_standard_malignity
-        self.gold_standard_malignity_comparison = gold_standard_malignity_comparison
+        self.categories = categories
+        self.reviewer_gold_standard_answer = reviewer_gold_standard_answer
+        self.gold_standard_confidence = gold_standard_confidence
+        self.gold_standard_answer = gold_standard_answer
+        self.gold_standard_comparison = gold_standard_comparison
+        self.reviewer_gold_standard_malignancy = reviewer_gold_standard_malignancy
+        self.gold_standard_malignancy = gold_standard_malignancy
+        self.gold_standard_malignancy_comparison = gold_standard_malignancy_comparison
         
     
     
