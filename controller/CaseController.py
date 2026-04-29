@@ -21,21 +21,31 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseViewModel
+from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel
 
+#user related
+from img_vote.dal.MasterDal import update_user_count
+
+#case related
 from img_vote.dal.MasterDal import get_case_by_id
+
+#answer related
+from img_vote.dal.MasterDal import get_case_by_answer_name
+from img_vote.dal.MasterDal import update_answer_status
+
+#answer related
 from img_vote.dal.MasterDal import get_answer_name
+
+#category related
 from img_vote.dal.MasterDal import get_category_by_id
 from img_vote.dal.MasterDal import get_categories
-from img_vote.dal.MasterDal import get_criteria_for_case
+
+#criterion related
 from img_vote.dal.MasterDal import get_criterion_by_id
-from img_vote.dal.MasterDal import save_Criterion
+from img_vote.dal.MasterDal import get_criteria_for_case
 from img_vote.dal.MasterDal import safeguard_Criterion
 from img_vote.dal.MasterDal import undo_all_but_one
 from img_vote.dal.MasterDal import is_answer_done
-from img_vote.dal.MasterDal import update_answer_status
-from img_vote.dal.MasterDal import update_user_count
-from img_vote.dal.MasterDal import get_case_by_answer_name
 
 
 def caseForDisplay(userId, case):
@@ -137,10 +147,6 @@ def criterion_for_tutorial(idCriterion):
     slide_encoded_img_data = base64.b64encode(data.getvalue())
     img_data = slide_encoded_img_data.decode('utf-8')
     return(img_data)
-   
-def saveProgress(userId, case, answers):
-    for answer in answers:
-        save_Criterion(userId, case, answer, answers[answer])
     
 def safeguardProgress(userId, case, criterionId, value):
     safeguard_Criterion(userId, case, criterionId, value)

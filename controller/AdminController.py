@@ -7,8 +7,6 @@ Created on Tue Sep  9 19:33:36 2025
 """
 
 #general imports
-import random
-import string
 from bcrypt import gensalt, hashpw
 
 from openpyxl import Workbook
@@ -19,7 +17,6 @@ from math import ceil
 from zipfile import ZipFile
 from shutil import rmtree
 from shutil import copyfile
-from re import sub
 from re import match
 
 #enable imports from local modules
@@ -29,24 +26,39 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
+from img_vote.utilities.useful import generate_password
+from img_vote.utilities.useful import format_r_friendly
+from img_vote.utilities.useful import sanitize
+
 from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
 from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerRepartitionViewmodel
 
-from img_vote.dal.MasterDal import get_reviewer_by_login, create_reviewer, delete_reviewer_by_id, update_password, get_reviewer_by_id
-from img_vote.dal.MasterDal import count_all_reviewers, clear_non_admin_users
-from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data, count_all_cases
-from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, erase_criterion, erase_category_criteria
-from img_vote.dal.MasterDal import create_trust_criteria, create_na_criteria, create_all_answers, create_all_answer_to_criterion, create_user_answer_to_criterion
-from img_vote.dal.MasterDal import clear_all_criteria, clear_all_categories, clear_all_prerequisites, update_criteria_path
-from img_vote.dal.MasterDal import create_user_answers
-from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria
-from img_vote.dal.MasterDal import category_with_criteria_and_prerequisites, categories_without_name, at_least_one_mandatory_category
-from img_vote.dal.MasterDal import update_category_value, at_least_one_other_mandatory_category, categories_without_criteria
-from img_vote.dal.MasterDal import mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, gold_standard_exists
-from img_vote.dal.MasterDal import other_gold_standard_exists
-from img_vote.dal.MasterDal import tutorial_category_exists, malignant_categories_in_non_gold_standard_category
-from img_vote.dal.MasterDal import clear_malignant_criteria_in_non_malignant_category, get_gold_standards
-from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite
+#user related
+from img_vote.dal.MasterDal import get_reviewer_by_id, get_reviewer_by_login, count_all_reviewers, create_reviewer 
+from img_vote.dal.MasterDal import delete_reviewer_by_id, update_password, clear_non_admin_users
+
+#case related
+from img_vote.dal.MasterDal import count_all_cases, extract_all_data, create_all_cases, clear_all_cases
+
+#answer related
+from img_vote.dal.MasterDal import create_all_answers, create_user_answers
+
+#category related
+from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria, category_with_criteria_and_prerequisites
+from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_least_one_mandatory_category, tutorial_category_exists
+from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
+from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_without_gold_standard, other_gold_standard_exists
+from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, new_empty_category
+from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories
+
+#prerequisite related
+from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, clear_all_prerequisites
+
+#criterion related
+from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, update_criteria_path
+from img_vote.dal.MasterDal import clear_malignant_criteria_in_non_malignant_category, erase_criterion
+from img_vote.dal.MasterDal import erase_category_criteria, create_na_criteria, create_trust_criteria, create_all_answer_to_criterion
+from img_vote.dal.MasterDal import create_user_answer_to_criterion, clear_all_criteria
 
 
 def find_name_and_login(userId):
@@ -254,7 +266,7 @@ def check_categories():
         errors.append('Some categories have no possible answer, please add at least one or delete the category')
         incorrect_categories.extend(no_criteria)
     
-    malignant_categories = malignant_categories_in_non_gold_standard_category()        
+    malignant_categories = malignant_categories_without_gold_standard()        
     if len(malignant_categories) > 0:
         errors.append('Some categories are marked as having malignancy but not gold standard, please check them')
         incorrect_categories.extend(malignant_categories)
@@ -262,8 +274,7 @@ def check_categories():
     unique_incorrect_categories = list(dict.fromkeys(incorrect_categories))
     
     for i in range(len(unique_incorrect_categories)):
-        #mayhap change to \\s
-        if bool(match('^[\s]*$', incorrect_categories[i][1])):
+        if bool(match('^[\\s]*$', incorrect_categories[i][1])):
             unique_incorrect_categories[i] = (unique_incorrect_categories[i][0], 'unnamed category')
     
     if len(errors) > 0 or len(unique_incorrect_categories) > 0:
@@ -517,14 +528,3 @@ def regenerate_password(userId):
     
     return newPass
 
-def generate_password():
-    length = random.randint(8, 32)
-    characters = string.ascii_letters + string.digits + string.punctuation
-    password = ''.join(random.choice(characters) for i in range(length))
-    return password
-
-def format_r_friendly(name):
-    return sub(r'[^A-Za-z0-9_]+', "_", name).lower()
-
-def sanitize(userinput):
-    return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))

@@ -6,13 +6,6 @@ Created on Fri Apr 10 11:11:37 2026
 """
 
 #general imports
-from os import getcwd
-import os.path
-
-
-from openpyxl import load_workbook
-
-from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
 
@@ -25,8 +18,8 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.DataModels import CategoryDataModel, CategoryWithCriteriaDataModel
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CategoryPOCO, CriterionPOCO, PrerequisitePOCO, AnswerCriterionPOCO
+from img_vote.Models.DataModels import CategoryDataModel, CategoryWithCriteriaDataModel, CategoryWithCriteriaAndPrerequisitesDataModel
+from img_vote.Models.POCO import CategoryPOCO, CriterionPOCO, PrerequisitePOCO
 
 
 #read-only 
@@ -65,6 +58,67 @@ def get_categories(engine):
         session.close()
 
     return categoriesDM
+
+def categories_with_criteria(engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).order_by(CategoryPOCO.id, CriterionPOCO.id)
+        
+        #0: category, 1:criterion
+        queriedAnswer = query.all()
+        
+        answer = []
+        currentCategory = -1
+        currentDataModel = None
+        
+        for ans in queriedAnswer:
+            if (ans[0].id != currentCategory):
+                if (currentCategory != -1):
+                    answer.append(currentDataModel)
+                currentCategory = ans[0].id
+                currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional)
+            if ans[1] != None and not ans[1].is_trust:
+                currentDataModel.criteria.append((ans[1].id, ans[1].name))
+        
+        #avoid off by one
+        if currentDataModel != None:
+            answer.append(currentDataModel)
+    
+    finally:
+        session.close()
+    
+    return answer
+
+def category_with_criteria_and_prerequisites(catId, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query1 = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.id == catId).order_by(CategoryPOCO.id, CriterionPOCO.id)
+        query2 = session.query(CriterionPOCO, PrerequisitePOCO).join(PrerequisitePOCO, CriterionPOCO.id == PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == catId)
+        
+        #0: category, 1: criterion
+        queriedAnswer1 = query1.all()
+        #0: criterion, 1: prerequisite
+        queriedAnswer2 = query2.all()
+        
+        
+        answer = queriedAnswer1[0]
+        categoryDataModel = CategoryWithCriteriaAndPrerequisitesDataModel(answer[0].id, answer[0].name, answer[0].type, answer[0].has_tutorial, answer[0].has_trust, answer[0].has_na, answer[0].optional, answer[0].has_gold_standard, answer[0].has_malignancy)
+        
+        for ans in queriedAnswer1:
+            if ans[1] != None and not ans[1].is_trust:
+                categoryDataModel.criteria.append((ans[1].id, ans[1].name, ans[1].malignancy))
+        
+        for ans in queriedAnswer2:
+            categoryDataModel.prerequisites.append((ans[0].id, ans[0].name))
+    
+    finally:
+        session.close()
+        
+    return categoryDataModel
 
 def at_least_one_other_mandatory_category(identifier, engine):
     
@@ -127,7 +181,6 @@ def optional_categories_without_prerequisites(engine):
     session = Session(engine)
     
     try:
-                
         query = session.query(CategoryPOCO, PrerequisitePOCO).outerjoin(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == True)
         
         queriedAnswer = query.all()
@@ -148,7 +201,6 @@ def categories_without_criteria(engine):
     session = Session(engine)
     
     try:
-                
         query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category)
         
         queriedAnswer = query.all()
@@ -164,7 +216,7 @@ def categories_without_criteria(engine):
     
     return answer
 
-def malignant_categories_in_non_gold_standard_category(engine):
+def malignant_categories_without_gold_standard(engine):
 
     session = Session(engine)
     
@@ -301,7 +353,6 @@ def erase_category(identifier, engine):
         session.close()
 
 #one-time data creation
-
 def clear_all_categories(engine):
     
     session = Session(engine)

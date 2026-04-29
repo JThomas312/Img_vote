@@ -11,10 +11,6 @@ from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
 
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
-
 from random import randint, shuffle
 
 from sqlalchemy.orm import Session
@@ -34,15 +30,18 @@ def get_answer_by_id(identifier, engine):
     
     session = Session(engine)
     
-    answerPOCO = session.get(AnswerPOCO, identifier)
-        
-    session.close()
+    try:
+        answerPOCO = session.get(AnswerPOCO, identifier)
+
+    finally:
+        session.close()
     
     return answerPOCO
 
 def get_all_answers(engine):
     
     session = Session(engine)
+    
     try:
         answers = []
         
@@ -63,13 +62,15 @@ def get_user_answers(userId, engine):
     
     answers = []
     
-    answersQuery = select(AnswerPOCO).filter(AnswerPOCO.reviewer == userId)
-    answersPOCO = session.execute(answersQuery).all()
+    try:
+        answersQuery = select(AnswerPOCO).filter(AnswerPOCO.reviewer == userId)
+        answersPOCO = session.execute(answersQuery).all()
+        
+        for i in range(len(answersPOCO)):
+            answers.append(answersPOCO[i][0]) #no time to investigate all(), mayhap later
     
-    for i in range(len(answersPOCO)):
-        answers.append(answersPOCO[i][0]) #no time to investigate all(), mayhap later
-
-    session.close()
+    finally:
+        session.close()
 
     return answers
 
@@ -78,7 +79,6 @@ def get_answer_name(userId, caseId, engine):
     session = Session(engine)
     
     try:
-        
         query = session.query(AnswerPOCO.name).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).one_or_none()
         answer = query.name
         
@@ -98,6 +98,7 @@ def get_case_by_answer_name(answerName, userId, engine):
             answer = -1
         else:
             answer = answer[0]
+
     finally:
         session.close()
     
@@ -109,41 +110,44 @@ def get_cases_and_answers(userId, engine):
     
     casesAns = []
     
-    query = session.query(CasePOCO, AnswerPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).filter(AnswerPOCO.reviewer == userId).order_by(CasePOCO.id)
-    
-    queriedAns = query.all()
-    #0: Case, 1: Answer
-    
-    for i in range(len(queriedAns)):
-        casesAns.append(CaseAnsDataModel(queriedAns[i][0].id, queriedAns[i][1].name, queriedAns[i][1].completed))
+    try:    
+        query = session.query(CasePOCO, AnswerPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).filter(AnswerPOCO.reviewer == userId).order_by(CasePOCO.id)
         
-    session.close()
+        queriedAns = query.all()
+        #0: Case, 1: Answer
+        
+        for i in range(len(queriedAns)):
+            casesAns.append(CaseAnsDataModel(queriedAns[i][0].id, queriedAns[i][1].name, queriedAns[i][1].completed))
     
+    finally:
+        session.close()
+        
     return casesAns
 
 #CRUD
-
 def update_answer_status(userId, caseId, done, engine):
     
     session = Session(engine)
     
-    ans = session.query(AnswerPOCO).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).one_or_none()
-
-    databaseUpdated = False
+    try:
+        ans = session.query(AnswerPOCO).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).one_or_none()
     
-    if ans != None and (ans.completed != done):
-        updatestmt = update(AnswerPOCO).where(AnswerPOCO.reviewer == userId).where(AnswerPOCO.study_case == caseId).values(completed=done)
-        session.execute(updatestmt)
-        session.commit()
-        session.close()
-        databaseUpdated = True
+        databaseUpdated = False
+        
+        if ans != None and (ans.completed != done):
+            updatestmt = update(AnswerPOCO).where(AnswerPOCO.reviewer == userId).where(AnswerPOCO.study_case == caseId).values(completed=done)
+            session.execute(updatestmt)
+            session.commit()
+            session.close()
+            databaseUpdated = True
+            #returns wether the database was updated
 
-    #returns wether the database was updated
-    session.close()
+    finally:    
+        session.close()
+
     return databaseUpdated
 
 #one-time data creation
-
 def create_all_answers(rev_per_case, engine):
     
     session = Session(engine)

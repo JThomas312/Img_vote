@@ -82,13 +82,6 @@ class DiagnosisDataModel():
         self.diagId = diagId
         self.name = name
  
-# class CriterionForCaseDataModel():
-#      path: str
-#      criteria: list((int, int, str, int, str, int))#type, category, name, value, path to tutorial, id
-#      def __init__(self, path):
-#          self.path = path
-#          self.criteria = []
- 
 class CategoryDataModel():
      catId: int
      name: str

@@ -28,15 +28,6 @@ class AdminHomeViewModel():
         self.otherUsers = []
         self.remaing_users = 0
         self.admin = True
-  
-class CaseViewModel():
-    imgs: list()
-    imgs_sizes: list((int, int))
-    criteria: list(list((int, str, int, bytearray, int, bool))) #category, name, value, image, id, hasTutorial
-    def __init__(self, nb_categories):
-        self.imgs = []
-        self.imgs_sizes = []
-        self.criteria = [[] for i in range(nb_categories)]
 
 
 # ViewModels for admins before study

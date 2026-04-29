@@ -6,11 +6,6 @@ Created on Fri Apr 10 13:55:37 2026
 """
 
 #general imports
-from os import getcwd
-import os.path
-
-from sqlalchemy import select
-from sqlalchemy import update
 from sqlalchemy import delete
 
 from sqlalchemy.orm import Session
@@ -22,26 +17,28 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CategoryPOCO, CriterionPOCO, AnswerCriterionPOCO, PrerequisitePOCO
+from img_vote.Models.POCO import CriterionPOCO, PrerequisitePOCO
 
 
 #read-only 
 def get_category_prerequisites(catId, engine):
     
     session = Session(engine)
-
-    query = session.query(PrerequisitePOCO, CriterionPOCO).join(CriterionPOCO, PrerequisitePOCO.criterion == CriterionPOCO.id).filter(PrerequisitePOCO.category == catId)
     
-    queriedAnswer = query.all()
+    try:
+        query = session.query(PrerequisitePOCO, CriterionPOCO).join(CriterionPOCO, PrerequisitePOCO.criterion == CriterionPOCO.id).filter(PrerequisitePOCO.category == catId)
+        
+        queriedAnswer = query.all()
+        
+        #0: prerequisite, 1: criterion
+        
+        answer = []
+        
+        for ans in queriedAnswer:
+            answer.append((ans[0].criterion, ans[1].name))
     
-    #0: prerequisite, 1: criterion
-    
-    answer = []
-    
-    for ans in queriedAnswer:
-        answer.append((ans[0].criterion, ans[1].name))
-    
-    session.close()
+    finally:
+        session.close()
     
     return answer
 
@@ -50,9 +47,8 @@ def new_prerequisite(catId, name, engine):
     
     session = Session(engine)
     
-    query = session.query(CriterionPOCO).filter(CriterionPOCO.name == name).filter(CriterionPOCO.category != catId)
-    
     try:
+        query = session.query(CriterionPOCO).filter(CriterionPOCO.name == name).filter(CriterionPOCO.category != catId)
         crit = query.one_or_none()
         if crit != None:
             

@@ -49,6 +49,7 @@ url_object = URL.create(
 
 engine = create_engine(url_object, pool_size=40, max_overflow=60, pool_timeout=30, pool_recycle=1800, pool_pre_ping=True, client_encoding="utf8")
 
+
 #UserDal
 def get_reviewer_by_id(identifier):
     return UserDal.get_reviewer_by_id(identifier, engine)
@@ -109,6 +110,7 @@ def create_all_cases():
 def clear_all_cases():
     return CaseDal.clear_all_cases(engine)
 
+
 #AnswerDal
 def get_answer_by_id(identifier):
     return AnswerDal.get_answer_by_id(identifier, engine)
@@ -131,12 +133,19 @@ def create_all_answers(rev_per_case):
 def create_user_answers(userId, case_per_rev):
     return AnswerDal.create_user_answers(userId, case_per_rev, engine)
 
+
 #CategoryDal
 def get_category_by_id(catId):
     return CategoryDal.get_category_by_id(catId, engine)
 
 def get_categories():
     return CategoryDal.get_categories(engine)
+
+def categories_with_criteria():
+    return CategoryDal.categories_with_criteria(engine)
+
+def category_with_criteria_and_prerequisites(catId):
+    return CategoryDal.category_with_criteria_and_prerequisites(catId, engine)
 
 def at_least_one_other_mandatory_category(catId):
     return CategoryDal.at_least_one_other_mandatory_category(catId, engine)
@@ -147,6 +156,9 @@ def at_least_one_mandatory_category():
 def tutorial_category_exists():
     return CategoryDal.tutorial_category_exists(engine)
 
+def categories_without_name():
+    return CategoryDal.categories_without_name(engine)
+
 def mandatory_categories_with_prerequisites():
     return CategoryDal.mandatory_categories_with_prerequisites(engine)
 
@@ -156,8 +168,8 @@ def optional_categories_without_prerequisites():
 def categories_without_criteria():
     return CategoryDal.categories_without_criteria(engine)
 
-def malignant_categories_in_non_gold_standard_category():
-    return CategoryDal.malignant_categories_in_non_gold_standard_category(engine)
+def malignant_categories_without_gold_standard():
+    return CategoryDal.malignant_categories_without_gold_standard(engine)
 
 def other_gold_standard_exists(cat_id):
     return CategoryDal.other_gold_standard_exists(cat_id, engine)
@@ -170,9 +182,6 @@ def get_gold_standards():
 
 def new_empty_category():
     return CategoryDal.new_empty_category(engine)
-
-def categories_without_name():
-    return CategoryDal.categories_without_name(engine)
 
 def update_category_value(cat_id, value, parameter):
     return CategoryDal.update_category_value(cat_id, value, parameter, engine)
@@ -197,6 +206,7 @@ def delete_prerequisite(catId, critId):
 def clear_all_prerequisites():
     return PrerequisiteDal.clear_all_prerequisites(engine)
 
+
 #CriterionDal
 def get_criterion_by_id(critId):
     return CriterionDal.get_criterion_by_id(critId, engine)
@@ -215,12 +225,6 @@ def get_all_criteria_no_diagnosis():
 
 def get_all_diagnosis():
     return CriterionDal.get_all_diagnosis()
-
-def categories_with_criteria():
-    return CriterionDal.categories_with_criteria(engine)
-
-def category_with_criteria_and_prerequisites(catId):
-    return CriterionDal.category_with_criteria_and_prerequisites(catId, engine)
 
 def create_criterion(name, tutorial_path, category, is_trust, malignancy):
     return CriterionDal.create_criterion(name, tutorial_path, category, is_trust, malignancy, engine)
@@ -243,14 +247,11 @@ def erase_criterion(critId):
 def erase_category_criteria(catId):
     return CriterionDal.erase_category_criteria(catId, engine)
 
-def create_trust_criteria():
-    return CriterionDal.create_trust_criteria(engine)
-
 def create_na_criteria():
     return CriterionDal.create_na_criteria(engine)
 
-def create_all_criterion():
-    return CriterionDal.create_all_criterion(engine)
+def create_trust_criteria():
+    return CriterionDal.create_trust_criteria(engine)
     
 def create_all_answer_to_criterion():
     return CriterionDal.create_all_answer_to_criterion(engine)
@@ -261,9 +262,6 @@ def create_user_answer_to_criterion(userId):
 def clear_all_criteria():
     return CriterionDal.clear_all_criteria(engine)
 
-def save_Criterion(user, case, critName, newValue):
-    return CriterionDal.save_Criterion(user, case, critName, newValue, engine)
-    
 def safeguard_Criterion(user, case, critId, newValue):
     return CriterionDal.safeguard_Criterion(user, case, critId, newValue, engine)    
     

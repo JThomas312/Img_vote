@@ -30,10 +30,12 @@ from bcrypt import checkpw
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
-from markupsafe import escape
+from utilities.useful import sanitize
+
 from controller.UserController import user_for_home
 from controller.UserController import user_for_login
 from controller.UserController import modify_password
+
 from controller.AdminController import create_user
 from controller.AdminController import delete_user
 from controller.AdminController import regenerate_password
@@ -64,6 +66,7 @@ from controller.AdminController import data_for_repartition
 from controller.AdminController import handle_repartition
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
+
 from controller.CaseController import caseForDisplay
 from controller.CaseController import safeguardProgress
 from controller.CaseController import safeguardDiagnosis
@@ -832,9 +835,6 @@ def log_the_user_in(username):
     session['userId'] = user.userId
     session['admin'] = user.admin
     return (redirect(url_for('user_home')))
-    
-def sanitize(userinput):
-    return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
