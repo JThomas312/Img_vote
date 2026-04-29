@@ -5,6 +5,7 @@
 //@author: j.thomas
 //"""
 
+
 function updateMalignancyVisibility(show){
     var blocks = document.getElementsByClassName( 'criterionMalignancy' );
     for (let i = 0; i < blocks.length; i++){
@@ -69,9 +70,6 @@ window.addEventListener('load', initOptional);
 function safeguard_name(event, cat_id){
     event.preventDefault();
     var name = document.getElementById("category_name").value;
-    console.log('il est passé par ici');
-    console.log(name);
-    console.log(cat_id);
     url = '/safeguard_category?cat_id=' + cat_id + '&value=' + name + '&field=name';
     $.getJSON(url, function(data){});
     return false;
@@ -125,13 +123,10 @@ function safeguard_malignancy(cat_id, value){
     $.getJSON(url, function(data){});
     return false;
 }
-
+ 
 function safeguard_prerequisite(event, elementId, cat_id){
     event.preventDefault();
     var name = document.getElementById(elementId).value;
-    console.log('il est passé par ici');
-    console.log(name);
-    console.log(cat_id);
     url = '/safeguard_prerequisite?cat_id=' + cat_id + '&name=' + name;
     $.getJSON(url, function(data){}).then(() => { location.reload(); });
     return false;
@@ -146,7 +141,6 @@ function edit_prerequisite(event, pre_id, element, cat_id, action){
 }
 
 function safeguard_criterion(event, nameElementId, malignancyElementId, cat_id){
-    console.log('il est passé par ici');
     event.preventDefault();
     var name = document.getElementById(nameElementId).value;
     var malignancy = document.getElementById(malignancyElementId).checked;
@@ -169,6 +163,51 @@ function safeguard_criterion_malignancy(crit_id, malignancy){
     $.getJSON(url, function(data){});
     return false;
 }
+ 
+function updateNA(category, show){
+    var na_div = document.getElementById('na_visibility');
+    var na_yes = document.getElementById('na_yes');
+    var na_no = document.getElementById('na_no');
+    if (show){
+        na_div.style.display='block';
+    }
+    else{
+        na_div.style.display='none';
+        na_yes.checked = false;
+        na_no.checked = true;
+        safeguard_na(category, show);
+    }
+}
+
+function updateGoldStandard(category, show){
+    var gold_standard_div = document.getElementById('gold_standard_visibility');
+    var gold_standard_yes = document.getElementById('gold_standard_yes');
+    var gold_standard_no = document.getElementById('gold_standard_no');
+    if (show){
+        gold_standard_div.style.display='block';
+    }
+    else{
+        gold_standard_div.style.display='none';
+        gold_standard_yes.checked = false;
+        gold_standard_no.checked = true;
+        safeguard_gold_standard(category, show)
+    }
+}
+
+function initNA(){
+     var display = document.getElementById('na_yes').checked;
+     var category_id = document.getElementById('category_id').value;
+     updateNA(category_id, display);
+}
+
+function initGoldStandard(){
+     var display = document.getElementById('gold_standard_yes').checked;
+     var category_id = document.getElementById('category_id').value;
+     updateGoldStandard(category_id, display);
+}
+
+window.addEventListener('load', initNA);
+window.addEventListener('load', initGoldStandard);
 
 document.getElementById('addCriterionButton').addEventListener('click', function(event) {
   event.preventDefault();
@@ -225,11 +264,13 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   newRadioNo.htmlFor = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
   newLabelNo.innerHTML = 'Begnin';
   
+  var category_id = document.getElementById('category_id').value;
+  
   var newSaveButton = document.createElement('button');
   newSaveButton.textContent = 'Save';
   newSaveButton.classList.add('saveCriterionButton');
   newSaveButton.addEventListener('click', function(event) {
-    safeguard_criterion(event, newInput.id, newRadioYes.id, {{category.id}});
+    safeguard_criterion(event, newInput.id, newRadioYes.id, category_id);
   });
   
   newcriterionWrapper.appendChild(newSaveButton);
@@ -265,11 +306,13 @@ document.getElementById('addPrerequisiteButton').addEventListener('click', funct
   
   newprerequisiteWrapper.appendChild(newButton);
 
+  var category_id = document.getElementById('category_id').value;
+
   var newSaveButton = document.createElement('button');
   newSaveButton.textContent = 'Save';
   newSaveButton.classList.add('savePrerequisiteButton');
   newSaveButton.addEventListener('click', function(event) {
-    safeguard_prerequisite(event, newInput.id, {{category.id}});
+    safeguard_prerequisite(event, newInput.id, category_id);
   });
   
   newprerequisiteWrapper.appendChild(newSaveButton);

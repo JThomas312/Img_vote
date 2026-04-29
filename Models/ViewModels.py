@@ -102,6 +102,7 @@ class CategoryEditingViewModel():
 
 class UploadStatusViewModel():
     case_images_uploaded: bool
+    tutorial_images_needed: bool
     tutorial_images_uploaded: bool
     case_data_uploaded: bool
 
@@ -160,7 +161,8 @@ class CaseDisplayViewModel():
     imgs: list()
     imgs_sizes: list((int, int))
     categories: list(CategoryViewModel)
-    nb_categories: int 
+    max_int: int
+    min_int: int
     nextcase: int
     def __init__(self, case_id, case_name, study_name, nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):
         self.case_id = case_id

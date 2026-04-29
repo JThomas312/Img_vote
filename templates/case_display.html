@@ -100,7 +100,7 @@ Created on Mon Mar 31 15:26:07 2025
                                                 {% endif %}
                                             </div>
                                         {% endfor %}
-                                        <input type="radio" id="{{category.name}}unanswered" name="category.name" value=0 {% if category.unanswered %} checked {% endif %} disabled/>
+                                        <input type="radio" id="{{category.name}}unanswered" name="{{category.name}}" value=0 {% if category.unanswered %} checked {% endif %} disabled hidden/>
                                         <label hidden for="{{category.name}}unanswered">unanswered</label>
                                     </div>
                             </fieldset>
@@ -111,7 +111,7 @@ Created on Mon Mar 31 15:26:07 2025
                                 <fieldset>
                                     <legend>{{criterion.name}}</legend>
                                     <div class="criterion-row">
-                                        <input id="{{criterion.id}}" type="number" name="{{criterion.name}}" value="{{criterion.value}}" oniput="save({{ViewModel.case_id}}, {{criterion.id}}, {{category.cat_id}}); updateVisibility();">
+                                        <input id="{{criterion.id}}" type="number" name="{{criterion.name}}" min="{{ViewModel.min_int}}" max="{{ViewModel.max_int}}" value="{{criterion.value}}" oninput="save_number({{ViewModel.case_id}}, {{criterion.id}}, {{category.cat_id}}); updateVisibility();">
                                         {% if category.has_tutorial %}
                                             <div class="tutorial-btn">
                                                 <input type="button" onclick="tutorial({{criterion.id}})" value="?" />

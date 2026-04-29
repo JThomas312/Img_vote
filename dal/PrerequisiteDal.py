@@ -9,9 +9,6 @@ Created on Fri Apr 10 13:55:37 2026
 from os import getcwd
 import os.path
 
-
-from openpyxl import load_workbook
-
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
@@ -25,7 +22,6 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.DataModels import CategoryWithCriteriaDataModel
 from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, CategoryPOCO, CriterionPOCO, AnswerCriterionPOCO, PrerequisitePOCO
 
 
@@ -82,8 +78,17 @@ def delete_prerequisite(catId, critId, engine):
         
     finally:
         session.close()
-    
 
 #one-time data creation
-
-
+def clear_all_prerequisites(engine):
+    
+    session = Session(engine)
+    
+    try:
+        deleteStmt = delete(PrerequisitePOCO)
+        
+        session.execute(deleteStmt)
+        session.commit()
+    
+    finally:
+        session.close()

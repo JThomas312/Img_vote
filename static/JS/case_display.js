@@ -66,10 +66,23 @@ function updateValue(cat_name, case_id, criterion_id, category){
     return false;
 }
 
-function save(case_id, criterion_id, category){
+function save_number(case_id, criterion_id, category){
     var input = document.getElementById(criterion_id);
-    var value = input.value
-    safeguard(case_id, criterion_id, value, category)
+    var value = input.value;
+    var max = input.max;
+    var min = input.min;
+    
+    if (parseInt(value) > parseInt(max)){
+        value = max;
+        input.value = value;
+    }
+    
+    if (parseInt(value) < parseInt(min)){
+        value = min;
+        input.value = value;
+    }
+    
+    safeguard(case_id, criterion_id, value, category);
 }
 
 function updateVisibility(){

@@ -29,20 +29,23 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.DataModels import UserDataModel
-from img_vote.Models.ViewModels import UserHomeViewModel, CriterionEditingViewModel, CategoryConfigurationViewModel
+from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
 from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerRepartitionViewmodel
 
 from img_vote.dal.MasterDal import get_reviewer_by_login, create_reviewer, delete_reviewer_by_id, update_password, get_reviewer_by_id
 from img_vote.dal.MasterDal import count_all_reviewers, clear_non_admin_users
 from img_vote.dal.MasterDal import create_all_cases, clear_all_cases, extract_all_data, count_all_cases
 from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, erase_criterion, erase_category_criteria
-from img_vote.dal.MasterDal import create_trust_criteria, create_all_answers, create_all_answer_to_criterion, create_user_answer_to_criterion, get_all_criteria_no_diagnosis, clear_all_criteria
-from img_vote.dal.MasterDal import clear_all_criteria, update_criteria_path
+from img_vote.dal.MasterDal import create_trust_criteria, create_na_criteria, create_all_answers, create_all_answer_to_criterion, create_user_answer_to_criterion
+from img_vote.dal.MasterDal import clear_all_criteria, clear_all_categories, clear_all_prerequisites, update_criteria_path
 from img_vote.dal.MasterDal import create_user_answers
-from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria, category_with_criteria_and_prerequisites, categories_without_name, at_least_one_mandatory_category
-from img_vote.dal.MasterDal import update_category_value, at_least_one_other_mandatory_category, categories_without_criteria, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, gold_standard_exists
-from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_in_non_gold_standard_category, clear_malignant_criteria_in_non_malignant_category, get_gold_standards
+from img_vote.dal.MasterDal import get_category_by_id, new_empty_category, erase_category, categories_with_criteria
+from img_vote.dal.MasterDal import category_with_criteria_and_prerequisites, categories_without_name, at_least_one_mandatory_category
+from img_vote.dal.MasterDal import update_category_value, at_least_one_other_mandatory_category, categories_without_criteria
+from img_vote.dal.MasterDal import mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, gold_standard_exists
+from img_vote.dal.MasterDal import other_gold_standard_exists
+from img_vote.dal.MasterDal import tutorial_category_exists, malignant_categories_in_non_gold_standard_category
+from img_vote.dal.MasterDal import clear_malignant_criteria_in_non_malignant_category, get_gold_standards
 from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite
 
 
@@ -119,7 +122,7 @@ def update_category(cat_id, value, parameter):
     if parameter == 'trust':
         param = 'tutorial'
     if parameter == 'na':
-        param = 'tutorial'
+        param = 'na'
     if parameter == 'optional':
         param = 'optional'
     if parameter == 'gold_standard':
@@ -259,14 +262,18 @@ def check_categories():
     unique_incorrect_categories = list(dict.fromkeys(incorrect_categories))
     
     for i in range(len(unique_incorrect_categories)):
+        #mayhap change to \\s
         if bool(match('^[\s]*$', incorrect_categories[i][1])):
             unique_incorrect_categories[i] = (unique_incorrect_categories[i][0], 'unnamed category')
-    return (errors, unique_incorrect_categories)
+    
+    if len(errors) > 0 or len(unique_incorrect_categories) > 0:
+        return (errors, unique_incorrect_categories)
 
     clear_malignant_criteria_in_non_malignant_category()
     
-    update_criteria_path()
+    update_criteria_path(os.path.join(getcwd(), 'data', 'tutorial_data'))
     
+    create_na_criteria()
     create_trust_criteria()
 
     return ([], [])
@@ -279,12 +286,13 @@ def optional_category_allowed(categoryId):
     return allowed
 
 def gold_standard_category_allowed(categoryId):
-    allowed = not gold_standard_exists(categoryId)
+    allowed = not other_gold_standard_exists(categoryId)
     return allowed
 
 def upload_status():
     VM = UploadStatusViewModel()
     VM.case_images_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'case_images.zip'))
+    VM.tutorial_images_needed = tutorial_category_exists()
     VM.tutorial_images_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'tutorial_images.zip'))
     VM.case_data_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'case_data'))
     return VM
@@ -401,48 +409,102 @@ def get_data_for_export():
 
     wb_path = os.path.join(getcwd(), 'results', file_name)
     
-    criteria = get_all_criteria_no_diagnosis()
-    
     finalExtract = extract_all_data()
     
-    nbCriteria = len(criteria)
+    nbCategories = len(finalExtract[0].categories)
+    
+    gold_standard_existing = gold_standard_exists()
+    
+    one_of_category = 2
+    column_increment = 1
     
     ws.cell(row=1, column=1, value='cases')
     ws.cell(row=1, column=2, value='reviewers')
-    for i in range(nbCriteria):
-        ws.cell(row=1, column=i + 3, value=format_r_friendly(criteria[i].name))
-    ws.cell(row=1 , column=nbCriteria + 3 , value='reviewer_diagnosis')
-    ws.cell(row=1 , column=nbCriteria + 4 , value='reviewer_diagnosis_confidence')
-    ws.cell(row=1 , column=nbCriteria + 5 , value='reviewer_melanoma_depth_confidence')
-    ws.cell(row=1 , column=nbCriteria + 6 , value='gold_standard_diagnosis')
-    ws.cell(row=1 , column=nbCriteria + 7 , value='reviewer_diagnosis_compared_to_gold_standard')
-    ws.cell(row=1 , column=nbCriteria + 8 , value='reviewer_diagnosis_malignity')
-    ws.cell(row=1 , column=nbCriteria + 9 , value='gold_standard_malignity')
-    ws.cell(row=1 , column=nbCriteria + 10 , value='reviewer_malignity_compared_to_gold_standard')
     
+    column_increment += 2
+    
+    for i in range(nbCategories):
+        current_category = finalExtract[0].categories[i]
+        if current_category.catType == one_of_category:
+            ws.cell(row=1, column=column_increment, value=format_r_friendly(current_category.name))
+            column_increment += 1
+        else:
+            for criterion in current_category.criteria:
+                ws.cell(row=1, column=column_increment, value=format_r_friendly(criterion.name))
+                column_increment += 1
+        if current_category.confidence != -1:
+            ws.cell(row=1, column=column_increment, value=format_r_friendly(format_r_friendly(current_category.name) + '_confidence'))
+            column_increment += 1
+            
+    if gold_standard_existing:
+        ws.cell(row=1 , column=column_increment, value='reviewer_gold_standard_answer')
+        column_increment +=1
+        ws.cell(row=1 , column=column_increment, value='gold_standard_confidence')
+        column_increment +=1
+        ws.cell(row=1 , column=column_increment, value='gold_standard_answer')
+        column_increment +=1
+        ws.cell(row=1 , column=column_increment, value='gold_standard_comparison')
+        column_increment +=1
+        ws.cell(row=1 , column=column_increment, value='reviewer_gold_standard_malignancy')
+        column_increment +=1
+        ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy')
+        column_increment +=1
+        ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy_comparison')
+        column_increment +=1
     
     for i in range(len(finalExtract)):
+        column_increment = 1
         ws.cell(row=i + 2, column=1, value=finalExtract[i].case)
         ws.cell(row=i + 2, column=2, value=finalExtract[i].reviewer)
-        for j in range(nbCriteria):
-            ws.cell(row=i + 2, column=j + 3, value=finalExtract[i].criteria[j])
-        ws.cell(row=i + 2, column=nbCriteria + 3, value=finalExtract[i].reviewer_diagnosis)
-        ws.cell(row=i + 2, column=nbCriteria + 4, value=finalExtract[i].diagnosis_confidence)
-        ws.cell(row=i + 2, column=nbCriteria + 5, value=finalExtract[i].depth_confidence)
-        ws.cell(row=i + 2, column=nbCriteria + 6, value=finalExtract[i].gold_standard_diagnosis)
-        ws.cell(row=i + 2, column=nbCriteria + 7, value=finalExtract[i].gold_standard_diagnosis_comparison)
-        ws.cell(row=i + 2, column=nbCriteria + 8, value=finalExtract[i].malignant_diagnosis)
-        ws.cell(row=i + 2, column=nbCriteria + 9, value=finalExtract[i].gold_standard_malignity)
-        ws.cell(row=i + 2, column=nbCriteria + 10, value=finalExtract[i].gold_standard_malignity_comparison)
-     
+        column_increment +=2
+        for current_category in finalExtract[i].categories:
+            if current_category.catType == one_of_category:
+                ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(current_category.diagnosis))
+                column_increment += 1
+                
+            else:
+                for criterion in current_category.criteria:
+                    ws.cell(row=i + 2, column=column_increment, value=criterion.value)
+                    column_increment += 1
+                    
+            if current_category.confidence != -1:
+                ws.cell(row=i + 2, column=column_increment, value=current_category.confidence)
+                column_increment += 1
+        
+        if gold_standard_existing:
+            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].reviewer_gold_standard_answer))
+            column_increment +=1
+            ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_confidence)
+            column_increment +=1
+            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].gold_standard_answer))
+            column_increment +=1
+            ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_comparison)
+            column_increment +=1
+            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].reviewer_gold_standard_malignancy))
+            column_increment +=1
+            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].gold_standard_malignancy))
+            column_increment +=1
+            ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_malignancy_comparison)
+            column_increment +=1
+        
     wb.save(wb_path)
     
     return (wb_path, file_name)
     
 def clear_data():
+
     clear_non_admin_users()
     clear_all_cases()
+    clear_all_prerequisites()
     clear_all_criteria()
+    clear_all_categories()
+
+    remove_case_images()
+
+    if os.path.exists(os.path.join(getcwd(), 'uploads', 'tutorial_images.zip')):
+        remove_tutorial_images()
+
+    remove_case_data()
 
 def delete_user(userId):
     delete_reviewer_by_id(userId)

@@ -38,6 +38,7 @@ def get_category_by_id(identifier, engine):
         categoryPOCO = session.get(CategoryPOCO, identifier)
         
         category = CategoryDataModel(categoryPOCO.id, categoryPOCO.name, categoryPOCO.type, categoryPOCO.has_tutorial, categoryPOCO.has_trust, categoryPOCO.has_na, categoryPOCO.optional)
+    
     finally:
         session.close()
     
@@ -59,7 +60,7 @@ def get_categories(engine):
                 for prerequisite in prerequisites:
                     cDM.prerequisites.append(prerequisite.criterion)
             categoriesDM.append(cDM)
-                
+            
     finally:
         session.close()
 
@@ -73,6 +74,7 @@ def at_least_one_other_mandatory_category(identifier, engine):
         query = session.query(CategoryPOCO).filter(CategoryPOCO.optional == False).filter(CategoryPOCO.id != identifier)
         
         ans = session.query(query.exists()).scalar()
+        
     finally:
         session.close()
         
@@ -86,6 +88,21 @@ def at_least_one_mandatory_category(engine):
         query = session.query(CategoryPOCO).filter(CategoryPOCO.optional == False)
         
         ans = session.query(query.exists()).scalar()
+        
+    finally:
+        session.close()
+        
+    return ans
+
+def tutorial_category_exists(engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_tutorial == True)
+        
+        ans = session.query(query.exists()).scalar()
+        
     finally:
         session.close()
         
@@ -99,6 +116,7 @@ def mandatory_categories_with_prerequisites(engine):
         query = session.query(CategoryPOCO.id, CategoryPOCO.name).join(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == False)
         
         ans = query.all()
+        
     finally:
         session.close()
         
@@ -154,12 +172,13 @@ def malignant_categories_in_non_gold_standard_category(engine):
         query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_malignancy == True).filter(CategoryPOCO.has_gold_standard == False)
         
         ans = query.all()
+        
     finally:
         session.close()
         
     return ans
 
-def gold_standard_exists(cat_id, engine):
+def other_gold_standard_exists(cat_id, engine):
     
     session = Session(engine)
     
@@ -167,6 +186,21 @@ def gold_standard_exists(cat_id, engine):
         query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.id != cat_id)
         
         ans = session.query(query.exists()).scalar()
+        
+    finally:
+        session.close()
+        
+    return ans
+
+def gold_standard_exists(engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True)
+        
+        ans = session.query(query.exists()).scalar()
+        
     finally:
         session.close()
         
@@ -195,6 +229,7 @@ def categories_without_name(engine):
     try:
         query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.name.regexp_match('^[ ]*$'))
         answer = session.query(query.exists()).scalar()
+        
     finally:
         session.close()
     
@@ -205,58 +240,77 @@ def new_empty_category(engine):
     
     session = Session(engine)
     
-    newCat = CategoryPOCO()
-    session.add(newCat)
+    try:
+        newCat = CategoryPOCO()
+        session.add(newCat)
+        
+        session.commit()
+        
+        newId = newCat.id
     
-    session.commit()
-    
-    newId = newCat.id
-    
-    session.close()
+    finally:
+        session.close()
     
     return newId
 
 def update_category_value(cat_id, value, parameter, engine):
     
     session = Session(engine)
-    updatestmt = None
     
-    if parameter == 'name':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(name=value)
-    if parameter == 'type':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(type=value)
-    if parameter == 'tutorial':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_tutorial=value)
-    if parameter == 'trust':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_trust=value)
-    if parameter == 'na':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_na=value)
-    if parameter == 'optional':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(optional=value)
-    if parameter == 'gold_standard':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_gold_standard=value)
-    if parameter == 'malignancy':
-        updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_malignancy=value)
-
-
-
-    session.execute(updatestmt)
-
-    session.commit()
+    try:
+        updatestmt = None
+        
+        if parameter == 'name':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(name=value)
+        if parameter == 'type':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(type=value)
+        if parameter == 'tutorial':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_tutorial=value)
+        if parameter == 'trust':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_trust=value)
+        if parameter == 'na':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_na=value)
+        if parameter == 'optional':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(optional=value)
+        if parameter == 'gold_standard':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_gold_standard=value)
+        if parameter == 'malignancy':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(has_malignancy=value)
     
-    session.close()
+    
+    
+        session.execute(updatestmt)
+    
+        session.commit()
+    
+    finally:
+        session.close()
     
 
 def erase_category(identifier, engine):
     
     session = Session(engine)
+  
+    try:
+        deleteStmt = delete(CategoryPOCO).where(CategoryPOCO.id == identifier)
+        
+        session.execute(deleteStmt)
+        session.commit()
     
-    deleteStmt = delete(CategoryPOCO).where(CategoryPOCO.id == identifier)
-    
-    session.execute(deleteStmt)
-    session.commit()
-
-    session.close()
+    finally:
+        session.close()
 
 #one-time data creation
 
+def clear_all_categories(engine):
+    
+    session = Session(engine)
+    
+    try:
+        deleteStmt = delete(CategoryPOCO)
+        
+        session.execute(deleteStmt)
+        session.commit()
+    
+    finally:
+        session.close()

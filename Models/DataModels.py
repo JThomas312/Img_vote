@@ -196,11 +196,28 @@ class CriteriaForCase():
         self.path = path
         self.categories = []
         self.criteria = []
+ 
+class CriterionExtractdataModel():
+    name: str
+    value: int    
     
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+ 
 class CategoryExtractDataModel():
-    criteria: list[int]
+    name: str
+    catType: int
+    criteria: list(CriterionExtractdataModel)
     diagnosis: str
     confidence: int
+    
+    def __init__(self, name, catType, confidence = -1, diagnosis = '', criteria = []):
+        self.name = name
+        self.catType = catType
+        self.diagnosis = diagnosis
+        self.confidence = confidence
+        self.criteria = criteria
  
 class FinalExtractDataModel():
     case: str
@@ -214,10 +231,9 @@ class FinalExtractDataModel():
     gold_standard_malignancy: str
     gold_standard_malignancy_comparison: bool
     
-    def __init__(self, case, reviewer, categories, reviewer_gold_standard_answer, gold_standard_confidence, gold_standard_answer, gold_standard_comparison, reviewer_gold_standard_malignancy, gold_standard_malignancy, gold_standard_malignancy_comparison):
+    def __init__(self, case, reviewer, reviewer_gold_standard_answer = '', gold_standard_confidence = -1, gold_standard_answer = '', gold_standard_comparison = False, reviewer_gold_standard_malignancy = '', gold_standard_malignancy = '', gold_standard_malignancy_comparison = False, categories = []):
         self.case = case
         self.reviewer = reviewer
-        self.categories = categories
         self.reviewer_gold_standard_answer = reviewer_gold_standard_answer
         self.gold_standard_confidence = gold_standard_confidence
         self.gold_standard_answer = gold_standard_answer
@@ -225,6 +241,7 @@ class FinalExtractDataModel():
         self.reviewer_gold_standard_malignancy = reviewer_gold_standard_malignancy
         self.gold_standard_malignancy = gold_standard_malignancy
         self.gold_standard_malignancy_comparison = gold_standard_malignancy_comparison
+        self.categories = categories
         
     
     

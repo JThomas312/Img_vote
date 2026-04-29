@@ -144,6 +144,9 @@ def at_least_one_other_mandatory_category(catId):
 def at_least_one_mandatory_category():
     return CategoryDal.at_least_one_mandatory_category(engine)
 
+def tutorial_category_exists():
+    return CategoryDal.tutorial_category_exists(engine)
+
 def mandatory_categories_with_prerequisites():
     return CategoryDal.mandatory_categories_with_prerequisites(engine)
 
@@ -156,8 +159,11 @@ def categories_without_criteria():
 def malignant_categories_in_non_gold_standard_category():
     return CategoryDal.malignant_categories_in_non_gold_standard_category(engine)
 
-def gold_standard_exists(cat_id):
-    return CategoryDal.gold_standard_exists(cat_id, engine)
+def other_gold_standard_exists(cat_id):
+    return CategoryDal.other_gold_standard_exists(cat_id, engine)
+
+def gold_standard_exists():
+    return CategoryDal.gold_standard_exists(engine)
 
 def get_gold_standards():
     return CategoryDal.get_gold_standards(engine)
@@ -174,6 +180,9 @@ def update_category_value(cat_id, value, parameter):
 def erase_category(catId):
     return CategoryDal.erase_category(catId, engine)
 
+def clear_all_categories():
+    return CategoryDal.clear_all_categories(engine)
+
 
 #PrerequisiteDal
 def get_category_prerequisites(catId):
@@ -184,6 +193,9 @@ def new_prerequisite(catId, name):
 
 def delete_prerequisite(catId, critId):
     return PrerequisiteDal.delete_prerequisite(catId, critId, engine)
+
+def clear_all_prerequisites():
+    return PrerequisiteDal.clear_all_prerequisites(engine)
 
 #CriterionDal
 def get_criterion_by_id(critId):
@@ -219,8 +231,8 @@ def update_criterion(crit_id, name, malignancy):
 def update_criterion_malignancy(crit_id, malignancy):
     return CriterionDal.update_criterion_malignancy(crit_id, malignancy, engine)
 
-def update_criteria_path():
-    return CriterionDal.update_criteria_path(engine)
+def update_criteria_path(path):
+    return CriterionDal.update_criteria_path(path, engine)
 
 def clear_malignant_criteria_in_non_malignant_category():
     return CriterionDal.clear_malignant_criteria_in_non_malignant_category(engine)
@@ -233,6 +245,9 @@ def erase_category_criteria(catId):
 
 def create_trust_criteria():
     return CriterionDal.create_trust_criteria(engine)
+
+def create_na_criteria():
+    return CriterionDal.create_na_criteria(engine)
 
 def create_all_criterion():
     return CriterionDal.create_all_criterion(engine)

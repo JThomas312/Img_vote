@@ -44,6 +44,10 @@ def caseForDisplay(userId, case):
     naValue = 3
     one_of_type = 2
     
+    #maximum and minimum values acceptable for database
+    max_int_db = 1000000000
+    min_int_db = -1000000000
+    
     caseDM = get_case_by_id(case)
     name = get_answer_name(userId, case)
 
@@ -118,6 +122,9 @@ def caseForDisplay(userId, case):
     nextcase = get_case_by_answer_name(nextName, userId)
 
     caseVM.nextcase = nextcase
+    
+    caseVM.max_int = max_int_db
+    caseVM.min_int = min_int_db
     
     return caseVM
 

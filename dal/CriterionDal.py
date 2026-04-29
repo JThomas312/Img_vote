@@ -442,6 +442,31 @@ def create_trust_criteria(engine):
             session.add(newCrit)
             
         session.commit()
+        
+    finally:
+        session.close()
+
+def create_na_criteria(engine):
+    
+    session = Session(engine)
+    
+    one_of_category = 2
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.type == one_of_category).order_by(CategoryPOCO.id)
+        
+        answer = query.all()
+        
+        for ans in answer:
+            newCrit = CriterionPOCO('na', '', ans.id, False, False)
+                
+            if (newCrit.tutorial_path == None):
+                newCrit.tutorial_path = ''
+                
+            session.add(newCrit)
+            
+        session.commit()
+        
     finally:
         session.close()
 
@@ -463,51 +488,53 @@ def create_all_criterion(engine):
     
     session = Session(engine)
     
-    for i in range (1, criteriaWS.max_row + 1):
-        nameCell = criteriaWS.cell(row=i, column=1)
-        categoryCell = criteriaWS.cell(row=i, column=2)
-        trustCell = criteriaWS.cell(row=i, column=3)
-        malCell = criteriaWS.cell(row=i, column=4)
-        if nameCell.value in delimitations:
-            
-            # add trust criterion at the end of a type
-            if critType > -1 and trust:
-                newCrit = CriterionPOCO(typeName, "", critType, 3, False)
-                newCrit.tutorial_path = ""
+    try:
+        for i in range (1, criteriaWS.max_row + 1):
+            nameCell = criteriaWS.cell(row=i, column=1)
+            categoryCell = criteriaWS.cell(row=i, column=2)
+            trustCell = criteriaWS.cell(row=i, column=3)
+            malCell = criteriaWS.cell(row=i, column=4)
+            if nameCell.value in delimitations:
+                
+                # add trust criterion at the end of a type
+                if critType > -1 and trust:
+                    newCrit = CriterionPOCO(typeName, "", critType, 3, False)
+                    newCrit.tutorial_path = ""
+                    session.add(newCrit)
+                
+                typeName = nameCell.value
+    
+                critType +=1
+                categoryName = categoryCell.value
+                trust = trustCell.value == "With Trust"
+                if categoryName == "One Of":
+                    category = 2
+                if categoryName == "Multiple":
+                    category = 1
+               
+            else:
+                #dirty fix, remove later
+                name = nameCell.value
+                tutorial_name = name
+                if tutorial_name.find(">") != -1:
+                    tutorial_name = name.replace(">", "gt ")
+                tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', delimitations[critType], tutorial_name + '.png')
+                
+                malignancy = (malCell.value == "Malignant")
+                newCrit = CriterionPOCO(name, tutorial_slide_path, critType, category, malignancy)
+                newCrit.tutorial_path = tutorial_slide_path
                 session.add(newCrit)
             
-            typeName = nameCell.value
-
-            critType +=1
-            categoryName = categoryCell.value
-            trust = trustCell.value == "With Trust"
-            if categoryName == "One Of":
-                category = 2
-            if categoryName == "Multiple":
-                category = 1
-           
-        else:
-            #dirty fix, remove later
-            name = nameCell.value
-            tutorial_name = name
-            if tutorial_name.find(">") != -1:
-                tutorial_name = name.replace(">", "gt ")
-            tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', delimitations[critType], tutorial_name + '.png')
-            
-            malignancy = (malCell.value == "Malignant")
-            newCrit = CriterionPOCO(name, tutorial_slide_path, critType, category, malignancy)
-            newCrit.tutorial_path = tutorial_slide_path
-            session.add(newCrit)
+            # add trust criterion at the end if need be
+            if (i == criteriaWS.max_row) and trust:
+                newCrit = CriterionPOCO(typeName, "", critType, 3, False)
+                newCrit.tutorial_path = ""
+                session.add(newCrit) 
         
-        # add trust criterion at the end if need be
-        if (i == criteriaWS.max_row) and trust:
-            newCrit = CriterionPOCO(typeName, "", critType, 3, False)
-            newCrit.tutorial_path = ""
-            session.add(newCrit) 
+        session.commit()
     
-    session.commit()
-    
-    session.close()
+    finally:
+        session.close()
 
 def create_all_answer_to_criterion(engine):
         
@@ -515,6 +542,7 @@ def create_all_answer_to_criterion(engine):
     criteria = get_all_criteria(engine)
     
     session = Session(engine)
+    
     try:
         for i in range(len(answers)):
             for j in range(len(criteria)):
@@ -546,10 +574,12 @@ def clear_all_criteria(engine):
     
     session = Session(engine)
     
-    deleteStmt = delete(CriterionPOCO)
+    try:
+        deleteStmt = delete(CriterionPOCO)
+        
+        session.execute(deleteStmt)
+        session.commit()
     
-    session.execute(deleteStmt)
-    session.commit()
-
-    session.close()
+    finally:
+        session.close()
     
