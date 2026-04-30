@@ -48,7 +48,7 @@ from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria,
 from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_least_one_mandatory_category, tutorial_category_exists
 from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
 from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_without_gold_standard, other_gold_standard_exists
-from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, new_empty_category
+from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, gold_standard_in_wrong_category, new_empty_category
 from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories
 
 #prerequisite related
@@ -250,6 +250,11 @@ def check_categories():
     if len(gold_standards) > 1:
         errors.append('Several categories are marked as having a gold standard but only one is allowed per study')
         incorrect_categories.extend(gold_standards)
+    
+    wrong_gold_standards = gold_standard_in_wrong_category()
+    if len(wrong_gold_standards) > 0:
+        errors.append('''Your gold standard category is not of one-of type, please change it's type or remove the gold standard''')
+        incorrect_categories.extend(wrong_gold_standards)
     
     mandatory_categories = mandatory_categories_with_prerequisites()
     if len(mandatory_categories) > 0:

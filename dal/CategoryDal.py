@@ -274,6 +274,23 @@ def get_gold_standards(engine):
         
     return answer
  
+def gold_standard_in_wrong_category(engine):
+    
+    session = Session(engine)
+
+    one_of_type = 2
+    answer = []
+    
+    try:
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.type != one_of_type)
+        
+        answer = query.all()
+            
+    finally:
+        session.close()
+        
+    return answer
+ 
 def categories_without_name(engine):
     
     session = Session(engine)

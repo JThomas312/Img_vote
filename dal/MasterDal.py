@@ -180,6 +180,9 @@ def gold_standard_exists():
 def get_gold_standards():
     return CategoryDal.get_gold_standards(engine)
 
+def gold_standard_in_wrong_category():
+    return CategoryDal.gold_standard_in_wrong_category(engine)
+
 def new_empty_category():
     return CategoryDal.new_empty_category(engine)
 
