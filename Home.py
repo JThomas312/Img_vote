@@ -12,8 +12,8 @@ from flask import url_for
 from flask import request
 from flask import render_template
 from flask import session
+from flask import jsonify
 from flask import send_file
-from flask import flash
 
 from flask_session import Session
 from cachelib.file import FileSystemCache
@@ -22,7 +22,6 @@ from flask_wtf.csrf import CSRFProtect
 
 from datetime import datetime
 
-from re import match
 from os import getcwd
 import os.path
 from bcrypt import checkpw
@@ -277,13 +276,11 @@ def upload_case_images():
                 if request.method == 'POST':
                     # check if the post request has the file part
                     if 'file' not in request.files:
-                        flash('No file part')
                         return redirect(request.url)
                     file = request.files['file']
                     # If the user does not select a file, the browser submits an
                     # empty file without a filename.
                     if file.filename == '':
-                        flash('No selected file')
                         return redirect(request.url)
                     if file and allowed_file(file.filename):
                         save_path = os.path.join(app.config['UPLOAD_FOLDER'], 'case_images.zip')
@@ -313,13 +310,11 @@ def upload_tutorial_images():
                 if request.method == 'POST':
                     # check if the post request has the file part
                     if 'file' not in request.files:
-                        flash('No file part')
                         return redirect(request.url)
                     file = request.files['file']
                     # If the user does not select a file, the browser submits an
                     # empty file without a filename.
                     if file.filename == '':
-                        flash('No selected file')
                         return redirect(request.url)
                     if file and allowed_file(file.filename):
                         save_path = os.path.join(app.config['UPLOAD_FOLDER'], 'tutorial_images.zip')
@@ -349,13 +344,11 @@ def upload_case_data():
                 if request.method == 'POST':
                     # check if the post request has the file part
                     if 'file' not in request.files:
-                        flash('No file part')
                         return redirect(request.url)
                     file = request.files['file']
                     # If the user does not select a file, the browser submits an
                     # empty file without a filename.
                     if file.filename == '':
-                        flash('No selected file')
                         return redirect(request.url)
                     if file and allowed_file(file.filename):
                         filename = secure_filename(file.filename)
@@ -707,8 +700,8 @@ def safeguard_criterion():
                 cat_id = int(request.args.get('cat_id'))
                 name = request.args.get('name')
                 malignancy = request.args.get('malignancy')
-                save_criterion(cat_id, name, malignancy)
-                return '', 204
+                crit_id = save_criterion(cat_id, name, malignancy)
+                return jsonify(result=crit_id)
             
         return(redirect(url_for('user_home')))
     else:
@@ -752,9 +745,8 @@ def safeguard_prerequisite():
             if session['admin']:
                 cat_id = int(request.args.get('cat_id'))
                 name = request.args.get('name')
-                
-                save_prerequisite(cat_id, name)
-                return '', 204
+                crit_id = save_prerequisite(cat_id, name)
+                return jsonify(result=crit_id)
             
         return(redirect(url_for('user_home')))
     else:

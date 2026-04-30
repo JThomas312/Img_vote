@@ -206,10 +206,14 @@ def create_criterion(name, tutorial_path, category, is_trust, malignancy, engine
             
         session.add(newCrit)
         session.commit()
+        
+        answer = newCrit.id
     
     finally:        
         session.close()
-
+        
+    return answer
+    
 def update_criterion(crit_id, crit_name, crit_malignancy, engine):
     
     session = Session(engine)

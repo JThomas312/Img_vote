@@ -87,8 +87,8 @@ Created on Fri Apr 10 16:07:16 2026
                         {% for prerequisite in category.prerequisites %}
                             <div class="prerequisiteWrapper">
                                 <input type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}">
-                                <button class="removePrerequisiteButton" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
-                                <button class="savePrerequisiteButton" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
+                                <button class="removePrerequisiteButton" id="removePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
+                                <button class="savePrerequisiteButton" id="savePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
                             </div>
                             {% set ns.i = ns.i + 1 %}
                         {% endfor %}
@@ -123,8 +123,8 @@ Created on Fri Apr 10 16:07:16 2026
                 {% for criterion in category.criteria %}
                     <div class="criterionWrapper">
                         <input type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}">
-                        <button class="removeCriterionButton" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">Remove</button>
-                        <button class="saveCriterionButton" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'edit')">Save</button>
+                        <button class="removeCriterionButton" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">Remove</button>
+                        <button class="saveCriterionButton" id="saveCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'edit')">Save</button>
                         <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
                             <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value=1 {% if criterion.malignancy %} checked {% endif %}>
                             <label for="criterionMalignancy{{ns.j}}">Malignant</label>

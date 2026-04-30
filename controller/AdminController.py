@@ -157,7 +157,9 @@ def save_criterion(cat_id, name, malignancy):
     category_name = get_category_by_id(cat_id).name
     tutorial_slide_path = os.path.join(getcwd(), 'data', 'tutorial_data', category_name, name)
     mal = malignancy == 'true'
-    create_criterion(name, tutorial_slide_path, cat_id, False, mal)
+    crit_id = create_criterion(name, tutorial_slide_path, cat_id, False, mal)
+    
+    return crit_id
 
 def change_criterion(cat_id, crit_id, name, malignancy, action):
     if action == 'remove':
@@ -175,7 +177,9 @@ def save_criterion_malignancy(crit_id, malignancy):
 def save_prerequisite(cat_id, name):
     if not sanitize(name) or name == '':
         return
-    new_prerequisite(cat_id, name)
+    crit_id = new_prerequisite(cat_id, name)
+    
+    return crit_id
 
 def change_prerequisite(cat_id, crit_id, name, action):
     if not sanitize(name) or name == '':

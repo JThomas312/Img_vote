@@ -57,9 +57,16 @@ def new_prerequisite(catId, name, engine):
             session.add(newPrerequisite)
             
             session.commit()
-                        
+            
+            answer = crit.id
+        
+        else:
+            answer = None
+            
     finally:
         session.close()
+    
+    return answer
     
 def delete_prerequisite(catId, critId, engine):
 
