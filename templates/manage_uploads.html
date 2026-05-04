@@ -19,6 +19,9 @@ Created on Mon Apr 20 16:41:35 2026
 
 <body>
     <h1>Manage File Uploads</h1>
+    {% if errors %}
+        <h2>{{errors}}</h2>
+    {% endif %}
     {% if upload_status.case_images_uploaded %}
         <h3>Case images are already uploaded</h3>
         <a href="/delete_case_images/">

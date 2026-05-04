@@ -262,13 +262,16 @@ def create_all_cases(engine):
                 session.rollback()
                 session.close()
                 
-                return (filename, newname)
+                return ('file name discrepancy', filename, newname)
             
             newpath = os.path.join(path, case_file)
             if gold_standard:
                 cell_value = sheet_obj.cell(row=counter, column=2).value
                 gld_std_name = cell_value.removesuffix(' ')
-                gld_std = criteriaDict[gld_std_name]
+                try:
+                    gld_std = criteriaDict[gld_std_name]
+                except KeyError:
+                    return ('gold standard name discrepancy', gld_std_name)
                 newcase = CasePOCO(newpath, newname, gld_std)
             else:
                 newcase = CasePOCO(newpath, newname)

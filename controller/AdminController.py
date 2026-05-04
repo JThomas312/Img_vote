@@ -132,7 +132,7 @@ def update_category(cat_id, value, parameter):
     if parameter == 'tutorial':
         param = 'tutorial'
     if parameter == 'trust':
-        param = 'tutorial'
+        param = 'trust'
     if parameter == 'na':
         param = 'na'
     if parameter == 'optional':
@@ -356,7 +356,10 @@ def remove_case_data():
 def check_uploads_and_create_cases():
     problems = create_all_cases()
     if problems != None:
-        return 'error : file ' + str(problems[0])   + ' does not correspond to case ' + problems[1] + ' in data file, please check your data and upload it again'
+        if problems[0] == 'file name discrepancy':
+            return 'Error : file ' + str(problems[1])   + ' does not correspond to case ' + problems[2] + ' in data file, please check your data and upload it again'
+        if problems[0] == 'gold standard name discrepancy':
+            return 'Error : name ' + str(problems[1]) + ' was encountered in your gold standard spreadsheet but is not an answer in your gold standard category'
     return problems
 
 def data_for_repartition():

@@ -141,11 +141,29 @@ def caseForDisplay(userId, case):
 
 def criterion_for_tutorial(idCriterion):
     tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
-    slide_im = Image.open(tutorial_slide_path)
-    data = io.BytesIO()
-    slide_im.save(data, 'PNG')
-    slide_encoded_img_data = base64.b64encode(data.getvalue())
-    img_data = slide_encoded_img_data.decode('utf-8')
+    try:
+        slide_im = Image.open(tutorial_slide_path + '.png')
+        data = io.BytesIO()
+        slide_im.save(data, 'PNG')
+        slide_encoded_img_data = base64.b64encode(data.getvalue())
+        img_data = slide_encoded_img_data.decode('utf-8')
+    except FileNotFoundError:
+        try:
+            slide_im = Image.open(tutorial_slide_path + '.jpeg')
+            data = io.BytesIO()
+            slide_im.save(data, 'JPEG')
+            slide_encoded_img_data = base64.b64encode(data.getvalue())
+            img_data = slide_encoded_img_data.decode('utf-8')
+        except FileNotFoundError:
+            try:
+                slide_im = Image.open(tutorial_slide_path + '.jpg')
+                data = io.BytesIO()
+                slide_im.save(data, 'JPG')
+                slide_encoded_img_data = base64.b64encode(data.getvalue())
+                img_data = slide_encoded_img_data.decode('utf-8')
+            except:
+                img_data = bytearray()
+    
     return(img_data)
     
 def safeguardProgress(userId, case, criterionId, value):

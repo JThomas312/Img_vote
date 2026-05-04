@@ -222,28 +222,31 @@ function updateNA(category, show){
 }
 
 function updateGoldStandard(category, show){
-    var gold_standard_div = document.getElementById('gold_standard_visibility');
-    var gold_standard_yes = document.getElementById('gold_standard_yes');
-    var gold_standard_no = document.getElementById('gold_standard_no');
-    if (show){
-        gold_standard_div.style.display='block';
-    }
-    else{
-        gold_standard_div.style.display='none';
-        gold_standard_yes.checked = false;
-        gold_standard_no.checked = true;
-        safeguard_gold_standard(category, show)
+    var gold_standard_allowed = document.getElementById('gold_standard_allowed').value;
+    if (gold_standard_allowed == 'True'){
+        var gold_standard_div = document.getElementById('gold_standard_visibility');
+        var gold_standard_yes = document.getElementById('gold_standard_yes');
+        var gold_standard_no = document.getElementById('gold_standard_no');
+        if (show){
+            gold_standard_div.style.display='block';
+        }
+        else{
+            gold_standard_div.style.display='none';
+            gold_standard_yes.checked = false;
+            gold_standard_no.checked = true;
+            safeguard_gold_standard(category, show)
+        }
     }
 }
 
 function initNA(){
-     var display = document.getElementById('na_yes').checked;
+     var display = document.getElementById('criteria').checked || document.getElementById('one_of').checked;
      var category_id = document.getElementById('category_id').value;
      updateNA(category_id, display);
 }
 
 function initGoldStandard(){
-     var display = document.getElementById('gold_standard_yes').checked;
+     var display = document.getElementById('one_of').checked;
      var category_id = document.getElementById('category_id').value;
      updateGoldStandard(category_id, display);
 }

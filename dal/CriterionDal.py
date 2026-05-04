@@ -260,10 +260,12 @@ def update_criteria_path(path, engine):
         #0: Criterion, 1: Category
         
         for answer in has_tutorial:
-            path = os.path.join(path, answer[1].name, answer[0].name)
-            updatestmt = update(CriterionPOCO).where(CriterionPOCO.id == answer[0].id).values(tutorial_path=path)
+            tutorial_path = os.path.join(path, answer[1].name, answer[0].name)
+            updatestmt = update(CriterionPOCO).where(CriterionPOCO.id == answer[0].id).values(tutorial_path=tutorial_path)
             session.execute(updatestmt)
-    
+        
+        session.commit()
+        
     finally:
         session.close()
 

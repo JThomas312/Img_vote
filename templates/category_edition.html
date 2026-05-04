@@ -34,6 +34,7 @@ Created on Fri Apr 10 16:07:16 2026
         <form id="category_configuration_form" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" id="category_id" value="{{category.id}}"/>
+            <input type="hidden" id="gold_standard_allowed" value="{{gold_standard_allowed}}"/>
             <h3> Name </h3>
             <p><input id="category_name" type=text name=name value="{{category.name}}">
             <button class="saveNameButton" onclick="safeguard_name(event, {{category.id}})">Save</button>
