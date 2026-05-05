@@ -95,6 +95,7 @@ class UploadStatusViewModel():
     case_images_uploaded: bool
     tutorial_images_needed: bool
     tutorial_images_uploaded: bool
+    case_data_needed: bool
     case_data_uploaded: bool
 
 class ReviewerRepartitionViewmodel():

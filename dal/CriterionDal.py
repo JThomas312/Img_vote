@@ -442,6 +442,32 @@ def create_na_criteria(engine):
     finally:
         session.close()
 
+def remove_trust_criteria(engine):
+    
+    session = Session(engine)
+    
+    try:
+        deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.is_trust == True)
+        
+        session.execute(deleteStmt)
+        session.commit()
+        
+    finally:
+        session.close()
+
+def remove_na_criteria(engine):
+    
+    session = Session(engine)
+    
+    try:
+        deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.name == 'na')
+        
+        session.execute(deleteStmt)
+        session.commit()
+        
+    finally:
+        session.close()
+
 def create_all_answer_to_criterion(engine):
         
     answers = get_all_answers(engine)

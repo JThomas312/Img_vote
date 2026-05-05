@@ -23,7 +23,7 @@ sys.path.append(str(path_root))
 
 #local imports
 from img_vote.Models.DataModels import CaseAnsDataModel
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO
+from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO
         
 #read-only
 def get_answer_by_id(identifier, engine):
@@ -233,5 +233,23 @@ def create_user_answers(userId, case_per_rev, engine):
         session.execute(updatestmt)    
         session.commit()
 
+    finally:
+        session.close()
+        
+def clear_all_answers(engine):
+    
+    session = Session(engine)
+    
+    try:
+        deleteStmt = delete(AnswerCriterionPOCO)
+        
+        session.execute(deleteStmt)
+        session.commit()
+        
+        deleteStmt = delete(AnswerPOCO)
+        
+        session.execute(deleteStmt)
+        session.commit()
+        
     finally:
         session.close()

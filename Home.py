@@ -46,6 +46,7 @@ from controller.AdminController import update_category
 from controller.AdminController import delete_category
 from controller.AdminController import check_category
 from controller.AdminController import check_categories
+from controller.AdminController import categories_rollback
 from controller.AdminController import delete_criterion
 from controller.AdminController import save_criterion
 from controller.AdminController import save_criterion_malignancy
@@ -61,8 +62,10 @@ from controller.AdminController import remove_case_images
 from controller.AdminController import remove_tutorial_images
 from controller.AdminController import remove_case_data
 from controller.AdminController import check_uploads_and_create_cases
+from controller.AdminController import upload_rollback
 from controller.AdminController import data_for_repartition
 from controller.AdminController import handle_repartition
+from controller.AdminController import repartition_rollback
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 
@@ -225,7 +228,7 @@ def edit_category(categoryId):
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
- 
+
 @app.route('/finish_category_configuration/', methods=['GET'])
 def finish_category_configuration():
     if 'userId' in session:
@@ -240,6 +243,22 @@ def finish_category_configuration():
                     return render_template('category_errors.html', errors=errors, incorrect_categories=incorrect_categories, nb_incorrect_categories=len(incorrect_categories))                        
                 with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
                     fw.write('categories_done')
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/rollback_categories/', methods=['GET'])
+def rollback_categories():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status == 'categories_done':
+                    if request.method == 'GET':
+                        categories_rollback()
+                        with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write('stopped')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -430,6 +449,22 @@ def finish_uploading():
     else:
         return(redirect(url_for('login')))
 
+@app.route('/rollback_uploads/')
+def rollback_uploads():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status == 'uploads_done':
+                    upload_rollback()
+                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
+                        fw.write('categories_done')
+
+        return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
 @app.route('/manage_reviewer_repartition/', methods=['GET', 'POST'])
 def manage_reviewer_repartition():
     if 'userId' in session:
@@ -450,6 +485,22 @@ def manage_reviewer_repartition():
                         with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('ready')
         return(redirect(url_for('user_home')))    
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/rollback_repartition/', methods=['GET'])
+def rollback_repartition():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status == 'ready':
+                    if request.method == 'GET':
+                        repartition_rollback()
+                        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write('uploads_done')
+        return(redirect(url_for('user_home'))) 
     else:
         return(redirect(url_for('login')))
 

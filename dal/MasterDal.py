@@ -132,6 +132,9 @@ def create_all_answers(rev_per_case):
     
 def create_user_answers(userId, case_per_rev):
     return AnswerDal.create_user_answers(userId, case_per_rev, engine)
+    
+def clear_all_answers():
+    return AnswerDal.clear_all_answers(engine)
 
 
 #CategoryDal
@@ -255,6 +258,12 @@ def create_na_criteria():
 
 def create_trust_criteria():
     return CriterionDal.create_trust_criteria(engine)
+
+def remove_na_criteria():
+    return CriterionDal.remove_na_criteria(engine)
+
+def remove_trust_criteria():
+    return CriterionDal.remove_trust_criteria(engine)
     
 def create_all_answer_to_criterion():
     return CriterionDal.create_all_answer_to_criterion(engine)

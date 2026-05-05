@@ -51,19 +51,31 @@ Created on Tue Sep 16 16:36:19 2025
 {% endif %}
 {% if study_status == 'categories_done' %}
 <a href="/manage_uploads/">
-  <button>Manage uploads</button>
+  <button>Manage Uploads</button>
+</a>
+<br/>
+<a href="/rollback_categories/">
+  <button>Back to Categories</button>
 </a>
 <br/>
 {% endif %}
 {% if study_status == 'uploads_done' %}
 <a href="/manage_reviewer_repartition/">
-  <button>Manage Reviewer repartition</button>
+  <button>Manage Reviewer Repartition</button>
+</a>
+<br/>
+<a href="/rollback_uploads/">
+  <button>Back to Uploads</button>
 </a>
 <br/>
 {% endif %}
 {% if study_status == 'ready' %}
 <a href="/begin_study/">
   <button>Begin Study</button>
+</a>
+<br/>
+<a href="/rollback_repartition/">
+  <button>Back to Repartition</button>
 </a>
 <br/>
 {% endif %}

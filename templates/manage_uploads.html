@@ -50,25 +50,27 @@ Created on Mon Apr 20 16:41:35 2026
             </br>
         {% endif %}
     {% endif %}
-    {% if upload_status.case_data_uploaded %}
-        <h3>Case data are already uploaded</h3>
-        <a href="/delete_case_data/">
-            <button>Delete uploaded data</button>
-        </a>
-        </br>
-    {% else %}
-        <h3>No case data were uploaded yet</h3>
-        <a href="/upload_case_data/">
-            <button>Upload case data</button>
-        </a>
-        </br>
+    {% if upload_status.case_data_needed %}
+        {% if upload_status.case_data_uploaded %}
+            <h3>Case data are already uploaded</h3>
+            <a href="/delete_case_data/">
+                <button>Delete uploaded data</button>
+            </a>
+            </br>
+        {% else %}
+            <h3>No case data were uploaded yet</h3>
+            <a href="/upload_case_data/">
+                <button>Upload case data</button>
+            </a>
+            </br>
+        {% endif %}
     {% endif %}
     </br>
     <a href="/user_home/">
         <button>Go Back</button>
     </a>
     </br>
-    {% if upload_status.case_images_uploaded and (not upload_status.tutorial_images_needed or upload_status.tutorial_images_uploaded) and upload_status.case_data_uploaded %}
+    {% if upload_status.case_images_uploaded and (not upload_status.tutorial_images_needed or upload_status.tutorial_images_uploaded) and (not upload_status.case_data_needed or upload_status.case_data_uploaded) %}
     </br>
     <a href="/finish_uploading/">
         <button>Finish Uploading</button>

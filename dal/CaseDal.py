@@ -244,36 +244,42 @@ def create_all_cases(engine):
         
         cwd = getcwd()
         path = os.path.join(cwd,'data', 'Img_data')
-        wbfolderpath = os.path.join(cwd, 'data')
-        for filename in os.listdir(wbfolderpath):
-            if filename.startswith('case_data'):
-                wbpath = os.path.join(wbfolderpath, filename)
         case_files = [file for file in listdir(path) if not file.startswith('.')]
         
-        case_files = sorted(list(case_files), key=natural_sort_key)
-        wb_obj = load_workbook(wbpath)
-        sheet_obj = wb_obj.active
+        if gold_standard:
+            wbfolderpath = os.path.join(cwd, 'data')
+            for filename in os.listdir(wbfolderpath):
+                if filename.startswith('case_data'):
+                    wbpath = os.path.join(wbfolderpath, filename)
+        
+            case_files = sorted(list(case_files), key=natural_sort_key)
+            wb_obj = load_workbook(wbpath)
+            sheet_obj = wb_obj.active
         
         counter = 2
         
         for case_file in case_files:
-            newname = str(sheet_obj.cell(row=counter, column=1).value)
-            if newname != case_file:
-                session.rollback()
-                session.close()
-                
-                return ('file name discrepancy', filename, newname)
-            
             newpath = os.path.join(path, case_file)
+            
             if gold_standard:
+                newname = str(sheet_obj.cell(row=counter, column=1).value)
+
+                if newname != case_file:
+                    session.rollback()
+                    session.close()
+                    
+                    return ('file name discrepancy', filename, newname)
+
                 cell_value = sheet_obj.cell(row=counter, column=2).value
                 gld_std_name = cell_value.removesuffix(' ')
+
                 try:
                     gld_std = criteriaDict[gld_std_name]
                 except KeyError:
                     return ('gold standard name discrepancy', gld_std_name)
                 newcase = CasePOCO(newpath, newname, gld_std)
             else:
+                newname = str(counter - 1)
                 newcase = CasePOCO(newpath, newname)
                 
             counter += 1

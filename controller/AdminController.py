@@ -57,7 +57,8 @@ from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, clear_
 #criterion related
 from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, update_criteria_path
 from img_vote.dal.MasterDal import clear_malignant_criteria_in_non_malignant_category, erase_criterion
-from img_vote.dal.MasterDal import erase_category_criteria, create_na_criteria, create_trust_criteria, create_all_answer_to_criterion
+from img_vote.dal.MasterDal import erase_category_criteria, create_na_criteria, create_trust_criteria, remove_na_criteria
+from img_vote.dal.MasterDal import remove_trust_criteria, create_all_answer_to_criterion, clear_all_answers
 from img_vote.dal.MasterDal import create_user_answer_to_criterion, clear_all_criteria
 
 
@@ -298,6 +299,10 @@ def check_categories():
 
     return ([], [])
 
+def categories_rollback():
+    remove_na_criteria()
+    remove_trust_criteria()
+
 def delete_criterion(crit_id):
     erase_criterion(crit_id)
 
@@ -314,6 +319,7 @@ def upload_status():
     VM.case_images_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'case_images.zip'))
     VM.tutorial_images_needed = tutorial_category_exists()
     VM.tutorial_images_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'tutorial_images.zip'))
+    VM.case_data_needed = gold_standard_exists()
     VM.case_data_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', 'case_data'))
     return VM
 
@@ -362,6 +368,9 @@ def check_uploads_and_create_cases():
             return 'Error : name ' + str(problems[1]) + ' was encountered in your gold standard spreadsheet but is not an answer in your gold standard category'
     return problems
 
+def upload_rollback():
+    clear_all_cases()
+
 def data_for_repartition():
     nb_cases = count_all_cases()
     nb_standard_reviewers = count_all_reviewers(False)
@@ -382,7 +391,10 @@ def handle_repartition(method, r_per_case, case_per_r, percentage):
         fw.writelines([method, '\n', case_per_r, '\n', percentage])
     
     return None
- 
+
+def repartition_rollback():
+    clear_all_answers()
+
 def compute_rev_per_case(method, r_per_case, case_per_r, percentage):
     nb_cases = count_all_cases()
     nb_standard_reviewers = count_all_reviewers(False)
@@ -516,18 +528,20 @@ def get_data_for_export():
     
 def clear_data():
 
-    clear_non_admin_users()
+    clear_all_answers()
     clear_all_cases()
     clear_all_prerequisites()
     clear_all_criteria()
     clear_all_categories()
+    clear_non_admin_users()
 
     remove_case_images()
 
     if os.path.exists(os.path.join(getcwd(), 'uploads', 'tutorial_images.zip')):
         remove_tutorial_images()
-
-    remove_case_data()
+    
+    if os.path.exists(os.path.join(getcwd(), 'uploads', 'case_data')):
+        remove_case_data()
 
 def delete_user(userId):
     delete_reviewer_by_id(userId)
