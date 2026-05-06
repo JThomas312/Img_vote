@@ -715,7 +715,7 @@ def new_user_creation():
 def case_display(case):
     if 'userId' in session:
         caseVM = caseForDisplay(session['userId'], case)
-        return render_template("case_display.html", ViewModel=caseVM)
+        return render_template('case_display.html', ViewModel=caseVM)
     else:
         return redirect(url_for('login'))
  
@@ -723,7 +723,7 @@ def case_display(case):
 def display_tutorial(tuto):
     if 'userId' in session:
         img_tuto = criterion_for_tutorial(tuto)
-        return render_template("tutorial.html", img_tuto=img_tuto)
+        return render_template('tutorial.html', img_tuto=img_tuto)
     else:
         return '', 404    
  

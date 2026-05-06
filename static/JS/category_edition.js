@@ -124,8 +124,9 @@ function safeguard_malignancy(cat_id, value){
     return false;
 }
  
-function safeguard_prerequisite(event, nameElementId, cat_id){
+function safeguard_prerequisite(event, nameElement, cat_id){
     event.preventDefault();
+    var nameElementId = nameElement.id;
     var name = document.getElementById(nameElementId).value;
     url = '/safeguard_prerequisite?cat_id=' + cat_id + '&name=' + name;
     $.getJSON(url, function(data){
@@ -137,10 +138,8 @@ function safeguard_prerequisite(event, nameElementId, cat_id){
         var removeButton = document.getElementById('removePrerequisiteButton' + num);
         var saveButton = document.getElementById('savePrerequisiteButton' + num);
         
-        removeButton.removeAttribute('onclick');
         removeButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "remove")')
         
-        saveButton.removeAttribute('onclick');
         saveButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "edit")');
     });
     return false;
@@ -149,6 +148,9 @@ function safeguard_prerequisite(event, nameElementId, cat_id){
 function edit_prerequisite(event, pre_id, element, cat_id, action){
     event.preventDefault();
     var name = element.value;
+    if (name == undefined){
+        name = document.getElementById(element).value;
+    }
     url = '/edit_prerequisite?cat_id=' + cat_id + '&pre_id=' + pre_id + '&name=' + name + '&action=' + action;
     $.getJSON(url, function(data){});
     if (action == 'remove'){
@@ -157,8 +159,11 @@ function edit_prerequisite(event, pre_id, element, cat_id, action){
     return false;
 }
 
-function safeguard_criterion(event, nameElementId, malignancyYesElementId, malignancyNoElementId, cat_id){
+function safeguard_criterion(event, nameElement, malignancyYesElement, malignancyNoElement, cat_id){
     event.preventDefault();
+    var nameElementId = nameElement.id;
+    var malignancyYesElementId = malignancyYesElement.id;
+    var malignancyNoElementId = malignancyNoElement.id;
     var name = document.getElementById(nameElementId).value;
     var malignancy = document.getElementById(malignancyYesElementId).checked;
     url = '/safeguard_criterion?cat_id=' + cat_id + '&name=' + name + '&malignancy=' + malignancy;
@@ -173,16 +178,12 @@ function safeguard_criterion(event, nameElementId, malignancyYesElementId, malig
         var malYes = document.getElementById(malignancyYesElementId);
         var malNo = document.getElementById(malignancyNoElementId);
         
-        removeButton.removeAttribute('onclick');
         removeButton.setAttribute('onclick', 'edit_criterion(event, ' + newId + ', "criterionField' + num + '", "criterionMalignancy' + num + '_yes", ' + category_id + ', "remove")');
         
-        saveButton.removeAttribute('onclick');
         saveButton.setAttribute('onclick', 'edit_criterion(event, ' + newId + ', "criterionField' + num + '", "criterionMalignancy' + num + '_yes", ' + category_id + ', "edit")');
         
-        malYes.removeAttribute('onclick');
         malYes.setAttribute('onclick', 'safeguard_criterion_malignancy(' + newId + ', true)');
         
-        malNo.removeAttribute('onclick');
         malNo.setAttribute('onclick', 'safeguard_criterion_malignancy(' + newId + ', false)');
     });
     return false;
@@ -191,7 +192,13 @@ function safeguard_criterion(event, nameElementId, malignancyYesElementId, malig
 function edit_criterion(event, crit_id, element, malignancyElement, cat_id, action){
     event.preventDefault();
     var name = element.value;
+    if (name == undefined){
+        name = document.getElementById(element).value;
+    }
     var malignancy = malignancyElement.checked;
+    if (malignancy == undefined){
+        malignancy = document.getElementById(malignancyElement).checked;
+    }
     url = '/edit_criterion?cat_id=' + cat_id + '&crit_id=' + crit_id + '&name=' + name + '&malignancy=' + malignancy + '&action=' + action;
     $.getJSON(url, function(data){});
     if (action == 'remove'){
@@ -254,6 +261,10 @@ function initGoldStandard(){
 window.addEventListener('load', initNA);
 window.addEventListener('load', initGoldStandard);
 
+function removeParent(event){
+    event.target.parentNode.remove();
+}
+
 document.getElementById('addCriterionButton').addEventListener('click', function(event) {
   event.preventDefault();
 
@@ -272,9 +283,7 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   newButton.textContent = 'Remove';
   newButton.classList.add('removeCriterionButton');
   newButton.id = 'removeCriterionButton' + (criteriaContainer.children.length + 1);
-  newButton.addEventListener('click', function(event) {
-    event.target.parentNode.remove();
-  });
+  newButton.setAttribute('onclick', 'removeParent(event)');
   
   newcriterionWrapper.appendChild(newButton);
   
@@ -316,9 +325,7 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   newSaveButton.textContent = 'Save';
   newSaveButton.classList.add('saveCriterionButton');
   newSaveButton.id = 'saveCriterionButton' + (criteriaContainer.children.length + 1);
-  newSaveButton.addEventListener('click', function(event) {
-    safeguard_criterion(event, newInput.id, newRadioYes.id, newRadioNo.id, category_id);
-  });
+  newSaveButton.setAttribute('onclick', 'safeguard_criterion(event, ' + newInput.id + ', ' + newRadioYes.id + ', ' + newRadioNo.id + ', ' + category_id + ')');
   
   newcriterionWrapper.appendChild(newSaveButton);
   
@@ -348,9 +355,7 @@ document.getElementById('addPrerequisiteButton').addEventListener('click', funct
   newButton.textContent = 'Remove';
   newButton.classList.add('removePrerequisiteButton');
   newButton.id = 'removePrerequisiteButton' + (prerequisiteContainer.children.length + 1);
-  newButton.addEventListener('click', function(event) {
-    event.target.parentNode.remove();
-  });
+  newButton.setAttribute('onclick', 'removeParent(event)');
   
   newprerequisiteWrapper.appendChild(newButton);
 
@@ -360,9 +365,7 @@ document.getElementById('addPrerequisiteButton').addEventListener('click', funct
   newSaveButton.textContent = 'Save';
   newSaveButton.classList.add('savePrerequisiteButton');
   newSaveButton.id = 'savePrerequisiteButton' + (prerequisiteContainer.children.length + 1);
-  newSaveButton.addEventListener('click', function(event) {
-    safeguard_prerequisite(event, newInput.id, category_id);
-  });
+  newSaveButton.setAttribute('onclick', 'safeguard_prerequisite(event, ' + newInput.id + ', ' + category_id + ')');
   
   newprerequisiteWrapper.appendChild(newSaveButton);
 

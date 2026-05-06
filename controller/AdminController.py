@@ -302,6 +302,9 @@ def check_categories():
 def categories_rollback():
     remove_na_criteria()
     remove_trust_criteria()
+    remove_case_images()
+    remove_tutorial_images()
+    remove_case_data()
 
 def delete_criterion(crit_id):
     erase_criterion(crit_id)
@@ -342,19 +345,24 @@ def move(ogpath, newpath):
 
 def remove_case_images():
     upload_path = os.path.join(getcwd(), 'uploads', 'case_images.zip')
-    remove(upload_path)
+    if os.path.exists(upload_path):
+        remove(upload_path)
     unziped_path = os.path.join(getcwd(), 'data', 'Img_data')
-    rmtree(unziped_path)
+    if os.path.exists(unziped_path):
+        rmtree(unziped_path)
 
 def remove_tutorial_images():
     upload_path = os.path.join(getcwd(), 'uploads', 'tutorial_images.zip')
-    remove(upload_path)
+    if os.path.exists(upload_path):
+        remove(upload_path)
     unziped_path = os.path.join(getcwd(), 'data', 'tutorial_data')
-    rmtree(unziped_path)
+    if os.path.exists(unziped_path):
+        rmtree(unziped_path)
 
 def remove_case_data():
     upload_path = os.path.join(getcwd(), 'uploads', 'case_data')
-    remove(upload_path)
+    if os.path.exists(upload_path):
+        remove(upload_path)
     for filename in os.listdir(os.path.join(getcwd(), 'data')):
         if bool(match('case_data', filename)):
             remove(os.path.join(getcwd(), 'data', filename))
