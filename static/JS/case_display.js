@@ -19,8 +19,9 @@ const viewer = new Viewer(gallery, {
     tooltip: 1, //gives zoom ratio after a change
 });
 
-function safeguard(case_id, criterion_id, value) {
-    url = '/safeguard_model?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value;
+function safeguard(case_id, criterion_id, value, category) {
+    url = '/safeguard_diagnosis?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value + '&category=' + category;
+    
     $.getJSON(url, function(data){});
     return false;
 }
@@ -54,6 +55,69 @@ function user_home(){
     open ('/user_home/', '_self')
 }
 
+function updateValue(cat_name, case_id, criterion_id, category){
+    slider_name = cat_name + 'TrustScale';
+    output_name = cat_name + 'TrustValue';
+    var slider = document.getElementById(slider_name);
+    var output = document.getElementById(output_name);
+    var value = slider.value;
+    output.innerHTML = value;
+    safeguard(case_id, criterion_id, slider.value, category)
+    return false;
+}
+
+function save_number(case_id, criterion_id, category){
+    var input = document.getElementById(criterion_id);
+    var value = input.value;
+    var max = input.max;
+    var min = input.min;
+    
+    if (parseInt(value) > parseInt(max)){
+        value = max;
+        input.value = value;
+    }
+    
+    if (parseInt(value) < parseInt(min)){
+        value = min;
+        input.value = value;
+    }
+    
+    safeguard(case_id, criterion_id, value, category);
+}
+
+function updateVisibility(){
+    var prerequisites = document.getElementsByClassName( 'category_prerequisite' );
+    for (let i = 0; i < prerequisites.length; i++){
+        var prerequisite = prerequisites[i];
+        var conditions = JSON.parse(prerequisite.dataset.conditions);
+        var display = false;
+        for (let j = 0; j < conditions.length; j++){
+            var requirement_id = conditions[j];
+            var requirement = document.getElementById(requirement_id);
+            if (requirement == null){
+                var requirement = document.getElementById(requirement_id + 'Yes');
+            }
+            var checked = requirement.checked;
+            if (checked == undefined){
+                if (requirement.value != undefined){
+                    var checked = true;
+                }
+            }
+            if (checked){
+                display = true;
+            }
+        }
+        var category_name = prerequisite.id.split( '_prerequisites' )[0];
+        var category = document.getElementById(category_name);
+        if (display){
+            category.style.display = 'block';
+        }
+        else{
+            category.style.display = 'none';
+        }
+    }
+}
+
 // Function to update unanswered red borders
 function updateUnansweredBorders() {
     document.querySelectorAll('.options').forEach(function(optionGroup) {
@@ -70,6 +134,8 @@ function updateUnansweredBorders() {
 
 // Run on page load
 window.addEventListener('load', updateUnansweredBorders);
+window.addEventListener('load', updateVisibility);
+
 
 // Update whenever any radio is clicked
 document.addEventListener('change', function(e) {

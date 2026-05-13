@@ -1,0 +1,87 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 20 16:41:35 2026
+
+@author: j.thomas
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1.0"/>
+    <title>Upload Management</title>
+
+</head>
+
+<body>
+    <h1>Manage File Uploads</h1>
+    {% if errors %}
+        <h2>{{errors}}</h2>
+    {% endif %}
+    {% if upload_status.case_images_uploaded %}
+        <h3>Case images are already uploaded</h3>
+        <a href="/delete_case_images/">
+            <button>Delete uploaded images</button>
+        </a>
+        </br>
+    {% else %}
+        <h3>No case images were uploaded yet</h3>
+        <a href="/upload_case_images/">
+            <button>Upload case images</button>
+        </a>
+        </br>
+    {% endif %}
+    {% if upload_status.tutorial_images_needed %}
+        {% if upload_status.tutorial_images_uploaded %}
+            <h3>Tutorial images are already uploaded</h3>
+            <a href="/delete_tutorial_images/">
+                <button>Delete uploaded images</button>
+            </a>
+            </br>
+        {% else %}
+            <h3>No tutorial images were uploaded yet</h3>
+            <a href="/upload_tutorial_images/">
+                <button>Upload tutorial images</button>
+            </a>
+            </br>
+        {% endif %}
+    {% endif %}
+    {% if upload_status.case_data_needed %}
+        {% if upload_status.case_data_uploaded %}
+            <h3>Case data are already uploaded</h3>
+            <a href="/delete_case_data/">
+                <button>Delete uploaded data</button>
+            </a>
+            </br>
+        {% else %}
+            <h3>No case data were uploaded yet</h3>
+            <a href="/upload_case_data/">
+                <button>Upload case data</button>
+            </a>
+            </br>
+        {% endif %}
+    {% endif %}
+    </br>
+    <a href="/user_home/">
+        <button>Go Back</button>
+    </a>
+    </br>
+    {% if upload_status.case_images_uploaded and (not upload_status.tutorial_images_needed or upload_status.tutorial_images_uploaded) and (not upload_status.case_data_needed or upload_status.case_data_uploaded) %}
+    </br>
+    <a href="/finish_uploading/">
+        <button>Finish Uploading</button>
+    </a>
+    {% endif %}
+    </br>
+</body>
+
+{% endautoescape %}
+</html>
+
+
+
+

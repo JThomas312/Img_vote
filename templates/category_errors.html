@@ -1,0 +1,54 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 17 15:16:10 2026
+
+@author: j.thomas
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1.0"/>
+    <title>Category Error List</title>
+
+    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+    
+</head>
+
+<body>
+
+    <h1> Categories could not be confirmed because of the following error(s): </h1>
+
+    {% for error in errors %}
+    
+        {{error}}
+        </br>
+    
+    {% endfor %}
+    
+    {% if nb_incorrect_categories > 0 %}
+        
+        <h3> The following categories are responsible for the errors </h3>
+        
+        {% for incorrect_category in incorrect_categories %}
+        
+            {{incorrect_category[1]}} <a href="/edit_category/{{incorrect_category[0]}}"><button class="editButton">Edit</button></a>
+            </br>
+            
+        {% endfor %}
+    
+    {% endif %}
+    
+    </br>
+    <a href="/category_configuration/">
+        <button>Go Back</button>
+    </a>
+    
+</body>
+
+{% endautoescape %}
+</html>

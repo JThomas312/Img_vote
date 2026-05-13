@@ -1,0 +1,32 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 20 14:49:20 2026
+
+@author: j.thomas
+"""-->
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1.0"/>
+    <title>Upload case images</title>
+
+</head>
+
+<body>
+
+    <h1>Upload Case Image Files</h1>
+    <form method=post enctype=multipart/form-data>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type=file name=file>
+        <input type=submit value=Upload>
+    </form>
+    
+</body>
+
+{% endautoescape %}
+</html>

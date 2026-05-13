@@ -31,7 +31,6 @@
     padding-bottom: 80px;
 }
 
-
 .case_img { max-width: 100%; height: auto; cursor: pointer; }
 
 fieldset {
@@ -53,7 +52,7 @@ fieldset legend {
 }
 
 .options { flex: 1; }
-.tutorial-btn { margin-left: 10px; margin-bottom: 5px; white-space: nowrap;}
+.tutorial-btn { margin-left: auto; margin-bottom: 5px; white-space: nowrap;}
 
 .options input[type="radio"]:not(:disabled) { display: none; }
 
@@ -194,3 +193,39 @@ fieldset legend {
     top: 40px; /* Push content below header */
     height: calc(100% - 40px);
 }
+
+.slidecontainer {
+  width: 100%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  background: linear-gradient(to left, green, yellow 50%, red) content-box;          /* le centre */
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  height: 15px;
+  border-radius: 100%;
+  background: &#x25BE;
+  cursor: pointer;
+}
+
+

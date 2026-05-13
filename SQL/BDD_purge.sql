@@ -5,7 +5,10 @@ DROP TABLE answer;;
 
 DROP TABLE study_case;;
 
+DROP TABLE prerequisite;;
+
 DROP TABLE criterion;;
 
-DROP TABLE reviewer;;
+DROP TABLE category;;
 
+DROP TABLE reviewer;;
