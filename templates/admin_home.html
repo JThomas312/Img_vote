@@ -113,7 +113,7 @@ Created on Tue Sep 16 16:36:19 2025
 {% block content %}
   <ol>
   {% for otherUser in otherUsers %}
-    <li><a>{{otherUser[1]}}</a> : <a>{{otherUser[2]}}</a> {% if otherUser[3] %} <a>Study Administrator</a> {% else %} <a>Reviewer</a> {% if otherUser[4] and not otherUser[3] and (study_status in ['ongoing', 'paused']) %} <a>Reviews finished ! </a> {% endif %} {% endif %} 
+    <li><a>{{otherUser[1]}}</a> : <a>{{otherUser[2]}}</a> {% if otherUser[3] %} <a>Study Administrator</a> {% else %} <a>Reviewer</a> {% if otherUser[4] > 0 and not otherUser[3] and (study_status in ['ongoing', 'paused']) %} <a> {{otherUser[4]}} remaining reviews </a> {% endif %} {% if otherUser[4] == 0 and not otherUser[3] and (study_status in ['ongoing', 'paused']) %} <a> Reviews Finished ! </a> {% endif %} {% endif %} 
         {% if study_status != 'ongoing' %} <a href="/confirm_delete_user/{{otherUser[0]}}"><button>delete user</button></a>{% endif %}
         <a href="/reset_password/{{otherUser[0]}}">
           <button>reset password</button>

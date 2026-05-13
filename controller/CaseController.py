@@ -56,7 +56,7 @@ def caseForDisplay(userId, case):
     
     #maximum and minimum values acceptable for database
     max_int_db = 1000000000
-    min_int_db = -1000000000
+    min_int_db = 0
     
     caseDM = get_case_by_id(case)
     name = get_answer_name(userId, case)
@@ -114,6 +114,8 @@ def caseForDisplay(userId, case):
     
     img_files = listdir(path)
     img_files.sort()
+    
+    print(img_files)
     
     caseVM.nb_imgs = 0
 

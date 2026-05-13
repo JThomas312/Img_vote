@@ -90,12 +90,22 @@ function updateVisibility(){
     for (let i = 0; i < prerequisites.length; i++){
         var prerequisite = prerequisites[i];
         var conditions = JSON.parse(prerequisite.dataset.conditions);
-        var display = true;
+        var display = false;
         for (let j = 0; j < conditions.length; j++){
             var requirement_id = conditions[j];
             var requirement = document.getElementById(requirement_id);
+            if (requirement == null){
+                var requirement = document.getElementById(requirement_id + 'Yes');
+            }
             var checked = requirement.checked;
-            display = display && checked;
+            if (checked == undefined){
+                if (requirement.value != undefined){
+                    var checked = true;
+                }
+            }
+            if (checked){
+                display = true;
+            }
         }
         var category_name = prerequisite.id.split( '_prerequisites' )[0];
         var category = document.getElementById(category_name);

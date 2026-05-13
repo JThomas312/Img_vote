@@ -205,7 +205,7 @@ class CategoryExtractDataModel():
     diagnosis: str
     confidence: int
     
-    def __init__(self, name, catType, confidence = -1, diagnosis = '', criteria = []):
+    def __init__(self, name, catType, confidence = -2, diagnosis = '', criteria = []):
         self.name = name
         self.catType = catType
         self.diagnosis = diagnosis

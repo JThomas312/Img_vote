@@ -20,7 +20,7 @@ class UserHomeViewModel():
 class AdminHomeViewModel():
     userId: int
     name: str
-    otherUsers: list((int, str, str, bool, bool)) #id, login, name, admin, completed
+    otherUsers: list((int, str, str, bool, int)) #id, login, name, admin, remaining cases
     remaing_users: int
     total_users: int
     admin: bool

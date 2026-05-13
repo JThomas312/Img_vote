@@ -241,10 +241,10 @@ def clear_all_answers(engine):
     session = Session(engine)
     
     try:
-        deleteStmt = delete(AnswerCriterionPOCO)
+        # deleteStmt = delete(AnswerCriterionPOCO)
         
-        session.execute(deleteStmt)
-        session.commit()
+        # session.execute(deleteStmt)
+        # session.commit()
         
         deleteStmt = delete(AnswerPOCO)
         

@@ -60,18 +60,18 @@ Created on Mon Mar 31 15:26:07 2025
                                     <legend>{{criterion.name}}</legend>
                                     <div class="criterion-row">
                                         <div class="options">
-                                            <input type="radio" id="{{criterion.id}}Yes" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 1, {{category.cat_id}})" value=1 {% if criterion.value==1 %} checked {% endif %}/>
+                                            <input type="radio" id="{{criterion.id}}Yes" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 1, {{category.cat_id}}); updateVisibility();" value=1 {% if criterion.value==1 %} checked {% endif %}/>
                                             <label for="{{criterion.id}}Yes">Yes</label>
                                             
-                                            <input type="radio" id="{{criterion.id}}No" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 2, {{category.cat_id}})" value=2 {% if criterion.value==2 %} checked {% endif %}/>
+                                            <input type="radio" id="{{criterion.id}}No" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 0, {{category.cat_id}}); updateVisibility();" value=0 {% if criterion.value==0 %} checked {% endif %}/>
                                             <label for="{{criterion.id}}No">No</label>
                                             
                                             {% if category.has_NA %}
-                                                <input type="radio" id="{{criterion.id}}NA" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 3, {{category.cat_id}})" value=3 {% if criterion.value==3 %} checked {% endif %}/>
+                                                <input type="radio" id="{{criterion.id}}NA" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 2, {{category.cat_id}}); updateVisibility();" value=2 {% if criterion.value==2 %} checked {% endif %}/>
                                                 <label for="{{criterion.id}}NA">N/A</label>
                                             {% endif %}
                                             
-                                            <input type="radio" id="{{criterion.id}}unanswered" name="{{criterion.name}}" value=0 {% if criterion.value==0 %} checked {% endif %} disabled hidden/>
+                                            <input type="radio" id="{{criterion.id}}unanswered" name="{{criterion.name}}" value="-1" {% if criterion.value==-1 %} checked {% endif %} disabled hidden/>
                                             <label hidden for="{{criterion.id}}unanswered">unanswered</label>
                                         </div>
                                         {% if category.has_tutorial %}
@@ -100,7 +100,7 @@ Created on Mon Mar 31 15:26:07 2025
                                                 {% endif %}
                                             </div>
                                         {% endfor %}
-                                        <input type="radio" id="{{category.name}}unanswered" name="{{category.name}}" value=0 {% if category.unanswered %} checked {% endif %} disabled hidden/>
+                                        <input type="radio" id="{{category.name}}unanswered" name="{{category.name}}" value="-1" {% if category.unanswered %} checked {% endif %} disabled hidden/>
                                         <label hidden for="{{category.name}}unanswered">unanswered</label>
                                     </div>
                             </fieldset>
@@ -111,7 +111,7 @@ Created on Mon Mar 31 15:26:07 2025
                                 <fieldset>
                                     <legend>{{criterion.name}}</legend>
                                     <div class="criterion-row">
-                                        <input id="{{criterion.id}}" type="number" name="{{criterion.name}}" min="{{ViewModel.min_int}}" max="{{ViewModel.max_int}}" value="{{criterion.value}}" oninput="save_number({{ViewModel.case_id}}, {{criterion.id}}, {{category.cat_id}}); updateVisibility();">
+                                        <input id="{{criterion.id}}" type="number" name="{{criterion.name}}" min="{{ViewModel.min_int}}" max="{{ViewModel.max_int}}" {% if criterion.value != -1 %} value="{{criterion.value}}" {% endif %} oninput="save_number({{ViewModel.case_id}}, {{criterion.id}}, {{category.cat_id}}); updateVisibility();">
                                         {% if category.has_tutorial %}
                                             <div class="tutorial-btn">
                                                 <input type="button" onclick="tutorial({{criterion.id}})" value="?" />

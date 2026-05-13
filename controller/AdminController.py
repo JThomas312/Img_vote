@@ -475,7 +475,7 @@ def get_data_for_export():
             for criterion in current_category.criteria:
                 ws.cell(row=1, column=column_increment, value=format_r_friendly(criterion.name))
                 column_increment += 1
-        if current_category.confidence != -1:
+        if current_category.confidence != -2:
             ws.cell(row=1, column=column_increment, value=format_r_friendly(format_r_friendly(current_category.name) + '_confidence'))
             column_increment += 1
             
@@ -510,7 +510,7 @@ def get_data_for_export():
                     ws.cell(row=i + 2, column=column_increment, value=criterion.value)
                     column_increment += 1
                     
-            if current_category.confidence != -1:
+            if current_category.confidence != -2:
                 ws.cell(row=i + 2, column=column_increment, value=current_category.confidence)
                 column_increment += 1
         

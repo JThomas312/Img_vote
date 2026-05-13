@@ -47,8 +47,7 @@ def user_for_home(username):
         usr.otherUsers = []
         
         for otherUser in otherUsers:
-            isDone = (otherUser.remaining_cases == 0)
-            usr.otherUsers.append((otherUser.userId, otherUser.login, otherUser.name, otherUser.admin , isDone))
+            usr.otherUsers.append((otherUser.userId, otherUser.login, otherUser.name, otherUser.admin , otherUser.remaining_cases))
         
         usr.remaing_users = sum(1 for x in usr.otherUsers if (not x[3] and not x[4]))
         usr.total_users = sum(1 for x in usr.otherUsers if not x[3])

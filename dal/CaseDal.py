@@ -141,9 +141,11 @@ def extract_all_data(engine):
                 #check first if reviewer was assigned to this case
                 if answerExists:
                     
-                    rev_identifier = str(reviewer.userId) + '_' + format_r_friendly(reviewer.name)
+                    rev_identifier = format_r_friendly(reviewer.name)
                     
-                    newExtract = FinalExtractDataModel(case[0].id, rev_identifier)
+                    case_name = format_r_friendly(case[0].name)
+                    
+                    newExtract = FinalExtractDataModel(case_name, rev_identifier)
                     
                     newExtract.categories = []
                     

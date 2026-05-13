@@ -49,8 +49,9 @@ def is_answer_done(userId, caseId, engine):
     
     #criterion category 2 is one of
     yes_no_category = 1
-    one_of_category = 2 
-    unanswered_value = 0
+    one_of_category = 2
+    numerical_value_category = 3
+    unanswered_value = -1
     unanswered_trust_value = 0
     true_value = 1
     
@@ -65,16 +66,16 @@ def is_answer_done(userId, caseId, engine):
             mandatory = True
             
             if category.optional:
-                
+                mandatory = False
                 prerequisites = session.query(PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == category.id).all()
                 #check if all prerequisites are checked
                 for prerequisite in prerequisites:
-                    prerequisitesQuery = query0.filter(CriterionPOCO.id == prerequisite.criterion).filter(AnswerCriterionPOCO.value != true_value)
+                    prerequisitesQuery = query0.filter(CriterionPOCO.id == prerequisite.criterion).filter(AnswerCriterionPOCO.value == true_value)
                     if session.query(prerequisitesQuery.exists()).scalar():
-                        mandatory = False
+                        mandatory = True
                         
             if mandatory:
-                if category.type == yes_no_category:
+                if category.type == yes_no_category or category.type == numerical_value_category:
                     #check if any criterion is still unanswered
                     unanswered_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_value).filter(CriterionPOCO.is_trust == False)
                     if session.query(unanswered_query.exists()).scalar():
@@ -88,8 +89,11 @@ def is_answer_done(userId, caseId, engine):
                 
                 if category.has_trust:
                     #check if trust criterion was left unanswered
-                    trust_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_trust_value).filter(CriterionPOCO.is_trust == True)
-                    if session.query(trust_query.exists()).scalar():
+                    trust_query1 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_trust_value).filter(CriterionPOCO.is_trust == True)
+                    trust_query2 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_value).filter(CriterionPOCO.is_trust == True)
+                    exists1 = session.query(trust_query1.exists()).scalar()
+                    exists2 = session.query(trust_query2.exists()).scalar()
+                    if exists1 or exists2:
                         return False
     
     finally:
@@ -372,7 +376,7 @@ def undo_all_but_one(userId, case, criterionId, value, category, engine):
     session = Session(engine)
     
     try:
-        false_value = 2
+        false_value = 0
         
         query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.category == category).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == case).filter(CriterionPOCO.id != criterionId).filter(CriterionPOCO.is_trust == False)
         ansCrit = query.all()

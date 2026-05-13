@@ -141,7 +141,7 @@ class AnswerCriterionPOCO(Base):
     def __init__(self, answer, criterion):
         self.answer = answer
         self.criterion = criterion
-        self.value = 0
+        self.value = -1
         
         
         
