@@ -104,7 +104,7 @@ def caseForDisplay(userId, case):
     with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = fr.readline().removesuffix('\n')
     
-    caseVM = CaseDisplayViewModel(caseDM.caseId, name, study_name, len(categoriesVM))
+    caseVM = CaseDisplayViewModel(caseDM.caseId, name, study_name, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
     
     caseVM.categories = categoriesVM
 
@@ -114,8 +114,6 @@ def caseForDisplay(userId, case):
     
     img_files = listdir(path)
     img_files.sort()
-    
-    print(img_files)
     
     caseVM.nb_imgs = 0
 
