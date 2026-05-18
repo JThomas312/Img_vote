@@ -7,8 +7,10 @@ Created on Thu Aug 28 16:55:41 2025
 """
 
 #general imports
+from datetime import datetime
 from sqlalchemy import String
 from sqlalchemy import ForeignKey
+from sqlalchemy import func
 
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -19,9 +21,22 @@ from sqlalchemy.orm import DeclarativeBase
 class Base(DeclarativeBase):
     pass
 
+class StudyPOCO(Base):
+    __tablename__ = "study"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50))
+    endDate: Mapped[datetime] = mapped_column(insert_default=func.today())
+    status: Mapped[str] = mapped_column(String(20))
+    has_gold_standard: Mapped[bool]
+    has_malignancy: Mapped[bool]
+    has_tutorial: Mapped[bool]
+    repartition: Mapped[int]
+    repartition_value: Mapped[int]
+
 class ReviewerPOCO(Base):
     __tablename__ = "reviewer"
     id: Mapped[int] = mapped_column(primary_key=True)
+    study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     name: Mapped[str] = mapped_column(String(50))
     login: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(30))
@@ -43,6 +58,7 @@ class ReviewerPOCO(Base):
 class CategoryPOCO(Base):
     __tablename__ = "category"
     id: Mapped[int] = mapped_column(primary_key=True)
+    study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     name: Mapped[str] = mapped_column(String(100))
     type: Mapped[int]
     has_tutorial: Mapped[bool]
@@ -100,6 +116,7 @@ class PrerequisitePOCO(Base):
 class CasePOCO(Base):
     __tablename__ = "study_case"
     id: Mapped[int] = mapped_column(primary_key=True)
+    study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     path: Mapped[str] = mapped_column(String(100))
     name: Mapped[str] = mapped_column(String(10))
     gold_standard: Mapped[int] = mapped_column(ForeignKey("criterion.id"))

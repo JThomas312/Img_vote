@@ -143,12 +143,15 @@ def user_home():
         with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
             status = fr.read().replace('\n', '')
         if (status != 'stopped') and status != 'ended':
-            with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'r', encoding="utf-8") as f:
-               try:
-                   study_end = datetime.strptime(f.read(), '%Y-%m-%d')
-                   remaining_days = (study_end - datetime.today()).days
-               except:
-                   remaining_days = -1
+            try:
+                with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'r', encoding="utf-8") as f:
+                   try:
+                       study_end = datetime.strptime(f.read(), '%Y-%m-%d')
+                       remaining_days = (study_end - datetime.today()).days
+                   except:
+                       remaining_days = -1
+            except FileNotFoundError:
+                remaining_days = -1
         else:
             remaining_days = -1
         if user.admin:

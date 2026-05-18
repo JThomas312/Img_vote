@@ -36,9 +36,12 @@ def user_for_home(username):
     
     user = get_reviewer_by_login(username)
 
-    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
-        study_name = fr.readline().removesuffix('\n')
-   
+    try:
+        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
+            study_name = fr.readline().removesuffix('\n')
+    except FileNotFoundError:
+        study_name = ''
+        
     if user.admin:
         usr = AdminHomeViewModel()
         usr.userId = user.userId
