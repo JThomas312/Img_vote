@@ -27,7 +27,7 @@ sys.path.append(str(path_root))
 #local imports
 from img_vote.utilities.useful import natural_sort_key, format_r_friendly
 
-from img_vote.Models.DataModels import CaseDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
+from img_vote.Models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
 from img_vote.Models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
 from img_vote.dal.CriterionDal import get_gold_standard_criteria
 from img_vote.dal.UserDal import get_all_non_admin_reviewers
@@ -42,6 +42,24 @@ def get_case_by_id(identifier, engine):
         casePOCO = session.get(CasePOCO, identifier)
         
         case = CaseDataModel(casePOCO.id, casePOCO.path, casePOCO.name)
+
+    finally:        
+        session.close()
+    
+    return case
+
+def get_case_with_gold_standard(identifier, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CasePOCO, CriterionPOCO).join(CriterionPOCO, CasePOCO.gold_standard == CriterionPOCO.id).filter(CasePOCO.id == identifier)
+        
+        ans = query.one_or_none()
+        
+        #0: case, 1: criterion
+        
+        case = CaseGoldStandardDataModel(ans[0].id, ans[0].path, ans[0].name, ans[1].name)
 
     finally:        
         session.close()

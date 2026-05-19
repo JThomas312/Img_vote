@@ -21,17 +21,19 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel
+from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
 from img_vote.dal.MasterDal import update_user_count
 
 #case related
 from img_vote.dal.MasterDal import get_case_by_id
+from img_vote.dal.MasterDal import get_case_with_gold_standard
 
 #answer related
 from img_vote.dal.MasterDal import get_case_by_answer_name
 from img_vote.dal.MasterDal import update_answer_status
+from img_vote.dal.MasterDal import get_answer_to_case
 
 #answer related
 from img_vote.dal.MasterDal import get_answer_name
@@ -136,6 +138,52 @@ def caseForDisplay(userId, case):
     caseVM.max_int = max_int_db
     caseVM.min_int = min_int_db
     
+    return caseVM
+
+
+def caseForLearning(userId, case):
+    
+    trueValue = 1
+    naValue = 3
+    one_of_type = 2
+    
+    
+    caseDM = get_case_with_gold_standard(case)
+    name = get_answer_name(userId, case)
+    answer = get_answer_to_case(userId, case)
+        
+    
+    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
+        study_name = fr.readline().removesuffix('\n')
+    
+    caseVM = CaseLearningViewModel(caseDM.caseId, name, study_name, answer, caseDM.goldStandard, nb_imgs=0, imgs=[], imgs_sizes=[])
+    
+    path = caseDM.path
+    
+    img_files = listdir(path)
+    img_files.sort()
+    
+    caseVM.nb_imgs = 0
+
+    for img_file in img_files:
+        im = Image.open(os.path.join(path, img_file))
+        data = io.BytesIO()
+        im.save(data, 'JPEG')
+        encoded_img_data = base64.b64encode(data.getvalue())
+        caseVM.imgs.append(encoded_img_data.decode('utf-8'))
+        w, h = im.size
+        caseVM.imgs_sizes.append((w, h))
+        caseVM.nb_imgs += 1
+    
+    prevName = str(int(name) - 1)
+    nextName = str(int(name) + 1)
+    
+    prevcase = get_case_by_answer_name(prevName, userId)
+    nextcase = get_case_by_answer_name(nextName, userId)
+
+    caseVM.prevcase = prevcase
+    caseVM.nextcase = nextcase
+
     return caseVM
 
 

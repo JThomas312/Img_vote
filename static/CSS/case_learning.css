@@ -1,0 +1,69 @@
+
+/* Layout splits */
+.split {
+    height: 100%;
+    position: fixed;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    z-index: 1;
+}
+
+.split.left {
+    left: 0;
+    width: calc(69% - 5px);
+    background-color: #000;
+    border-left: 5px solid black;
+    border-right: 5px solid black;
+}
+
+.split.left, .split.left * {
+    color: #f7f7f7;
+}
+
+.split.right {
+    left: calc(69% + 5px);
+    width: calc(30% - 5px);
+    background-color: #f7f7f7;
+    border-left: 5px solid #f7f7f7;
+    border-right: 5px solid #f7f7f7;
+    padding-bottom: 80px;
+}
+
+.case_img { max-width: 100%; height: auto; cursor: pointer; }
+
+.case-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background-color: #bbb;
+    color: #000;
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 40px;
+    z-index: 2000;
+    border-bottom: 1px solid #aaa;
+}
+
+/* Adjust layout so the split sections start below the header */
+.split {
+    top: 40px; /* Push content below header */
+    height: calc(100% - 40px);
+}
+
+.correct{
+    color: #37de04;
+}
+
+.wrong{
+    color: red;
+}
+
+.incorrect{
+    color: blue;
+}
+

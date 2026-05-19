@@ -97,7 +97,7 @@ def categories_for_editing():
     categoriesDMs = categories_with_criteria()
     categoriesVMs = []
     for categoryDM in categoriesDMs:
-        currentCategoryVM = CategoryConfigurationViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional)
+        currentCategoryVM = CategoryConfigurationViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
         for crit in categoryDM.criteria:
             currentCategoryVM.criteria.append(CriterionEditingViewModel(crit[0], crit[1]))
         categoriesVMs.append(currentCategoryVM)

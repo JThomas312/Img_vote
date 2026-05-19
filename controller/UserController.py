@@ -19,7 +19,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.ViewModels import UserHomeViewModel, AdminHomeViewModel
+from img_vote.Models.ViewModels import UserHomeViewModel, AdminHomeViewModel, UserLearnViewModel
 from img_vote.utilities.useful import natural_sort_key
 
 #user related
@@ -27,17 +27,22 @@ from img_vote.dal.MasterDal import get_reviewer_by_login
 from img_vote.dal.MasterDal import get_reviewer_for_login
 from img_vote.dal.MasterDal import get_users_for_admin
 from img_vote.dal.MasterDal import update_password
+from img_vote.dal.MasterDal import gold_standard_exists
 
 #answer related
 from img_vote.dal.MasterDal import get_cases_and_answers
+from img_vote.dal.MasterDal import get_cases_and_learn
 
     
 def user_for_home(username):
     
     user = get_reviewer_by_login(username)
-
-    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
-        study_name = fr.readline().removesuffix('\n')
+    
+    try:
+        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
+            study_name = fr.readline().removesuffix('\n')
+    except FileNotFoundError:
+        study_name = ''
    
     if user.admin:
         usr = AdminHomeViewModel()
@@ -70,6 +75,26 @@ def user_for_home(username):
     usr.remaing_items = len(usr.items) - sum(1 for x in usr.items if x[2])
     
     return (usr, study_name)
+
+def user_for_learning(userId):
+    
+    caseLearn = get_cases_and_learn(userId)
+    
+    viewModel = UserLearnViewModel()
+    
+    
+    for caseLearnItem in caseLearn:
+        viewModel.items.append((caseLearnItem.caseId, caseLearnItem.name, caseLearnItem.correct))
+    
+    viewModel.items = sorted(list(viewModel.items), key=natural_sort_key)
+    
+    viewModel.correct_answers = sum(1 for x in viewModel.items if x[2])
+    viewModel.total_answers = len(viewModel.items)
+    
+    return viewModel
+
+def study_has_gold_standard():
+    return gold_standard_exists()
 
 def user_for_login(username):
     usr = get_reviewer_for_login(username)

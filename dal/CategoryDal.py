@@ -78,7 +78,7 @@ def categories_with_criteria(engine):
                 if (currentCategory != -1):
                     answer.append(currentDataModel)
                 currentCategory = ans[0].id
-                currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional)
+                currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional, ans[0].has_gold_standard, ans[0].has_malignancy)
             if ans[1] != None and not ans[1].is_trust:
                 currentDataModel.criteria.append((ans[1].id, ans[1].name))
         
