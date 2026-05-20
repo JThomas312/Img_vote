@@ -153,6 +153,9 @@ def get_category_by_id(catId):
 def get_categories():
     return CategoryDal.get_categories(engine)
 
+def get_na_tutorial_categories():
+    return CategoryDal.get_na_tutorial_categories(engine)
+
 def categories_with_criteria():
     return CategoryDal.categories_with_criteria(engine)
 

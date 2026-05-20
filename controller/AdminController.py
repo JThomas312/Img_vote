@@ -49,7 +49,7 @@ from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_lea
 from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
 from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_without_gold_standard, other_gold_standard_exists
 from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, gold_standard_in_wrong_category, new_empty_category
-from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories
+from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_na_tutorial_categories
 
 #prerequisite related
 from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, clear_all_prerequisites
@@ -292,9 +292,10 @@ def check_categories():
 
     clear_malignant_criteria_in_non_malignant_category()
     
+    create_na_criteria()
+
     update_criteria_path(os.path.join(getcwd(), 'data', 'tutorial_data'))
     
-    create_na_criteria()
     create_trust_criteria()
 
     return ([], [])
@@ -327,17 +328,27 @@ def upload_status():
     return VM
 
 def unzip_and_move(path, version):
+    
     if version == 'case':
         extract_path = os.path.join(getcwd(), 'data', 'Img_data')
     elif version == 'tutorial':
-        extract_path = os.path.join(getcwd(), 'data', 'tutorial_data')
+        extract_path = os.path.join(getcwd(), 'data')
     else:
         return 'something went wrong'
+    
     try:
         zippy = ZipFile(path)
         zippy.extractall(extract_path)
     except Exception as e:
         return e
+    
+    if version == 'tutorial':
+        #all one of categories with tutorials and n/a enabled need the template n/a tutorial
+        na_categories = get_na_tutorial_categories()
+        
+        for na_category in na_categories:
+            copyfile(os.path.join(getcwd(), 'data', 'na.jpg'), os.path.join(getcwd(), 'data', 'tutorial_data', na_category.name, 'na.jpg'))
+    
     return None
 
 def move(ogpath, newpath):

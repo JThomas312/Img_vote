@@ -120,12 +120,9 @@ def caseForDisplay(userId, case):
     caseVM.nb_imgs = 0
 
     for img_file in img_files:
-        im = Image.open(os.path.join(path, img_file))
-        data = io.BytesIO()
-        im.save(data, 'JPEG')
-        encoded_img_data = base64.b64encode(data.getvalue())
-        caseVM.imgs.append(encoded_img_data.decode('utf-8'))
-        w, h = im.size
+        img_path = os.path.join(path, img_file)
+        (img_data, w, h) = get_image(img_path)
+        caseVM.imgs.append(img_data)
         caseVM.imgs_sizes.append((w, h))
         caseVM.nb_imgs += 1
     
@@ -142,17 +139,11 @@ def caseForDisplay(userId, case):
 
 
 def caseForLearning(userId, case):
-    
-    trueValue = 1
-    naValue = 3
-    one_of_type = 2
-    
-    
+
     caseDM = get_case_with_gold_standard(case)
     name = get_answer_name(userId, case)
     answer = get_answer_to_case(userId, case)
         
-    
     with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = fr.readline().removesuffix('\n')
     
@@ -166,12 +157,9 @@ def caseForLearning(userId, case):
     caseVM.nb_imgs = 0
 
     for img_file in img_files:
-        im = Image.open(os.path.join(path, img_file))
-        data = io.BytesIO()
-        im.save(data, 'JPEG')
-        encoded_img_data = base64.b64encode(data.getvalue())
-        caseVM.imgs.append(encoded_img_data.decode('utf-8'))
-        w, h = im.size
+        img_path = os.path.join(path, img_file)
+        (img_data, w, h) = get_image(img_path)
+        caseVM.imgs.append(img_data)
         caseVM.imgs_sizes.append((w, h))
         caseVM.nb_imgs += 1
     
@@ -189,30 +177,10 @@ def caseForLearning(userId, case):
 
 def criterion_for_tutorial(idCriterion):
     tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
-    try:
-        slide_im = Image.open(tutorial_slide_path + '.png')
-        data = io.BytesIO()
-        slide_im.save(data, 'PNG')
-        slide_encoded_img_data = base64.b64encode(data.getvalue())
-        img_data = slide_encoded_img_data.decode('utf-8')
-    except FileNotFoundError:
-        try:
-            slide_im = Image.open(tutorial_slide_path + '.jpeg')
-            data = io.BytesIO()
-            slide_im.save(data, 'JPEG')
-            slide_encoded_img_data = base64.b64encode(data.getvalue())
-            img_data = slide_encoded_img_data.decode('utf-8')
-        except FileNotFoundError:
-            try:
-                slide_im = Image.open(tutorial_slide_path + '.jpg')
-                data = io.BytesIO()
-                slide_im.save(data, 'JPG')
-                slide_encoded_img_data = base64.b64encode(data.getvalue())
-                img_data = slide_encoded_img_data.decode('utf-8')
-            except:
-                img_data = bytearray()
     
-    return(img_data)
+    img_data, w, h = get_image(tutorial_slide_path, True)
+    
+    return img_data
     
 def safeguardProgress(userId, case, criterionId, value):
     safeguard_Criterion(userId, case, criterionId, value)
@@ -237,4 +205,29 @@ def checkProgress(userId, case):
     
     if update_answer_status(userId, case, done):
         update_user_count(userId, done)
+
+
+def get_image(img_path, try_extensions=False):
+    
+    definitive_path = img_path
+    
+    if try_extensions:
+        possible_extensions = ['.png', '.PNG', '.jpg', '.JPG', '.JPEG']
+    
+        for extension in possible_extensions:
+            if os.path.exists(img_path + extension):
+                definitive_path = img_path + extension
+    
+    try:
+        im = Image.open(definitive_path)
+        data = io.BytesIO()
+        im.save(data, im.format)
+        encoded_img_data = base64.b64encode(data.getvalue())
+        img_data = encoded_img_data.decode('utf-8')
+        w, h = im.size
+    except:
+        img_data = bytearray()
+        w, h = 0, 0
+        
+    return (img_data, w, h)
 
