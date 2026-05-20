@@ -50,12 +50,12 @@ def user_for_home(username):
         usr.name = user.name
         otherUsers = get_users_for_admin(user.userId)
         usr.otherUsers = []
-        
         for otherUser in otherUsers:
             usr.otherUsers.append((otherUser.userId, otherUser.login, otherUser.name, otherUser.admin , otherUser.remaining_cases))
         
-        usr.remaing_users = sum(1 for x in usr.otherUsers if (not x[3] and not x[4]))
+        usr.remaing_users = sum(1 for x in usr.otherUsers if (not x[3] and not x[4] == 0))
         usr.total_users = sum(1 for x in usr.otherUsers if not x[3])
+        
         
         return (usr, study_name)
     

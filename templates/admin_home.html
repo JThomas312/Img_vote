@@ -17,7 +17,7 @@ Created on Tue Sep 16 16:36:19 2025
 
 <h1>Hello, {{ username }}!</h1>
 <h2>Welcome to Lyon Dermoscopy Studies<h2>
-{% if study_status in ['ongoing', 'paused'] %}
+{% if study_status in ['ongoing', 'paused', 'test'] %}
     {% if remaing_users > 0 %}
         {% if remaining_days > 0 %}<h2>Study {{studyname}} ends in {{remaining_days}} days<h2>
         {% else %}<h2>Study is supposed to be over, you may end it anytime<h2>
@@ -131,7 +131,7 @@ Created on Tue Sep 16 16:36:19 2025
 {% block content %}
   <ol>
   {% for otherUser in otherUsers %}
-    <li><a>{{otherUser[1]}}</a> : <a>{{otherUser[2]}}</a> {% if otherUser[3] %} <a>Study Administrator</a> {% else %} <a>Reviewer</a> {% if otherUser[4] > 0 and not otherUser[3] and (study_status in ['ongoing', 'paused']) %} <a> {{otherUser[4]}} remaining reviews </a> {% endif %} {% if otherUser[4] == 0 and not otherUser[3] and (study_status in ['ongoing', 'paused']) %} <a> Reviews Finished ! </a> {% endif %} {% endif %} 
+    <li><a>{{otherUser[1]}}</a> : <a>{{otherUser[2]}}</a> {% if otherUser[3] %} <a>Study Administrator</a> {% else %} <a>Reviewer</a> {% if otherUser[4] > 0 and not otherUser[3] and (study_status in ['ongoing', 'paused', 'test']) %} <a> {{otherUser[4]}} remaining reviews </a> {% endif %} {% if otherUser[4] == 0 and not otherUser[3] and (study_status in ['ongoing', 'paused']) %} <a> Reviews Finished ! </a> {% endif %} {% endif %} 
         {% if study_status != 'ongoing' %} <a href="/confirm_delete_user/{{otherUser[0]}}"><button>delete user</button></a>{% endif %}
         <a href="/reset_password/{{otherUser[0]}}">
           <button>reset password</button>

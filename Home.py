@@ -162,7 +162,7 @@ def user_home():
             total_users = user.total_users
             otherUsers = user.otherUsers
             display_others = len(otherUsers) > 0
-            return render_template('admin_home.html', remaining_days= remaining_days, username=user.name, studyname=study_name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
+            return render_template('admin_home.html', remaining_days=remaining_days, username=user.name, studyname=study_name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
         else:   
             if status == 'ongoing' or status == 'test':
                 items = user.items
