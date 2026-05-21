@@ -173,7 +173,7 @@ def user_home():
                     learnViewModel = user_for_learning(user.userId)
                     return render_template('user_learning.html', username=user.name, studyname=study_name, correct_answers=learnViewModel.correct_answers, total_answers=learnViewModel.total_answers, items=learnViewModel.items)
                 else:
-                    return render_template('study_ended.html')
+                    return render_template('study_ended.html', username=user.name)
     else:
         return(redirect(url_for('login')))
 

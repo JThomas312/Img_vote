@@ -335,7 +335,7 @@ def unzip_and_move(path, version):
     if version == 'case':
         extract_path = os.path.join(getcwd(), 'data', 'Img_data')
     elif version == 'tutorial':
-        extract_path = os.path.join(getcwd(), 'data')
+        extract_path = os.path.join(getcwd(), 'data', 'tutorial_data')
     else:
         return 'something went wrong'
     
