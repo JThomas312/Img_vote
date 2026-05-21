@@ -331,7 +331,7 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   
   var newLabelNo = document.createElement('label');
   newRadioNo.htmlFor = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
-  newLabelNo.innerHTML = 'Begnin';
+  newLabelNo.innerHTML = 'Benign';
   
   var category_id = document.getElementById('category_id').value;
   

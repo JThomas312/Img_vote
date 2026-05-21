@@ -246,8 +246,10 @@ def check_categories():
     errors = []
     
     incorrect_categories = []
-    if categories_without_name():
+    unnamed_categories = categories_without_name()
+    if len(unnamed_categories) > 0:
         errors.append('Some of your categories are still unnamed')
+        incorrect_categories.extend(unnamed_categories)
     if not at_least_one_mandatory_category():
         errors.append('All of your categories are optional, you need at least one mandatory category')
     
@@ -284,8 +286,9 @@ def check_categories():
     unique_incorrect_categories = list(dict.fromkeys(incorrect_categories))
     
     for i in range(len(unique_incorrect_categories)):
-        if bool(match('^[\\s]*$', incorrect_categories[i][1])):
-            unique_incorrect_categories[i] = (unique_incorrect_categories[i][0], 'unnamed category')
+        (identifier, name) = unique_incorrect_categories[i]
+        if bool(match('^[\\s]*$', name)):
+            unique_incorrect_categories[i] = (identifier, 'unnamed category')
     
     if len(errors) > 0 or len(unique_incorrect_categories) > 0:
         return (errors, unique_incorrect_categories)

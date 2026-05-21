@@ -132,7 +132,7 @@ Created on Fri Apr 10 16:07:16 2026
                             <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value=1 {% if criterion.malignancy %} checked {% endif %}>
                             <label for="criterionMalignancy{{ns.j}}">Malignant</label>
                             <input type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value=1 {% if not criterion.malignancy %} checked {% endif %}>
-                            <label for="criterionMalignancy{{ns.j}}">Begnin</label>
+                            <label for="criterionMalignancy{{ns.j}}">Benign</label>
                         </div> 
                     </div>
                     {% set ns.j = ns.j + 1 %}

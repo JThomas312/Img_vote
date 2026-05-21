@@ -317,7 +317,7 @@ def categories_without_name(engine):
     
     try:
         query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.name.regexp_match('^[ ]*$'))
-        answer = session.query(query.exists()).scalar()
+        answer = query.all()
         
     finally:
         session.close()
