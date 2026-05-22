@@ -13,11 +13,11 @@ Created on Tue Apr 21 14:29:57 2026
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Reviewer Repartition Management</title>
+    <title>Reviewer Distribution Management</title>
 
     <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
     
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/manage_reviewer_repartition.css')}}"/>
+    <link rel="stylesheet" href="{{url_for('static', filename='CSS/manage_reviewer_distribution.css')}}"/>
     
 </head>
 
@@ -81,17 +81,17 @@ Created on Tue Apr 21 14:29:57 2026
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <fieldset>
                 <legend>How will you assign cases to reviewers ?</legend>
-                <input type="radio" id="repartition_all" name="repartition" value="all for all" onclick="update_everything()" checked/>
-                <label for="repartition">All cases reviewed by all reviewers</label>
+                <input type="radio" id="distribution_all" name="distribution" value="all for all" onclick="update_everything()" checked/>
+                <label for="distribution">All cases reviewed by all reviewers</label>
                 </br>
-                <input type="radio" id="n_per_case" name="repartition" value="n per case" onclick="update_everything()"/>
-                <label for="repartition">Set a minimum number of reviewer per case</label>
+                <input type="radio" id="n_per_case" name="distribution" value="n per case" onclick="update_everything()"/>
+                <label for="distribution">Set a minimum number of reviewer per case</label>
                 </br>
-                <input type="radio" id="n_per_reviewer" name="repartition" value="n per reviewer" onclick="update_everything()"/>
-                <label for="repartition">Set a minimum number of case per reviewer</label>
+                <input type="radio" id="n_per_reviewer" name="distribution" value="n per reviewer" onclick="update_everything()"/>
+                <label for="distribution">Set a minimum number of case per reviewer</label>
                 </br>
-                <input type="radio" id="percent_per_reviewer" name="repartition" value="percent per reviewer" onclick="update_everything()"/>
-                <label for="repartition">Set a percentage of case per reviewer</label>
+                <input type="radio" id="percent_per_reviewer" name="distribution" value="percent per reviewer" onclick="update_everything()"/>
+                <label for="distribution">Set a percentage of case per reviewer</label>
                 </fieldset>
                 </br>
                 <div id="select_n_per_case">
@@ -107,7 +107,7 @@ Created on Tue Apr 21 14:29:57 2026
                     <span class="input-group-text">%</span>
                     <label for="percentage">The percentage of cases that will be attributed to each reviewer</label>
                 </div>
-                <p><input type=submit value="Confirm Repartition">
+                <p><input type=submit value="Confirm Distribution">
             </form>
             <a href="/user_home/">
                 <button>Leave</button>
@@ -117,7 +117,7 @@ Created on Tue Apr 21 14:29:57 2026
     
 </body>
 
-<script src="{{url_for('static', filename='JS/manage_reviewer_repartition.js')}}"></script>
+<script src="{{url_for('static', filename='JS/manage_reviewer_distribution.js')}}"></script>
 
 {% endautoescape %}
 </html>

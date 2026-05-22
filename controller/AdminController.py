@@ -31,7 +31,7 @@ from img_vote.utilities.useful import format_r_friendly
 from img_vote.utilities.useful import sanitize
 
 from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
-from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerRepartitionViewmodel
+from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerDistributionViewmodel
 
 #user related
 from img_vote.dal.MasterDal import get_reviewer_by_id, get_reviewer_by_login, count_all_reviewers, create_reviewer 
@@ -72,14 +72,14 @@ def find_name_and_login(userId):
 def create_user(login, name, admin, status, full_review):
     existing = get_reviewer_by_login(login)
     full = full_review and not admin
-    with open(os.path.join(getcwd(), 'persistence', 'repartition.txt'), 'r', encoding="utf-8") as fr:
-        repartition = fr.readline().removesuffix('\n')
+    with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'r', encoding="utf-8") as fr:
+        distribution = fr.readline().removesuffix('\n')
         case_per_r = fr.readline().removesuffix('\n')
         percentage = fr.readline().removesuffix('\n')
     if ((not admin) and (status == 'ended')):
         raise Exception('While the study is ended only administrator users can be created')
-    elif not full and repartition == 'n per case' and status in ['ready', 'ongoing', 'paused']:
-        raise Exception('You can now only create full reviewers with your chosen repartition')
+    elif not full and distribution == 'n per case' and status in ['ready', 'ongoing', 'paused']:
+        raise Exception('You can now only create full reviewers with your chosen distribution')
     elif existing != None:
         raise Exception('User already exists with login ' + login)
     else:
@@ -88,7 +88,7 @@ def create_user(login, name, admin, status, full_review):
         hashPass = hashpw(password.encode('utf-8'), s).decode('utf-8')
         revId = create_reviewer(name, login, hashPass, admin, full)
         if not admin and status in ['ready', 'ongoing', 'paused']:
-            case_per_rev = compute_case_per_rev(full, repartition, case_per_r, percentage)
+            case_per_rev = compute_case_per_rev(full, distribution, case_per_r, percentage)
             create_user_answers(revId, case_per_rev)
             create_user_answer_to_criterion(revId)
     return password
@@ -393,28 +393,28 @@ def check_uploads_and_create_cases():
 def upload_rollback():
     clear_all_cases()
 
-def data_for_repartition():
+def data_for_distribution():
     nb_cases = count_all_cases()
     nb_standard_reviewers = count_all_reviewers(False)
     nb_full_reviewers = count_all_reviewers(True)
     
-    repartitionVM = ReviewerRepartitionViewmodel(nb_cases, nb_standard_reviewers + nb_full_reviewers, nb_full_reviewers)
+    distributionVM = ReviewerDistributionViewmodel(nb_cases, nb_standard_reviewers + nb_full_reviewers, nb_full_reviewers)
     
-    return repartitionVM
+    return distributionVM
 
-def handle_repartition(method, r_per_case, case_per_r, percentage):
+def handle_distribution(method, r_per_case, case_per_r, percentage):
 
     rev_per_case= compute_rev_per_case(method, r_per_case, case_per_r, percentage)
 
     create_all_answers(rev_per_case)    
     create_all_answer_to_criterion()
     
-    with open(os.path.join(getcwd(), 'persistence', 'repartition.txt'), 'w', encoding="utf-8") as fw:
+    with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'w', encoding="utf-8") as fw:
         fw.writelines([method, '\n', case_per_r, '\n', percentage])
     
     return None
 
-def repartition_rollback():
+def distribution_rollback():
     clear_all_answers()
 
 def compute_rev_per_case(method, r_per_case, case_per_r, percentage):

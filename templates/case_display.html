@@ -136,6 +136,9 @@ Created on Mon Mar 31 15:26:07 2025
                 <a href="/user_home/">
                   <button>Save and leave</button>
                 </a>
+                {% if ViewModel.prevcase != -1 %}<a href="/case_display/{{ViewModel.prevcase}}"><button>Previous Case</button></a>
+                {% else %} <button type="button" disabled>Previous Case</button>
+                {% endif %}
                 {% if ViewModel.nextcase != -1 %}<a href="/case_display/{{ViewModel.nextcase}}"><button>Next Case</button></a>
                 {% else %} <button type="button" disabled>Next Case</button>
                 {% endif %}

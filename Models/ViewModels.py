@@ -113,7 +113,7 @@ class UploadStatusViewModel():
     case_data_needed: bool
     case_data_uploaded: bool
 
-class ReviewerRepartitionViewmodel():
+class ReviewerDistributionViewmodel():
     nb_cases: int
     nb_reviewers: int
     nb_full_reviewers: int
@@ -170,6 +170,7 @@ class CaseDisplayViewModel():
     categories: list(CategoryViewModel)
     max_int: int
     min_int: int
+    prevcase: int
     nextcase: int
     def __init__(self, case_id, case_name, study_name, nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):
         self.case_id = case_id

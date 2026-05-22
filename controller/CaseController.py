@@ -126,10 +126,13 @@ def caseForDisplay(userId, case):
         caseVM.imgs_sizes.append((w, h))
         caseVM.nb_imgs += 1
     
+    prevName = str(int(name) - 1)
     nextName = str(int(name) + 1)
     
+    prevcase = get_case_by_answer_name(prevName, userId)
     nextcase = get_case_by_answer_name(nextName, userId)
 
+    caseVM.prevcase = prevcase
     caseVM.nextcase = nextcase
     
     caseVM.max_int = max_int_db

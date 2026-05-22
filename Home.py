@@ -65,9 +65,9 @@ from controller.AdminController import remove_tutorial_images
 from controller.AdminController import remove_case_data
 from controller.AdminController import check_uploads_and_create_cases
 from controller.AdminController import upload_rollback
-from controller.AdminController import data_for_repartition
-from controller.AdminController import handle_repartition
-from controller.AdminController import repartition_rollback
+from controller.AdminController import data_for_distribution
+from controller.AdminController import handle_distribution
+from controller.AdminController import distribution_rollback
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 
@@ -475,8 +475,8 @@ def rollback_uploads():
     else:
         return(redirect(url_for('login')))
 
-@app.route('/manage_reviewer_repartition/', methods=['GET', 'POST'])
-def manage_reviewer_repartition():
+@app.route('/manage_reviewer_distribution/', methods=['GET', 'POST'])
+def manage_reviewer_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
@@ -484,22 +484,22 @@ def manage_reviewer_repartition():
                     status = fr.read().replace('\n', '')
                 if status == 'uploads_done':
                     if request.method == 'GET':
-                        viewModel = data_for_repartition()
-                        return render_template('manage_reviewer_repartition.html', VM=viewModel)
+                        viewModel = data_for_distribution()
+                        return render_template('manage_reviewer_distribution.html', VM=viewModel)
                     if request.method == 'POST':    
-                        repartition_method = request.form['repartition']
+                        distribution_method = request.form['distribution']
                         reviewer_per_case = request.form['reviewer_per_case']
                         cases_per_reviewer = request.form['cases_per_reviewer']
                         percentage = request.form['percentage']
-                        handle_repartition(repartition_method, reviewer_per_case, cases_per_reviewer, percentage)
+                        handle_distribution(distribution_method, reviewer_per_case, cases_per_reviewer, percentage)
                         with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('ready')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
 
-@app.route('/rollback_repartition/', methods=['GET'])
-def rollback_repartition():
+@app.route('/rollback_distribution/', methods=['GET'])
+def rollback_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
@@ -507,7 +507,7 @@ def rollback_repartition():
                     status = fr.read().replace('\n', '')
                 if status == 'ready':
                     if request.method == 'GET':
-                        repartition_rollback()
+                        distribution_rollback()
                         with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('uploads_done')
         return(redirect(url_for('user_home'))) 
@@ -615,19 +615,19 @@ def test_rollback(step):
                         with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('')
                         
-                        if step == 'repartition':
-                            repartition_rollback()
+                        if step == 'distribution':
+                            distribution_rollback()
                             with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                                 fw.write('uploads_done')
                         
                         if step == 'uploads':
-                            repartition_rollback()
+                            distribution_rollback()
                             upload_rollback()
                             with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                                 fw.write('categories_done')
                         
                         if step == 'categories':
-                            repartition_rollback()
+                            distribution_rollback()
                             upload_rollback()
                             categories_rollback()
                             with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
