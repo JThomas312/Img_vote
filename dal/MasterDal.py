@@ -221,6 +221,15 @@ def new_prerequisite(catId, name):
 def delete_prerequisite(catId, critId):
     return PrerequisiteDal.delete_prerequisite(catId, critId, engine)
 
+def delete_category_prerequisite(catId):
+    return PrerequisiteDal.delete_category_prerequisite(catId, engine)
+
+def delete_prerequisite_from_category_criteria(catId):
+    return PrerequisiteDal.delete_prerequisite_from_category_criteria(catId, engine)
+
+def delete_prerequisite_from_criterion(critId):
+    return PrerequisiteDal.delete_prerequisite_from_criterion(critId, engine)
+
 def clear_all_prerequisites():
     return PrerequisiteDal.clear_all_prerequisites(engine)
 

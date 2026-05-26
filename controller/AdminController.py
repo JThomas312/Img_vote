@@ -52,7 +52,8 @@ from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, gol
 from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_na_tutorial_categories
 
 #prerequisite related
-from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, clear_all_prerequisites
+from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, delete_category_prerequisite
+from img_vote.dal.MasterDal import delete_prerequisite_from_category_criteria, delete_prerequisite_from_criterion, clear_all_prerequisites
 
 #criterion related
 from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, update_criteria_path
@@ -164,6 +165,7 @@ def save_criterion(cat_id, name, malignancy):
 
 def change_criterion(cat_id, crit_id, name, malignancy, action):
     if action == 'remove':
+        delete_prerequisite_from_criterion(crit_id)
         erase_criterion(crit_id)    
     if not sanitize(name) or name == '':
         return
@@ -193,8 +195,14 @@ def change_prerequisite(cat_id, crit_id, name, action):
         
 
 def delete_category(cat_id):
+    delete_category_prerequisite(cat_id)
+    delete_prerequisite_from_category_criteria(cat_id)
     erase_category_criteria(cat_id)
     erase_category(cat_id)
+
+def delete_criterion(crit_id):
+    delete_prerequisite_from_criterion(crit_id)
+    erase_criterion(crit_id)
 
 def check_category(cat_id, form_answers):
 
@@ -309,9 +317,6 @@ def categories_rollback():
     remove_case_images()
     remove_tutorial_images()
     remove_case_data()
-
-def delete_criterion(crit_id):
-    erase_criterion(crit_id)
 
 def optional_category_allowed(categoryId):
     allowed = at_least_one_other_mandatory_category(categoryId)

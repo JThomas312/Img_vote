@@ -218,8 +218,12 @@ def create_all_answers(rev_per_case, engine):
             behind_group = [rev.id for rev in standard_reviewers]
             
             for i in range(nb_cases):
+                already_attributed = []
                 for j in range(rev_per_case):
                     k = randint(0, len(behind_group) - 1)
+                    while (behind_group[k] in already_attributed):
+                        k = randint(0, len(behind_group) - 1)
+                    already_attributed.append(behind_group[k])
                     newAns = AnswerPOCO(cases[i].id, behind_group[k])
                     session.add(newAns)
                     ahead_group.append(behind_group[k])
