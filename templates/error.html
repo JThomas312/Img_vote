@@ -1,5 +1,12 @@
-<!DOCTYPE html>
-{% autoescape true %}
-<title>Page not found</title>
-<h1>Appologies, this page could not be found<h1>
-{% endautoescape %}
+{% extends "base.html" %}
+
+{% block title %}Page Not Found — Img Vote{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-20 bg-white rounded-xl shadow-md p-8 text-center">
+  <h1 class="text-xl font-bold text-danger mb-4">Page Not Found</h1>
+  <p class="text-gray-700 text-sm mb-6">Apologies, this page could not be found.</p>
+  <a href="/user_home/" class="inline-block bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark text-sm">Go Home</a>
+</div>
+{% endblock %}
+

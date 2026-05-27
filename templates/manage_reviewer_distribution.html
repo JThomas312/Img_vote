@@ -1,123 +1,128 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 21 14:29:57 2026
+{% extends "base.html" %}
 
-@author: j.thomas
-"""-->
+{% block title %}Reviewer Distribution — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+{% endblock %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Reviewer Distribution Management</title>
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-6">
+  <h1 class="text-xl font-bold text-gray-800 mb-6">Reviewer Distribution</h1>
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
-    
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/manage_reviewer_distribution.css')}}"/>
-    
-</head>
+    <!-- Left panel: study figures -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">Study Figures</h2>
+      <form id="nb_reviewers_form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-<body>
-    <div class="split left">
-        <div class="centered">
-            <form id="nb_reviewers_form" method="post">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <a>Number of cases in your study</a>
-                <p><input id="nb_cases" type="number" name="nb_cases" value="{{VM.nb_cases}}" readonly>
-                <br/>
-                <br/>
-                <br/>
-                <a>Number of reviewers currently in your study</a>
-                <p><input id="nb_reviewers" type="number" name="nb_reviewers" value="{{VM.nb_reviewers}}" readonly>
-                <br/>
-                <br/>
-                <br/>
-                <a>Number of full reviewers currently in your study</a>
-                <p><input id="nb_full_reviewers" type="number" name="nb_full_reviewers" value="{{VM.nb_full_reviewers}}" readonly>
-                <br/>
-                <br/>
-                <br/>
-                <a>How many more reviewers are expected ?</a>
-                <p><input id="expected_additional_reviewers" type="number" name="additional_reviewers" value="0" min="0" oninput="update_figures()">
-                <br/>
-                <br/>
-                <br/>
-                <a>How many of them will be full reviewers ?</a>
-                <p><input id="expected_additional_full_reviewers" type="number" name="additional_full_reviewers" value="0" min="0" oninput="update_figures()">
-                <br/>
-                <br/>
-                <br/>
-                <a>Grand total reviewers in your study</a>
-                <p><input id="total_nb_reviewers" type="number" name="total_nb_reviewers" value="{{VM.nb_reviewers}}" readonly>
-                <br/>
-                <br/>
-                <br/>
-                <a>Grand total full reviewers in your study</a>
-                <p><input id="total_nb_full_reviewers" type="number" name="total_nb_full_reviewers" value="{{VM.nb_full_reviewers}}" readonly>
-                <br/>
-                <br/>
-                <br/>
-                <div id="display_reviewers_per_case">
-                    <h2>With current parameters, each case will be reviewed by at least this many reviewers</h2>
-                    <p><input id="nb_reviewers_per_case" type="number" name="nb_reviewers_per_case" value="" readonly>
-                    <br/>
-                </div>
-                <div id="display_cases_per_reviewer">
-                    <h2>With current parameters, each reviewer will review at least this many cases</h2>
-                    <p><input id="nb_cases_per_reviewer" type="number" name="nb_cases_per_reviewer" value="" readonly>
-                    <br/>
-                </div>
-            </form>
+        <div class="space-y-4">
+
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Number of cases in your study</label>
+            <input id="nb_cases" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50" type="number" name="nb_cases" value="{{VM.nb_cases}}" readonly>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Number of reviewers currently in your study</label>
+            <input id="nb_reviewers" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50" type="number" name="nb_reviewers" value="{{VM.nb_reviewers}}" readonly>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Number of full reviewers currently in your study</label>
+            <input id="nb_full_reviewers" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50" type="number" name="nb_full_reviewers" value="{{VM.nb_full_reviewers}}" readonly>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">How many more reviewers are expected?</label>
+            <input id="expected_additional_reviewers" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm" type="number" name="additional_reviewers" value="0" min="0" oninput="update_figures()">
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">How many of them will be full reviewers?</label>
+            <input id="expected_additional_full_reviewers" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm" type="number" name="additional_full_reviewers" value="0" min="0" oninput="update_figures()">
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Grand total reviewers</label>
+            <input id="total_nb_reviewers" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50" type="number" name="total_nb_reviewers" value="{{VM.nb_reviewers}}" readonly>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Grand total full reviewers</label>
+            <input id="total_nb_full_reviewers" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50" type="number" name="total_nb_full_reviewers" value="{{VM.nb_full_reviewers}}" readonly>
+          </div>
+
+          <div id="display_reviewers_per_case" class="bg-surface rounded-lg p-4 text-center">
+            <p class="text-xs text-gray-500 mb-1">Min. reviewers per case</p>
+            <input id="nb_reviewers_per_case" class="text-3xl font-bold text-primary w-full text-center border-none bg-transparent" type="number" name="nb_reviewers_per_case" value="" readonly>
+          </div>
+
+          <div id="display_cases_per_reviewer" class="bg-surface rounded-lg p-4 text-center">
+            <p class="text-xs text-gray-500 mb-1">Min. cases per reviewer</p>
+            <input id="nb_cases_per_reviewer" class="text-3xl font-bold text-primary w-full text-center border-none bg-transparent" type="number" name="nb_cases_per_reviewer" value="" readonly>
+          </div>
+
         </div>
+      </form>
     </div>
 
-    <div class="split right">
-        <div class="centered">
-            <form id="nb_reviewers_form" method="post">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <fieldset>
-                <legend>How will you assign cases to reviewers ?</legend>
-                <input type="radio" id="distribution_all" name="distribution" value="all for all" onclick="update_everything()" checked/>
-                <label for="distribution">All cases reviewed by all reviewers</label>
-                </br>
-                <input type="radio" id="n_per_case" name="distribution" value="n per case" onclick="update_everything()"/>
-                <label for="distribution">Set a minimum number of reviewer per case</label>
-                </br>
-                <input type="radio" id="n_per_reviewer" name="distribution" value="n per reviewer" onclick="update_everything()"/>
-                <label for="distribution">Set a minimum number of case per reviewer</label>
-                </br>
-                <input type="radio" id="percent_per_reviewer" name="distribution" value="percent per reviewer" onclick="update_everything()"/>
-                <label for="distribution">Set a percentage of case per reviewer</label>
-                </fieldset>
-                </br>
-                <div id="select_n_per_case">
-                    <input type="number" id="reviewers_per_case" name="reviewer_per_case" value="{{VM.nb_reviewers}}" min="0" step="1" oninput="update_figures()"/>
-                    <label for="reviewer_per_case">The number of reviewer that will review each case</label>
-                </div>
-                <div id="select_n_per_reviewer">
-                    <input type="number" id="cases_per_reviewer" name="cases_per_reviewer" value="{{VM.nb_cases}}" min="0" max="{{VM.nb_cases}}" step="1" oninput="update_figures()"/>
-                    <label for="cases_per_reviewer">The number of cases that will be attributed to each reviewer</label>
-                </div>
-                <div id="select_percent_per_reviewer">
-                    <input type="number" id="percentage" name="percentage" value="100" min="0" max="100" step="1" oninput="update_figures()"/>
-                    <span class="input-group-text">%</span>
-                    <label for="percentage">The percentage of cases that will be attributed to each reviewer</label>
-                </div>
-                <p><input type=submit value="Confirm Distribution">
-            </form>
-            <a href="/user_home/">
-                <button>Leave</button>
-            </a>
+    <!-- Right panel: distribution method -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">Distribution Method</h2>
+      <form id="distribution_form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <fieldset class="mb-4">
+          <legend class="sr-only">Distribution method</legend>
+          <div class="flex flex-col gap-2 text-sm">
+            <label class="flex items-center gap-2">
+              <input type="radio" id="distribution_all" name="distribution" value="all for all" onclick="update_everything()" checked/>
+              All cases reviewed by all reviewers
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" id="n_per_case" name="distribution" value="n per case" onclick="update_everything()"/>
+              Set a minimum number of reviewers per case
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" id="n_per_reviewer" name="distribution" value="n per reviewer" onclick="update_everything()"/>
+              Set a minimum number of cases per reviewer
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" id="percent_per_reviewer" name="distribution" value="percent per reviewer" onclick="update_everything()"/>
+              Set a percentage of cases per reviewer
+            </label>
+          </div>
+        </fieldset>
+
+        <div id="select_n_per_case" class="mb-3">
+          <label class="block text-xs text-gray-500 mb-1">Reviewers per case</label>
+          <input class="w-20 border border-gray-300 rounded px-2 py-1 text-sm" type="number" id="reviewers_per_case" name="reviewer_per_case" value="{{VM.nb_reviewers}}" min="0" step="1" oninput="update_figures()"/>
         </div>
+        <div id="select_n_per_reviewer" class="mb-3">
+          <label class="block text-xs text-gray-500 mb-1">Cases per reviewer</label>
+          <input class="w-20 border border-gray-300 rounded px-2 py-1 text-sm" type="number" id="cases_per_reviewer" name="cases_per_reviewer" value="{{VM.nb_cases}}" min="0" max="{{VM.nb_cases}}" step="1" oninput="update_figures()"/>
+        </div>
+        <div id="select_percent_per_reviewer" class="mb-3">
+          <label class="block text-xs text-gray-500 mb-1">Percentage of cases per reviewer</label>
+          <div class="flex items-center gap-2">
+            <input class="w-20 border border-gray-300 rounded px-2 py-1 text-sm" type="number" id="percentage" name="percentage" value="100" min="0" max="100" step="1" oninput="update_figures()"/>
+            <span class="text-sm text-gray-500">%</span>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark text-sm font-medium">Confirm Distribution</button>
+          <a href="/user_home/" class="border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Leave</a>
+        </div>
+      </form>
     </div>
-    
-</body>
 
-<script src="{{url_for('static', filename='JS/manage_reviewer_distribution.js')}}"></script>
+  </div>
+</div>
+{% endblock %}
 
-{% endautoescape %}
-</html>
+{% block scripts %}
+  <script src="{{url_for('static', filename='JS/manage_reviewer_distribution.js')}}"></script>
+{% endblock %}
+

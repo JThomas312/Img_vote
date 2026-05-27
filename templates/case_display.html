@@ -1,164 +1,147 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 31 15:26:07 2025
+{% extends "base.html" %}
 
-@author: jacques
-"""-->
+{% block title %}Case Display — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Case Display</title>
+{% block body_class %}{% endblock %}
+{% block nav %}{% endblock %}
 
-    <!-- Viewer.js -->
-    <script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+  <link rel="stylesheet" href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
+  <link rel="stylesheet" href="{{url_for('static', filename='CSS/case_display.css')}}"/>
+{% endblock %}
 
-    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
-    
+{% block content %}
+<div class="case-header flex items-center justify-between px-4">
+  <span class="text-lg font-semibold">{{ViewModel.study_name}} {{ViewModel.case_name}}</span>
+</div>
 
-    <link rel="stylesheet" href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/case_display.css')}}"/>
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/helper.css')}}"/>
-    
-    
-</head>
-
-<body>
-    <div class="case-header">
-        {{ViewModel.study_name}} {{ViewModel.case_name}}
+<div class="split left">
+  <div class="centered">
+    <div id="gallery">
+      {% for i in range(ViewModel.nb_imgs) %}
+        <img class="case_img" src="data:image/jpeg;base64,{{ ViewModel.imgs[i] }}" alt="Picture {{i}}">
+      {% endfor %}
     </div>
-    <div class="split left">
-        <div class="centered">
-            {% block images %}<h1>Images</h1>{% endblock %}
-            {% block images_content %}
-                <div id="gallery">
-                {% for i in range(ViewModel.nb_imgs) %}
-                    <img class="case_img" src="data:image/jpeg;base64,{{ ViewModel.imgs[i] }}" alt="Picture {{i}}">
-                {% endfor %}
-                </div>
-            {% endblock %}
-        </div>
-    </div>
+  </div>
+</div>
 
-    <div class="split right">
-        <div class="centered">
-            <form id="criteria-form" method="post">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                {% for category in ViewModel.categories %}
-                    <div {% if category.optional %} class="optional_category" {% else %} class="mandatory_category" {% endif %} id="{{category.name}}">
-                        {% if category.optional %}
-                            <a id="{{category.name}}_prerequisites" class="category_prerequisite" data-conditions="{{category.prerequisites}}" hidden></a>
-                        {% endif %}
-                        {% if category.type == 1 %}
-                            <h1>{{category.name}}</h1>
-                            {% for criterion in category.criteria %}
-                                <fieldset>
-                                    <legend>{{criterion.name}}</legend>
-                                    <div class="criterion-row">
-                                        <div class="options">
-                                            <input type="radio" id="{{criterion.id}}Yes" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 1, {{category.cat_id}}); updateVisibility();" value=1 {% if criterion.value==1 %} checked {% endif %}/>
-                                            <label for="{{criterion.id}}Yes">Yes</label>
-                                            
-                                            <input type="radio" id="{{criterion.id}}No" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 0, {{category.cat_id}}); updateVisibility();" value=0 {% if criterion.value==0 %} checked {% endif %}/>
-                                            <label for="{{criterion.id}}No">No</label>
-                                            
-                                            {% if category.has_NA %}
-                                                <input type="radio" id="{{criterion.id}}NA" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 2, {{category.cat_id}}); updateVisibility();" value=2 {% if criterion.value==2 %} checked {% endif %}/>
-                                                <label for="{{criterion.id}}NA">N/A</label>
-                                            {% endif %}
-                                            
-                                            <input type="radio" id="{{criterion.id}}unanswered" name="{{criterion.name}}" value="-1" {% if criterion.value==-1 %} checked {% endif %} disabled hidden/>
-                                            <label hidden for="{{criterion.id}}unanswered">unanswered</label>
-                                        </div>
-                                        {% if category.has_tutorial %}
-                                            <div class="tutorial-btn">
-                                                <input type="button" onclick="tutorial({{criterion.id}})" value="?" />
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </fieldset>
-                            {% endfor %}
-                        {% endif %}
-                        {% if category.type == 2 %}
-                            <fieldset>
-                                <legend>{{category.name}}</legend>
-                                    <div class="{{category.name}}-diagnosis-options">
-                                        {% for criterion in category.criteria %}
-                                            <div class="criterion-row">
-                                                <div class="options">
-                                                    <input type="radio" id="{{criterion.id}}" name="{{category.name}}-diagnosis" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 1, {{category.cat_id}}); updateVisibility();" value=1 {% if criterion.value==1 %} checked {% endif %}/>
-                                                    <label for="{{criterion.id}}">{{criterion.name}}</label>
-                                                </div>
-                                                {% if category.has_tutorial %}
-                                                    <div class="tutorial-btn">
-                                                        <input type="button" onclick="tutorial({{criterion.id}})" value="?" />
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        {% endfor %}
-                                        <input type="radio" id="{{category.name}}unanswered" name="{{category.name}}" value="-1" {% if category.unanswered %} checked {% endif %} disabled hidden/>
-                                        <label hidden for="{{category.name}}unanswered">unanswered</label>
-                                    </div>
-                            </fieldset>
-                        {% endif %}
-                        {% if category.type == 3 %}
-                            <h1>{{category.name}}</h1>
-                            {% for criterion in category.criteria %}
-                                <fieldset>
-                                    <legend>{{criterion.name}}</legend>
-                                    <div class="criterion-row">
-                                        <input id="{{criterion.id}}" type="number" name="{{criterion.name}}" min="{{ViewModel.min_int}}" max="{{ViewModel.max_int}}" {% if criterion.value != -1 %} value="{{criterion.value}}" {% endif %} oninput="save_number({{ViewModel.case_id}}, {{criterion.id}}, {{category.cat_id}}); updateVisibility();">
-                                        {% if category.has_tutorial %}
-                                            <div class="tutorial-btn">
-                                                <input type="button" onclick="tutorial({{criterion.id}})" value="?" />
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </fieldset>
-                            {% endfor %}
-                        {% endif %}
-                        {% if category.has_trust %}
-                            <a>{{category.name}} Confidence Index</a>
-                            <div class="slidecontainer">
-                              <input type="range" min="0" max="100" value="{{category.trust_criterion.value}}" class="slider" id="{{category.name}}TrustScale" oninput="updateValue('{{category.name}}', {{ViewModel.case_id}}, {{category.trust_criterion.id}}, {{category.cat_id}})">
-                              <p>Value: <span id="{{category.name}}TrustValue">{% if category.trust_criterion.value != -1 %} {{category.trust_criterion.value}} {% endif %}</span></p>
-                            </div>
-                        {% endif %}
+<div class="split right">
+  <div class="centered">
+    <form id="criteria-form" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      {% for category in ViewModel.categories %}
+        <div {% if category.optional %} class="optional_category" {% else %} class="mandatory_category" {% endif %} id="{{category.name}}">
+          {% if category.optional %}
+            <a id="{{category.name}}_prerequisites" class="category_prerequisite" data-conditions="{{category.prerequisites}}" hidden></a>
+          {% endif %}
+
+          {% if category.type == 1 %}
+            <h1 class="right">{{category.name}}</h1>
+            {% for criterion in category.criteria %}
+              <fieldset class="border border-gray-200 rounded-lg p-3 mb-3">
+                <legend class="text-sm font-semibold text-gray-700 px-1">{{criterion.name}}</legend>
+                <div class="criterion-row">
+                  <div class="options">
+                    <input type="radio" id="{{criterion.id}}Yes" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 1, {{category.cat_id}}); updateVisibility();" value=1 {% if criterion.value==1 %} checked {% endif %}/>
+                    <label for="{{criterion.id}}Yes">Yes</label>
+                    <input type="radio" id="{{criterion.id}}No" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 0, {{category.cat_id}}); updateVisibility();" value=0 {% if criterion.value==0 %} checked {% endif %}/>
+                    <label for="{{criterion.id}}No">No</label>
+                    {% if category.has_NA %}
+                      <input type="radio" id="{{criterion.id}}NA" name="{{criterion.name}}" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 2, {{category.cat_id}}); updateVisibility();" value=2 {% if criterion.value==2 %} checked {% endif %}/>
+                      <label for="{{criterion.id}}NA">N/A</label>
+                    {% endif %}
+                    <input type="radio" id="{{criterion.id}}unanswered" name="{{criterion.name}}" value="-1" {% if criterion.value==-1 %} checked {% endif %} disabled hidden/>
+                    <label hidden for="{{criterion.id}}unanswered">unanswered</label>
+                  </div>
+                  {% if category.has_tutorial %}
+                    <div class="tutorial-btn">
+                      <input type="button" onclick="tutorial({{criterion.id}})" value="?" />
                     </div>
+                  {% endif %}
+                </div>
+              </fieldset>
+            {% endfor %}
+          {% endif %}
+
+          {% if category.type == 2 %}
+            <fieldset class="border border-gray-200 rounded-lg p-3 mb-3">
+              <legend class="text-sm font-semibold text-gray-700 px-1">{{category.name}}</legend>
+              <div class="{{category.name}}-diagnosis-options">
+                {% for criterion in category.criteria %}
+                  <div class="criterion-row">
+                    <div class="options">
+                      <input type="radio" id="{{criterion.id}}" name="{{category.name}}-diagnosis" onclick="safeguard({{ViewModel.case_id}}, {{criterion.id}}, 1, {{category.cat_id}}); updateVisibility();" value=1 {% if criterion.value==1 %} checked {% endif %}/>
+                      <label for="{{criterion.id}}">{{criterion.name}}</label>
+                    </div>
+                    {% if category.has_tutorial %}
+                      <div class="tutorial-btn">
+                        <input type="button" onclick="tutorial({{criterion.id}})" value="?" />
+                      </div>
+                    {% endif %}
+                  </div>
                 {% endfor %}
-                <p>
-            </form>
-            <div class="button_area">
-                <a href="/user_home/">
-                  <button>Save and leave</button>
-                </a>
-                {% if ViewModel.prevcase != -1 %}<a href="/case_display/{{ViewModel.prevcase}}"><button>Previous Case</button></a>
-                {% else %} <button type="button" disabled>Previous Case</button>
-                {% endif %}
-                {% if ViewModel.nextcase != -1 %}<a href="/case_display/{{ViewModel.nextcase}}"><button>Next Case</button></a>
-                {% else %} <button type="button" disabled>Next Case</button>
-                {% endif %}
+                <input type="radio" id="{{category.name}}unanswered" name="{{category.name}}" value="-1" {% if category.unanswered %} checked {% endif %} disabled hidden/>
+                <label hidden for="{{category.name}}unanswered">unanswered</label>
+              </div>
+            </fieldset>
+          {% endif %}
+
+          {% if category.type == 3 %}
+            <h1 class="right">{{category.name}}</h1>
+            {% for criterion in category.criteria %}
+              <fieldset class="border border-gray-200 rounded-lg p-3 mb-3">
+                <legend class="text-sm font-semibold text-gray-700 px-1">{{criterion.name}}</legend>
+                <div class="criterion-row">
+                  <input id="{{criterion.id}}" type="number" name="{{criterion.name}}" min="{{ViewModel.min_int}}" max="{{ViewModel.max_int}}" {% if criterion.value != -1 %} value="{{criterion.value}}" {% endif %} oninput="save_number({{ViewModel.case_id}}, {{criterion.id}}, {{category.cat_id}}); updateVisibility();">
+                  {% if category.has_tutorial %}
+                    <div class="tutorial-btn">
+                      <input type="button" onclick="tutorial({{criterion.id}})" value="?" />
+                    </div>
+                  {% endif %}
+                </div>
+              </fieldset>
+            {% endfor %}
+          {% endif %}
+
+          {% if category.has_trust %}
+            <p class="text-xs text-gray-600 mt-2">{{category.name}} Confidence Index</p>
+            <div class="slidecontainer">
+              <input type="range" min="0" max="100" value="{{category.trust_criterion.value}}" class="slider" id="{{category.name}}TrustScale" oninput="updateValue('{{category.name}}', {{ViewModel.case_id}}, {{category.trust_criterion.id}}, {{category.cat_id}})">
+              <p class="text-xs text-gray-500">Value: <span id="{{category.name}}TrustValue">{% if category.trust_criterion.value != -1 %} {{category.trust_criterion.value}} {% endif %}</span></p>
             </div>
-            <br/>
+          {% endif %}
         </div>
+      {% endfor %}
+    </form>
+
+    <div class="button_area flex gap-3 justify-end p-3 border-t border-gray-200">
+      <a href="/user_home/" class="bg-primary text-white text-sm px-3 py-1 rounded hover:bg-blue-900">Save and leave</a>
+      {% if ViewModel.prevcase != -1 %}
+        <a href="/case_display/{{ViewModel.prevcase}}" class="bg-primary text-white text-sm px-3 py-1 rounded hover:bg-blue-900">Previous Case</a>
+      {% else %}
+        <button type="button" class="bg-gray-200 text-gray-400 text-sm px-3 py-1 rounded cursor-not-allowed" disabled>Previous Case</button>
+      {% endif %}
+      {% if ViewModel.nextcase != -1 %}
+        <a href="/case_display/{{ViewModel.nextcase}}" class="bg-primary text-white text-sm px-3 py-1 rounded hover:bg-blue-900">Next Case</a>
+      {% else %}
+        <button type="button" class="bg-gray-200 text-gray-400 text-sm px-3 py-1 rounded cursor-not-allowed" disabled>Next Case</button>
+      {% endif %}
     </div>
+  </div>
+</div>
 
-    <div id="tutorialModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <iframe id="tutorialFrame" src="" frameborder="0"></iframe>
-      </div>
-    </div>
-</body>
+<!-- Tutorial modal — IDs and class names protected -->
+<div id="tutorialModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <iframe id="tutorialFrame" src="" frameborder="0"></iframe>
+  </div>
+</div>
+{% endblock %}
 
-<script src="{{ url_for('static', filename='JS/case_display.js')}}"></script>
-{% endautoescape %}
-</html>
-
-
-
+{% block scripts %}
+  <script src="{{ url_for('static', filename='JS/case_display.js')}}"></script>
+{% endblock %}
 

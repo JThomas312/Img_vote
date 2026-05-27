@@ -1,24 +1,12 @@
-<!--#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Oct  1 20:53:26 2025
+{% extends "base.html" %}
 
-@author: jacques
-"""-->
+{% block title %}Study Paused or Ended — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Study Paused or Ended</title>
-</head>
-<body>
-<h1>Hello, {{ username }}!</h1>
-<h2>Study is currently paused or has already ended</h2>
-<a href="/logout/">
-  <button>Logout</button>
-</a>
-</body>
-{% endautoescape %}
-</html>
+{% block content %}
+<div class="max-w-md mx-auto mt-20 bg-white rounded-xl shadow-md p-8 text-center">
+  <h1 class="text-xl font-bold text-gray-800 mb-2">Hello, {{ username }}!</h1>
+  <p class="text-gray-600 text-sm mb-6">The study is currently paused or has already ended.</p>
+  <a href="/logout/" class="inline-block bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark text-sm">Logout</a>
+</div>
+{% endblock %}
+

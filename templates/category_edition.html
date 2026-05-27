@@ -1,155 +1,206 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 10 16:07:16 2026
+{% extends "base.html" %}
 
-@author: j.thomas
-"""-->
+{% block title %}Category Edition — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+{% endblock %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Category Configuration</title>
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
 
-    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
-    
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/category_edition.css')}}"/>
-    
-</head>
+  {% if error %}
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ status_error }}</div>
+    <a href="/category_configuration/" class="inline-block border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Go back</a>
+  {% else %}
 
-<body>
-
-    {% if error %}
-        <h1>There has been an error during study configuration: {{ status_error }}!</h1>
-        <a href="/category_configuration/">
-            <button>go back</button>
-        </a>
-    {% else %}
-        {% if formError %}
-            {{formError}}
-            <br/>
-        {% endif %}
-        <form id="category_configuration_form" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="hidden" id="category_id" value="{{category.id}}"/>
-            <input type="hidden" id="gold_standard_allowed" value="{{gold_standard_allowed}}"/>
-            <h3> Name </h3>
-            <p><input id="category_name" type=text name=name value="{{category.name}}">
-            <button class="saveNameButton" onclick="safeguard_name(event, {{category.id}})">Save</button>
-            <br/>
-            <fieldset>
-            <legend>What type is your category ?</legend>
-            <input type="radio" id="criteria" name="type" value=1 onclick="safeguard_type({{category.id}}, 1);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, false)" {% if category.type == 1 %} checked {% endif %}/>
-            <label for="type">list of yes/no criteria</label>
-            <input type="radio" id="one_of" name="type" value=2 onclick="safeguard_type({{category.id}}, 2);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, true)" {% if category.type == 2 %} checked {% endif %}/>
-            <label for="type">one from several</label>
-            <input type="radio" id="number" name="type" value=3 onclick="safeguard_type({{category.id}}, 3);updateNA({{category.id}}, false);updateGoldStandard({{category.id}}, false)" {% if category.type == 3 %} checked {% endif %}/>
-            <label for="type">numerical values</label>
-            </fieldset>
-            <fieldset>
-            <legend>Add a trust scale to your category ?</legend>
-            <input type="radio" id="trust_yes" name="trust" value=1 onclick="safeguard_trust({{category.id}}, true)" {% if category.has_trust %} checked {% endif %}/>
-            <label for="trust">yes</label>
-            <input type="radio" id="trust_no" name="trust" value=0 onclick="safeguard_trust({{category.id}}, false)" {% if not category.has_trust %} checked {% endif %}/>
-            <label for="trust">no</label>
-            </fieldset>
-            <fieldset>
-            <legend>Display tutorials for answer from this category ?</legend>
-            <input type="radio" id="tutorial_yes" name="tutorial" value=1 onclick="safeguard_tutorial({{category.id}}, true)" {% if category.has_tutorial %} checked {% endif %}/>
-            <label for="tutorial">yes</label>
-            <input type="radio" id="tutorial_no" name="tutorial" value=0 onclick="safeguard_tutorial({{category.id}}, false)" {% if not category.has_tutorial %} checked {% endif %}/>
-            <label for="tutorial">no</label>
-            </fieldset>
-            <div id="na_visibility">
-                <fieldset>
-                <legend>Allow reviewers to answer n/a to this category ?</legend>
-                <input type="radio" id="na_yes" name="na" value=1 onclick="safeguard_na({{category.id}}, true)" {% if category.has_NA %} checked {% endif %}/>
-                <label for="na">yes</label>
-                <input type="radio" id="na_no" name="na" value=0 onclick="safeguard_na({{category.id}}, false)" {% if not category.has_NA %} checked {% endif %}/>
-                <label for="na">no</label>
-                </fieldset>
-            </div>
-            <div {% if not optional_allowed %} hidden {% endif %}>
-                <fieldset>
-                <legend>Is answering to this category optional ? (conditioned by a previous answer)</legend>
-                <input type="radio" id="optional_yes" name="optional" onclick="updateOptional(true);safeguard_optional({{category.id}}, true)" value=1 {% if category.optional %} checked {% endif %}/>
-                <label for="optional">yes</label>
-                <input type="radio" id="optional_no" name="optional" onclick="updateOptional(false);safeguard_optional({{category.id}}, false)" value=0 {% if not category.optional %} checked {% endif %}/>
-                <label for="optional">no</label>
-                </fieldset>
-                </br>
-                <div id="PrerequisitesVisibility">
-                    <a> Prerequisites (use the exact name of already existing answers) </a>
-                    </br>
-                    <div id="prerequisiteContainer">
-                        {% set ns = namespace(i = 1) %}
-                        {% for prerequisite in category.prerequisites %}
-                            <div class="prerequisiteWrapper">
-                                <input class="saved" type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}">
-                                <button class="removePrerequisiteButton" id="removePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
-                                <button class="savePrerequisiteButton" id="savePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
-                            </div>
-                            {% set ns.i = ns.i + 1 %}
-                        {% endfor %}
-                    </div>
-                    <button id="addPrerequisiteButton">Add Prerequisite Field</button>
-                </div>
-            </div>
-            </br>
-            <div id="gold_standard_visibility" {% if not gold_standard_allowed %} hidden {% endif %}>
-                <fieldset >
-                <legend>Will answers from this category be compared to a gold standard ? (warning: only one gold standard category allowed per study)</legend>
-                <input type="radio" id="gold_standard_yes" name="gold_standard" onclick="updateMalignancy(true);safeguard_gold_standard({{category.id}}, true)" value=1 {% if category.has_gold_standard %} checked {% endif %}/>
-                <label for="gold_standard">yes</label>
-                <input type="radio" id="gold_standard_no" name="gold_standard" onclick="updateMalignancy(false);safeguard_gold_standard({{category.id}}, false)" value=0 {% if not category.has_gold_standard %} checked {% endif %}/>
-                <label for="gold_standard">no</label>
-                </fieldset>
-                <div id="malignancy_choice">
-                    <fieldset>
-                    <legend>Will answers from this category and its gold standard be classified by malignancy ?</legend>
-                    <input type="radio" id="malignancy_yes" name="malignancy" value=1 onclick="updateMalignancyVisibility(true);safeguard_malignancy({{category.id}}, true)" {% if category.has_malignancy %} checked {% endif %}/>
-                    <label for="malignancy">yes</label>
-                    <input type="radio" id="malignancy_no" name="malignancy" value=0 onclick="updateMalignancyVisibility(false);safeguard_malignancy({{category.id}}, false)" {% if not category.has_malignancy %} checked {% endif %}/>
-                    <label for="malignancy">no</label>
-                    </fieldset>
-                </div>
-            </div>
-            </br>
-            <a> Answers </a>
-            </br>
-            <div id="criteriaContainer">
-                {% set ns = namespace(j = 1) %}
-                {% for criterion in category.criteria %}
-                    <div class="criterionWrapper">
-                        <input class="saved" type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}">
-                        <button class="removeCriterionButton" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">Remove</button>
-                        <button class="saveCriterionButton" id="saveCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'edit')">Save</button>
-                        <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
-                            <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value=1 {% if criterion.malignancy %} checked {% endif %}>
-                            <label for="criterionMalignancy{{ns.j}}">Malignant</label>
-                            <input type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value=1 {% if not criterion.malignancy %} checked {% endif %}>
-                            <label for="criterionMalignancy{{ns.j}}">Benign</label>
-                        </div> 
-                    </div>
-                    {% set ns.j = ns.j + 1 %}
-                {% endfor %}
-            </div>
-            <button id="addCriterionButton">Add Answer Field</button>
-            </br>
-            <p><input type=submit value="Validate Category">
-        </form>
-        <a href="/category_configuration/">
-            <button>Leave</button>
-        </a>
+    {% if formError %}
+      <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ formError }}</div>
     {% endif %}
 
-</body>
+    <form id="category_configuration_form" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" id="category_id" value="{{category.id}}"/>
+      <input type="hidden" id="gold_standard_allowed" value="{{gold_standard_allowed}}"/>
 
-<script src="{{ url_for('static', filename='JS/category_edition.js')}}"></script>
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-{% endautoescape %}
-</html>
+        <!-- Left column: category metadata -->
+        <div>
+          <h2 class="text-base font-semibold text-gray-700 mb-3 border-b pb-2">Category Settings</h2>
+
+          <!-- Name -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <div class="flex gap-2">
+              <input id="category_name" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" type="text" name="name" value="{{category.name}}">
+              <button class="saveNameButton bg-teal text-white text-xs px-3 py-1 rounded hover:bg-teal-dark" onclick="safeguard_name(event, {{category.id}})">Save</button>
+            </div>
+          </div>
+
+          <!-- Type -->
+          <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
+            <legend class="text-sm font-semibold text-gray-700 px-1">Category Type</legend>
+            <div class="flex flex-col gap-2 text-sm mt-1">
+              <label class="flex items-center gap-2">
+                <input type="radio" id="criteria" name="type" value="1" onclick="safeguard_type({{category.id}}, 1);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, false)" {% if category.type == 1 %} checked {% endif %}/>
+                List of yes/no criteria
+              </label>
+              <label class="flex items-center gap-2">
+                <input type="radio" id="one_of" name="type" value="2" onclick="safeguard_type({{category.id}}, 2);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, true)" {% if category.type == 2 %} checked {% endif %}/>
+                One from several
+              </label>
+              <label class="flex items-center gap-2">
+                <input type="radio" id="number" name="type" value="3" onclick="safeguard_type({{category.id}}, 3);updateNA({{category.id}}, false);updateGoldStandard({{category.id}}, false)" {% if category.type == 3 %} checked {% endif %}/>
+                Numerical values
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Trust -->
+          <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
+            <legend class="text-sm font-semibold text-gray-700 px-1">Trust Scale</legend>
+            <div class="flex gap-4 text-sm mt-1">
+              <label class="flex items-center gap-1">
+                <input type="radio" id="trust_yes" name="trust" value="1" onclick="safeguard_trust({{category.id}}, true)" {% if category.has_trust %} checked {% endif %}/> Yes
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="radio" id="trust_no" name="trust" value="0" onclick="safeguard_trust({{category.id}}, false)" {% if not category.has_trust %} checked {% endif %}/> No
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Tutorial -->
+          <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
+            <legend class="text-sm font-semibold text-gray-700 px-1">Display Tutorials</legend>
+            <div class="flex gap-4 text-sm mt-1">
+              <label class="flex items-center gap-1">
+                <input type="radio" id="tutorial_yes" name="tutorial" value="1" onclick="safeguard_tutorial({{category.id}}, true)" {% if category.has_tutorial %} checked {% endif %}/> Yes
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="radio" id="tutorial_no" name="tutorial" value="0" onclick="safeguard_tutorial({{category.id}}, false)" {% if not category.has_tutorial %} checked {% endif %}/> No
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- N/A -->
+          <div id="na_visibility">
+            <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
+              <legend class="text-sm font-semibold text-gray-700 px-1">Allow N/A</legend>
+              <div class="flex gap-4 text-sm mt-1">
+                <label class="flex items-center gap-1">
+                  <input type="radio" id="na_yes" name="na" value="1" onclick="safeguard_na({{category.id}}, true)" {% if category.has_NA %} checked {% endif %}/> Yes
+                </label>
+                <label class="flex items-center gap-1">
+                  <input type="radio" id="na_no" name="na" value="0" onclick="safeguard_na({{category.id}}, false)" {% if not category.has_NA %} checked {% endif %}/> No
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
+          <!-- Optional -->
+          <div {% if not optional_allowed %} hidden {% endif %}>
+            <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
+              <legend class="text-sm font-semibold text-gray-700 px-1">Optional (conditioned by a previous answer)</legend>
+              <div class="flex gap-4 text-sm mt-1">
+                <label class="flex items-center gap-1">
+                  <input type="radio" id="optional_yes" name="optional" onclick="updateOptional(true);safeguard_optional({{category.id}}, true)" value="1" {% if category.optional %} checked {% endif %}/> Yes
+                </label>
+                <label class="flex items-center gap-1">
+                  <input type="radio" id="optional_no" name="optional" onclick="updateOptional(false);safeguard_optional({{category.id}}, false)" value="0" {% if not category.optional %} checked {% endif %}/> No
+                </label>
+              </div>
+            </fieldset>
+
+            <div id="PrerequisitesVisibility">
+              <div class="mb-3">
+                <p class="text-sm font-medium text-gray-700 mb-2">Prerequisites <span class="text-gray-400 font-normal">(use exact names of existing answers)</span></p>
+                <div id="prerequisiteContainer" class="space-y-2">
+                  {% set ns = namespace(i = 1) %}
+                  {% for prerequisite in category.prerequisites %}
+                    <div class="prerequisiteWrapper flex items-center gap-2 bg-surface rounded-lg px-3 py-2">
+                      <input class="saved flex-1 border border-gray-300 rounded px-2 py-1 text-sm" type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}">
+                      <button class="removePrerequisiteButton text-danger text-xs px-3 py-1 rounded border border-danger hover:bg-red-50" id="removePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
+                      <button class="savePrerequisiteButton bg-teal text-white text-xs px-3 py-1 rounded hover:bg-teal-dark" id="savePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
+                    </div>
+                    {% set ns.i = ns.i + 1 %}
+                  {% endfor %}
+                </div>
+                <button id="addPrerequisiteButton" class="mt-2 text-sm border border-gray-300 text-gray-600 px-3 py-1 rounded hover:bg-gray-50">Add Prerequisite Field</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gold Standard -->
+          <div id="gold_standard_visibility" {% if not gold_standard_allowed %} hidden {% endif %}>
+            <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
+              <legend class="text-sm font-semibold text-gray-700 px-1">Gold Standard <span class="font-normal text-gray-400">(one per study)</span></legend>
+              <div class="flex gap-4 text-sm mt-1">
+                <label class="flex items-center gap-1">
+                  <input type="radio" id="gold_standard_yes" name="gold_standard" onclick="updateMalignancy(true);safeguard_gold_standard({{category.id}}, true)" value="1" {% if category.has_gold_standard %} checked {% endif %}/> Yes
+                </label>
+                <label class="flex items-center gap-1">
+                  <input type="radio" id="gold_standard_no" name="gold_standard" onclick="updateMalignancy(false);safeguard_gold_standard({{category.id}}, false)" value="0" {% if not category.has_gold_standard %} checked {% endif %}/> No
+                </label>
+              </div>
+            </fieldset>
+            <div id="malignancy_choice">
+              <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
+                <legend class="text-sm font-semibold text-gray-700 px-1">Classify by Malignancy</legend>
+                <div class="flex gap-4 text-sm mt-1">
+                  <label class="flex items-center gap-1">
+                    <input type="radio" id="malignancy_yes" name="malignancy" value="1" onclick="updateMalignancyVisibility(true);safeguard_malignancy({{category.id}}, true)" {% if category.has_malignancy %} checked {% endif %}/> Yes
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <input type="radio" id="malignancy_no" name="malignancy" value="0" onclick="updateMalignancyVisibility(false);safeguard_malignancy({{category.id}}, false)" {% if not category.has_malignancy %} checked {% endif %}/> No
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <button type="submit" class="mt-4 bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark text-sm font-medium">Validate Category</button>
+        </div>
+
+        <!-- Right column: criteria -->
+        <div>
+          <h2 class="text-base font-semibold text-gray-700 mb-3 border-b pb-2">Answers</h2>
+          <div id="criteriaContainer" class="space-y-2 mb-3">
+            {% set ns = namespace(j = 1) %}
+            {% for criterion in category.criteria %}
+              <div class="criterionWrapper flex items-center gap-2 bg-surface rounded-lg px-3 py-2">
+                <input class="saved flex-1 border border-gray-300 rounded px-2 py-1 text-sm" type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}">
+                <button class="removeCriterionButton text-danger text-xs px-3 py-1 rounded border border-danger hover:bg-red-50" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">Remove</button>
+                <button class="saveCriterionButton bg-teal text-white text-xs px-3 py-1 rounded hover:bg-teal-dark" id="saveCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'edit')">Save</button>
+                <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
+                  <div class="flex gap-2 text-xs mt-1">
+                    <label class="flex items-center gap-1">
+                      <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value="1" {% if criterion.malignancy %} checked {% endif %}> Malignant
+                    </label>
+                    <label class="flex items-center gap-1">
+                      <input type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value="1" {% if not criterion.malignancy %} checked {% endif %}> Benign
+                    </label>
+                  </div>
+                </div>
+              </div>
+              {% set ns.j = ns.j + 1 %}
+            {% endfor %}
+          </div>
+          <button id="addCriterionButton" class="text-sm border border-gray-300 text-gray-600 px-3 py-1 rounded hover:bg-gray-50">Add Answer Field</button>
+        </div>
+
+      </div>
+    </form>
+
+    <div class="mt-4">
+      <a href="/category_configuration/" class="inline-block border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Leave</a>
+    </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='JS/category_edition.js')}}"></script>
+{% endblock %}
+

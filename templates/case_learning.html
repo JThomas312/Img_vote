@@ -1,77 +1,70 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Tue May 19 14:20:19 2026
+{% extends "base.html" %}
 
-@author: j.thomas
-"""-->
+{% block title %}Case Learning — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Case Learning</title>
+{% block body_class %}{% endblock %}
+{% block nav %}{% endblock %}
 
-    <!-- Viewer.js -->
-    <script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.min.js')}}"></script>
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+  <link rel="stylesheet" href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
+  <link rel="stylesheet" href="{{url_for('static', filename='CSS/case_learning.css')}}"/>
+{% endblock %}
 
-    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
-    
+{% block content %}
+<div class="case-header flex items-center justify-between px-4">
+  <span class="text-lg font-semibold text-gray-800">{{ViewModel.study_name}} — {{ViewModel.case_name}}</span>
+</div>
 
-    <link rel="stylesheet" href="{{url_for('static', filename='node_modules/viewerjs/dist/viewer.css')}}"/>
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/case_learning.css')}}"/>
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/helper.css')}}"/>
-    
-    
-</head>
-
-<body>
-    <div class="case-header">
-        {{ViewModel.study_name}} {{ViewModel.case_name}}
+<div class="split left">
+  <div class="centered">
+    <div id="gallery">
+      {% for i in range(ViewModel.nb_imgs) %}
+        <img class="case_img" src="data:image/jpeg;base64,{{ ViewModel.imgs[i] }}" alt="Picture {{i}}">
+      {% endfor %}
     </div>
-    <div class="split left">
-        <div class="centered">
-            {% block images %}<h1>Images</h1>{% endblock %}
-            {% block images_content %}
-                <div id="gallery">
-                {% for i in range(ViewModel.nb_imgs) %}
-                    <img class="case_img" src="data:image/jpeg;base64,{{ ViewModel.imgs[i] }}" alt="Picture {{i}}">
-                {% endfor %}
-                </div>
-            {% endblock %}
-        </div>
-    </div>
+  </div>
+</div>
 
-    <div class="split right">
-        <div class="centered">
-            <a>you answered <a {% if ViewModel.answer == ViewModel.correct_answer %} class="correct" {% else %} class="wrong" {% endif %} > {{ViewModel.answer}} </a></a>
-            </br>
-            <a>correct answer was <a {% if ViewModel.answer == ViewModel.correct_answer %} class="correct" {% else %} class="incorrect" {% endif %} > {{ViewModel.correct_answer}} </a></a>
-            </br>
-            {% if ViewModel.answer == ViewModel.correct_answer %}
-                <a> Congratulations ! </a>
-            {% else %}
-                <a> You may look at the image again to find out what you might have missed </a>
-            {% endif %}
-            <div class="button_area">
-                <a href="/user_home/">
-                  <button>Leave</button>
-                </a>
-                {% if ViewModel.prevcase != -1 %}<a href="/case_learning/{{ViewModel.prevcase}}"><button>Previous Case</button></a>
-                {% else %} <button type="button" disabled>Previous Case</button>
-                {% endif %}
-                {% if ViewModel.nextcase != -1 %}<a href="/case_learning/{{ViewModel.nextcase}}"><button>Next Case</button></a>
-                {% else %} <button type="button" disabled>Next Case</button>
-                {% endif %}
-            </div>
-            <br/>
-        </div>
-    </div>
-</body>
+<div class="split right">
+  <div class="centered">
+    <p class="text-sm mb-2">
+      You answered
+      <span class="font-semibold {% if ViewModel.answer == ViewModel.correct_answer %}correct{% else %}wrong{% endif %}">
+        {{ ViewModel.answer }}
+      </span>
+    </p>
+    <p class="text-sm mb-4">
+      Correct answer was
+      <span class="font-semibold {% if ViewModel.answer == ViewModel.correct_answer %}correct{% else %}incorrect{% endif %}">
+        {{ ViewModel.correct_answer }}
+      </span>
+    </p>
+    {% if ViewModel.answer == ViewModel.correct_answer %}
+      <p class="text-sm font-semibold text-green-600 mb-4">Congratulations!</p>
+    {% else %}
+      <p class="text-sm text-gray-600 mb-4">You may look at the image again to find out what you might have missed.</p>
+    {% endif %}
 
-<script src="{{ url_for('static', filename='JS/case_learning.js')}}"></script>
-{% endautoescape %}
-</html>
+    <div class="button_area flex gap-3 justify-end p-3 border-t border-gray-200">
+      <a href="/user_home/" class="bg-primary text-white text-sm px-3 py-1 rounded hover:bg-blue-900">Leave</a>
+      {% if ViewModel.prevcase != -1 %}
+        <a href="/case_learning/{{ViewModel.prevcase}}" class="bg-primary text-white text-sm px-3 py-1 rounded hover:bg-blue-900">Previous Case</a>
+      {% else %}
+        <button type="button" class="bg-gray-200 text-gray-400 text-sm px-3 py-1 rounded cursor-not-allowed" disabled>Previous Case</button>
+      {% endif %}
+      {% if ViewModel.nextcase != -1 %}
+        <a href="/case_learning/{{ViewModel.nextcase}}" class="bg-primary text-white text-sm px-3 py-1 rounded hover:bg-blue-900">Next Case</a>
+      {% else %}
+        <button type="button" class="bg-gray-200 text-gray-400 text-sm px-3 py-1 rounded cursor-not-allowed" disabled>Next Case</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='JS/case_learning.js')}}"></script>
+{% endblock %}
 

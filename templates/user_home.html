@@ -1,63 +1,39 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 31 15:26:07 2025
+{% extends "base.html" %}
 
-@author: jacques
-"""-->
+{% block title %}Home — Img Vote{% endblock %}
 
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 31 15:26:07 2025
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold text-gray-800 mb-1">Hello, {{ username }}!</h1>
+  <p class="text-sm text-gray-500 mb-6">{{ studyname }} — Case review platform</p>
 
-@author: jacques
-"""-->
-
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>HomePage</title>
-  <link rel="stylesheet" href="{{url_for('static', filename='CSS/user_home.css')}}"/>
-
-</head>
-<body>
-
-  <h1>Hello, {{ username }}!</h1>
-  <h2>{{studyname}} – Case review platform</h2>
-
-  <h2>Current progress in labelling :</h2>
-  {% if remaining_items > 0 %}
-    <h2>- {{remaining_items}} cases pending review<h2>
-    {% if remaining_days > 0 %}<h2>- Study deadline: in {{remaining_days}} days<h2>
-    {% else %}<h2>- Study deadline has passed<h2>
+  <div class="bg-white rounded-xl shadow p-4 mb-6 text-sm text-gray-700">
+    {% if remaining_items > 0 %}
+      <p><span class="font-medium">{{ remaining_items }}</span> cases pending review</p>
+    {% else %}
+      <p>No cases pending review.</p>
     {% endif %}
-  {% else %}
-      <h2>- No cases pending review</h2>
-      {% if remaining_days > 0 %}<h2>- Study deadline: in {{remaining_days}} days<h2>
-      {% else %}<h2>- Study deadline has passed<h2>
-      {% endif %}
-  {% endif %}
+    {% if remaining_days > 0 %}
+      <p class="mt-1">Study deadline: in <span class="font-medium">{{ remaining_days }}</span> days</p>
+    {% else %}
+      <p class="mt-1 text-amber-600">Study deadline has passed.</p>
+    {% endif %}
+  </div>
 
-    <a href="/logout/">
-      <button>Logout</button>
-    </a>
-  <br/>
-    <a href="/change_password/">
-      <button>Change Password</button>
-    </a>
-  <br/><br/>
+  <div class="flex gap-3 mb-6">
+    <a href="/change_password/" class="border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Change Password</a>
+  </div>
 
-  <ul class="grid-list">
+  <ul class="grid-list grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
     {% for item in items %}
-      <li class="{% if item[2] %}done-box{% endif %}">
-        <a href="/case_display/{{ item[0] }}">
+      <li class="{% if item[2] %}done-box bg-gray-300 text-gray-500 cursor-default{% else %}bg-teal text-white hover:bg-teal-dark{% endif %} rounded-lg text-center py-4 font-medium text-sm transition-colors">
+        <a href="/case_display/{{ item[0] }}" class="block w-full h-full">
           {{ item[1] }}
           {% if item[2] %}<span></span>{% endif %}
         </a>
       </li>
     {% endfor %}
   </ul>
-</body>
-{% endautoescape %}
-</html>
+</div>
+{% endblock %}
+

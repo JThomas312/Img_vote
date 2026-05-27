@@ -1,24 +1,15 @@
-<!--#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct  2 01:33:59 2025
+{% extends "base.html" %}
 
-@author: jacques
-"""-->
+{% block title %}End Study — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<title>End Study</title>
+{% block content %}
+<div class="bg-white rounded-xl shadow-md p-8 max-w-md mx-auto mt-20">
+  <h1 class="text-xl font-bold text-danger mb-4">Are you sure you want to end the study?</h1>
+  <p class="text-gray-700 text-sm mb-6">This action cannot be undone. The study will be permanently closed.</p>
+  <div class="flex gap-3">
+    <a href="/user_home/" class="border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Cancel</a>
+    <a href="/end_study/" class="bg-danger text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Confirm Study End</a>
+  </div>
+</div>
+{% endblock %}
 
-<h1>Are you sure you want to end the study ?</h1>
-<a href="/user_home/">
-  <button>Cancel</button>
-</a>
-<br/>
-<br/>
-<a href="/end_study/">
-  <button>Confirm Study End</button>
-</a>
-<br/>
-
-{% endautoescape %}

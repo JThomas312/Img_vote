@@ -33,37 +33,30 @@
 
 .case_img { max-width: 100%; height: auto; cursor: pointer; }
 
+/* Case header bar */
 .case-header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 40px;
-    background-color: #bbb;
+    background-color: #bbbbbb;
     color: #000;
     text-align: center;
-    font-size: 28px;
+    font-size: 20px;
     font-weight: bold;
     line-height: 40px;
     z-index: 2000;
     border-bottom: 1px solid #aaa;
 }
 
-/* Adjust layout so the split sections start below the header */
+/* Push splits below header */
 .split {
-    top: 40px; /* Push content below header */
+    top: 40px;
     height: calc(100% - 40px);
 }
 
-.correct{
-    color: #37de04;
-}
-
-.wrong{
-    color: red;
-}
-
-.incorrect{
-    color: blue;
-}
-
+/* Answer comparison color classes */
+.correct  { color: #37de04; }
+.wrong    { color: red; }
+.incorrect { color: blue; }

@@ -1,149 +1,160 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Tue Sep 16 16:36:19 2025
+{% extends "base.html" %}
 
-@author: jacques
-"""-->
+{% block title %}Admin Dashboard — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<title>Sudy Administration</title>
-
-<head>
-    <meta charset="UTF-8" />
-</head>
-
-<script src="{{ url_for('static', filename='JS/admin_home.js')}}"></script>
-
-<h1>Hello, {{ username }}!</h1>
-<h2>Welcome to Img vote<h2>
-{% if study_status in ['ongoing', 'paused', 'test'] %}
-    {% if remaing_users > 0 %}
-        {% if remaining_days > 0 %}<h2>Study {{studyname}} ends in {{remaining_days}} days<h2>
-        {% else %}<h2>Study is supposed to be over, you may end it anytime<h2>
-        {% endif %}
-        <h2>Out of {{total_users}}, {{remaing_users}} have yet to finish their reviews<h2>
-    {% else %}
-        <h2>Everyone has finished their reviews, you may close the study anytime<h2>
-        {% if remaining_days > 0 %}<h2>You still have {{remaining_days}} days before intended study end date<h2>
-        {% else %} <h2>Study is supposed to be over, you may end it anytime<h2>
-        {% endif %}
-    {% endif %}
-{% endif %}
-
-<a href="/logout/">
-  <button>Logout</button>
-</a>
-<br/>
-<a href="/change_password/">
-  <button>Change Password</button>
-</a>
-<br/>
-<a href="/new_user/">
-  <button>Create User</button>
-</a>
-<br/>
-{% if study_status == 'stopped' %}
-<a href="/category_configuration/">
-  <button>Manage Categories</button>
-</a>
-<br/>
-{% endif %}
-{% if study_status == 'categories_done' %}
-<a href="/manage_uploads/">
-  <button>Manage Uploads</button>
-</a>
-<br/>
-<a href="/rollback_categories/">
-  <button>Back to Categories</button>
-</a>
-<br/>
-{% endif %}
-{% if study_status == 'uploads_done' %}
-<a href="/manage_reviewer_distribution/">
-  <button>Manage Reviewer Distribution</button>
-</a>
-<br/>
-<a href="/rollback_uploads/">
-  <button>Back to Uploads</button>
-</a>
-<br/>
-{% endif %}
-{% if study_status == 'ready' %}
-<a href="/begin_study/">
-  <button>Begin Study</button>
-</a>
-<br/>
-<a href="/begin_testing/">
-  <button>Begin Testing</button>
-</a>
-<br/>
-<a href="/rollback_distribution/">
-  <button>Back to Distribution</button>
-</a>
-<br/>
-{% endif %}
-{% if study_status == 'test' %}
-<a href="/test_rollback/categories">
-  <button>Back to Categories</button>
-</a>
-<br/>
-<a href="/test_rollback/uploads">
-  <button>Back to Uploads</button>
-</a>
-<br/>
-<a href="/test_rollback/distribution">
-  <button>Back to Distribution</button>
-</a>
-<br/>
-{% endif %}
-{% if study_status == 'ongoing' %}
-<a href="/pause_study/">
-  <button>Pause Study</button>
-</a>
-<br/>
-{% endif %}
-{% if study_status == 'paused' %}
-<a href="/resume_study/">
-  <button>Resume Study</button>
-</a>
-<br/>
-<a href="/confirm_end/">
-  <button>End Study</button>
-</a>
-<br/>
-{% endif %}
-{% if ((study_status == 'ended') or (study_status == 'paused') or (study_status == 'test')) %}
-<a href="/export_data/">
-  <button>Export Data</button>
-</a>
-<br/>
-{% endif %}
-{% if study_status == 'ended' %}
-<a href="/confirm_clear_users/">
-  <button>Clear Users and Data</button>
-</a>
-<br/>
-{% endif %}
-{% if display_others %}
-<br/>
-{% block title %} Users :{% endblock %}
 {% block content %}
-  <ol>
-  {% for otherUser in otherUsers %}
-    <li><a>{{otherUser[1]}}</a> : <a>{{otherUser[2]}}</a> {% if otherUser[3] %} <a>Study Administrator</a> {% else %} <a>Reviewer</a> {% if otherUser[4] > 0 and not otherUser[3] and (study_status in ['ongoing', 'paused', 'test']) %} <a> {{otherUser[4]}} remaining reviews </a> {% endif %} {% if otherUser[4] == 0 and not otherUser[3] and (study_status in ['ongoing', 'paused', 'test']) %} <a> Reviews Finished ! </a> {% endif %} {% endif %} 
-        {% if study_status != 'ongoing' %} <a href="/confirm_delete_user/{{otherUser[0]}}"><button>delete user</button></a>{% endif %}
-        <a href="/reset_password/{{otherUser[0]}}">
-          <button>reset password</button>
-        </a>
-     </li>
-  {% endfor %}
-  </ol>
+<div class="max-w-4xl mx-auto px-4 py-6">
+
+  <!-- Status banner -->
+  <div class="bg-header text-gray-800 rounded-lg p-4 mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <h1 class="text-xl font-bold">Hello, {{ username }}!</h1>
+        <p class="text-sm text-gray-600">Welcome to Img Vote</p>
+      </div>
+      {% if study_status in ['ongoing', 'paused', 'test'] %}
+        <div class="text-sm text-right">
+          {% if remaing_users > 0 %}
+            {% if remaining_days > 0 %}
+              <p>Study <strong>{{ studyname }}</strong> ends in {{ remaining_days }} days</p>
+            {% else %}
+              <p>Study is supposed to be over — you may end it anytime</p>
+            {% endif %}
+            <p>{{ remaing_users }} of {{ total_users }} users yet to finish their reviews</p>
+          {% else %}
+            <p>Everyone has finished their reviews — you may close the study anytime</p>
+            {% if remaining_days > 0 %}
+              <p>{{ remaining_days }} days remaining before intended end date</p>
+            {% else %}
+              <p>Study is supposed to be over — you may end it anytime</p>
+            {% endif %}
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Action buttons grid -->
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-3 mb-8">
+
+    <a href="/change_password/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Change Password
+    </a>
+
+    <a href="/new_user/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Create User
+    </a>
+
+    {% if study_status == 'stopped' %}
+    <a href="/category_configuration/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Manage Categories
+    </a>
+    {% endif %}
+
+    {% if study_status == 'categories_done' %}
+    <a href="/manage_uploads/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Manage Uploads
+    </a>
+    <a href="/rollback_categories/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Back to Categories
+    </a>
+    {% endif %}
+
+    {% if study_status == 'uploads_done' %}
+    <a href="/manage_reviewer_distribution/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Manage Reviewer Distribution
+    </a>
+    <a href="/rollback_uploads/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Back to Uploads
+    </a>
+    {% endif %}
+
+    {% if study_status == 'ready' %}
+    <a href="/begin_study/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Begin Study
+    </a>
+    <a href="/begin_testing/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Begin Testing
+    </a>
+    <a href="/rollback_distribution/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Back to Distribution
+    </a>
+    {% endif %}
+
+    {% if study_status == 'test' %}
+    <a href="/test_rollback/categories" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Back to Categories
+    </a>
+    <a href="/test_rollback/uploads" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Back to Uploads
+    </a>
+    <a href="/test_rollback/distribution" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Back to Distribution
+    </a>
+    {% endif %}
+
+    {% if study_status == 'ongoing' %}
+    <a href="/pause_study/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Pause Study
+    </a>
+    {% endif %}
+
+    {% if study_status == 'paused' %}
+    <a href="/resume_study/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Resume Study
+    </a>
+    <a href="/confirm_end/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-danger transition-all text-center text-sm font-medium text-danger border-danger">
+      End Study
+    </a>
+    {% endif %}
+
+    {% if ((study_status == 'ended') or (study_status == 'paused') or (study_status == 'test')) %}
+    <a href="/export_data/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+      Export Data
+    </a>
+    {% endif %}
+
+    {% if study_status == 'ended' %}
+    <a href="/confirm_clear_users/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-danger transition-all text-center text-sm font-medium text-danger border-danger">
+      Clear Users and Data
+    </a>
+    {% endif %}
+
+  </div>
+
+  <!-- Reviewer list -->
+  {% if display_others %}
+  <h2 class="text-base font-semibold text-gray-700 mb-3">Users</h2>
+  <div class="bg-white rounded-xl shadow divide-y divide-gray-100">
+    {% for otherUser in otherUsers %}
+    <div class="flex justify-between items-center px-4 py-3 text-sm">
+      <div>
+        <span class="font-medium text-gray-800">{{ otherUser[1] }}</span>
+        <span class="text-gray-400 mx-1">·</span>
+        <span class="text-gray-500">{{ otherUser[2] }}</span>
+        {% if otherUser[3] %}
+          <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-primary-light text-primary">Admin</span>
+        {% else %}
+          <span class="ml-2 text-xs text-gray-500">Reviewer</span>
+          {% if otherUser[4] > 0 and (study_status in ['ongoing', 'paused', 'test']) %}
+            <span class="ml-1 text-xs text-amber-600">{{ otherUser[4] }} remaining</span>
+          {% endif %}
+          {% if otherUser[4] == 0 and (study_status in ['ongoing', 'paused', 'test']) %}
+            <span class="ml-1 text-xs text-green-600">Reviews finished!</span>
+          {% endif %}
+        {% endif %}
+      </div>
+      <div class="flex gap-2">
+        {% if study_status != 'ongoing' %}
+          <a href="/confirm_delete_user/{{otherUser[0]}}" class="text-xs text-danger border border-danger px-2 py-1 rounded hover:bg-red-50">Delete</a>
+        {% endif %}
+        <a href="/reset_password/{{otherUser[0]}}" class="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-gray-50">Reset password</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}
-{% endif %}
-
-{% endautoescape %}
-
-
-
 

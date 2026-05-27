@@ -1,54 +1,37 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 17 15:16:10 2026
+{% extends "base.html" %}
 
-@author: j.thomas
-"""-->
+{% block title %}Category Errors — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+{% endblock %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Category Error List</title>
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6">
+  <h1 class="text-xl font-bold text-danger mb-4">Categories could not be confirmed</h1>
+  <p class="text-gray-600 text-sm mb-4">The following error(s) must be fixed before you can proceed:</p>
 
-    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
-    
-</head>
-
-<body>
-
-    <h1> Categories could not be confirmed because of the following error(s): </h1>
-
+  <div class="bg-white rounded-xl shadow divide-y divide-gray-100 mb-6">
     {% for error in errors %}
-    
-        {{error}}
-        </br>
-    
+      <p class="px-4 py-3 text-sm text-gray-700">{{ error }}</p>
     {% endfor %}
-    
-    {% if nb_incorrect_categories > 0 %}
-        
-        <h3> The following categories are responsible for the errors </h3>
-        
-        {% for incorrect_category in incorrect_categories %}
-        
-            {{incorrect_category[1]}} <a href="/edit_category/{{incorrect_category[0]}}"><button class="editButton">Edit</button></a>
-            </br>
-            
-        {% endfor %}
-    
-    {% endif %}
-    
-    </br>
-    <a href="/category_configuration/">
-        <button>Go Back</button>
-    </a>
-    
-</body>
+  </div>
 
-{% endautoescape %}
-</html>
+  {% if nb_incorrect_categories > 0 %}
+    <h2 class="text-base font-semibold text-gray-700 mb-3">Responsible categories:</h2>
+    <div class="bg-white rounded-xl shadow divide-y divide-gray-100 mb-6">
+      {% for incorrect_category in incorrect_categories %}
+        <div class="flex items-center justify-between px-4 py-3">
+          <span class="text-sm text-gray-800">{{ incorrect_category[1] }}</span>
+          <a href="/edit_category/{{incorrect_category[0]}}" class="text-xs bg-primary text-white px-3 py-1 rounded-lg hover:bg-primary-dark">
+            <button class="editButton">Edit</button>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <a href="/category_configuration/" class="inline-block border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Go Back</a>
+</div>
+{% endblock %}
+

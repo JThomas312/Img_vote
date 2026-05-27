@@ -33,17 +33,30 @@
 
 .case_img { max-width: 100%; height: auto; cursor: pointer; }
 
-fieldset {
-    margin-bottom: 6px;
-    padding: 1px 1px;
-}
-
-fieldset legend {
-    font-size: 18px;
+/* Case header bar */
+.case-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background-color: #bbbbbb;
+    color: #000;
+    text-align: center;
+    font-size: 20px;
     font-weight: bold;
-    margin-bottom: 1px;
+    line-height: 40px;
+    z-index: 2000;
+    border-bottom: 1px solid #aaa;
 }
 
+/* Push splits below header */
+.split {
+    top: 40px;
+    height: calc(100% - 40px);
+}
+
+/* Criterion rows */
 .criterion-row {
     display: flex;
     align-items: center;
@@ -52,8 +65,9 @@ fieldset legend {
 }
 
 .options { flex: 1; }
-.tutorial-btn { margin-left: auto; margin-bottom: 5px; white-space: nowrap;}
+.tutorial-btn { margin-left: auto; margin-bottom: 5px; white-space: nowrap; }
 
+/* Pill buttons (radio hidden + label styled as pill) */
 .options input[type="radio"]:not(:disabled) { display: none; }
 
 .options label {
@@ -68,6 +82,7 @@ fieldset legend {
     text-align: center;
     line-height: 1.2;
     font-size: 14px;
+    color: #000;
 }
 
 .options input[type="radio"]:checked + label {
@@ -77,10 +92,9 @@ fieldset legend {
 }
 
 .options input[type="radio"]:disabled + label {
-    display: none;  /* hide the "unanswered" label */
+    display: none;
 }
 
-/* Style for unanswered radio button */
 .options input[type="radio"]:disabled {
     display: inline-block;
     appearance: none;
@@ -108,8 +122,54 @@ fieldset legend {
     transform: translate(-50%, -50%);
 }
 
-.right h1 { font-weight: bold; }
+/* Tutorial button */
+.tutorial-btn input[type="button"] {
+    width: 25px;
+    height: 25px;
+    border-radius: 6px;
+    border: 1px solid #bbb;
+    background-color: #eee;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.2s;
+    margin-top: -5px;
+}
 
+.tutorial-btn input[type="button"]:hover { background-color: #ddd; }
+
+/* Range slider (WebKit/Mozilla pseudo-elements — Tailwind cannot replace) */
+.slidecontainer { width: 100%; }
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    background: linear-gradient(to left, green, yellow 50%, red) content-box;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider:hover { opacity: 1; }
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #04AA6D;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #04AA6D;
+    cursor: pointer;
+}
+
+/* Tutorial modal */
 .modal {
     display: none;
     position: fixed;
@@ -142,90 +202,13 @@ fieldset legend {
     margin: 10px;
     cursor: pointer;
     flex-shrink: 0;
-}        
-
-.close:hover { 
-    color: black; 
 }
 
-#tutorialFrame { 
-    flex: 1; 
+.close:hover { color: black; }
+
+#tutorialFrame {
+    flex: 1;
     width: 100%;
     border: none;
     min-height: 0;
 }
-
-
-.tutorial-btn input[type="button"] {
-    width: 25px;
-    height: 25px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
-    background-color: #eee;
-    cursor: pointer;
-    font-size: 18px;
-    transition: background-color 0.2s;
-    margin-top: -5px;  /* <-- move up slightly */
-}
-
-.tutorial-btn input[type="button"]:hover {
-            background-color: #ddd;
-        }
-
-.case-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 40px;
-    background-color: #bbb;
-    color: #000;
-    text-align: center;
-    font-size: 28px;
-    font-weight: bold;
-    line-height: 40px;
-    z-index: 2000;
-    border-bottom: 1px solid #aaa;
-}
-
-/* Adjust layout so the split sections start below the header */
-.split {
-    top: 40px; /* Push content below header */
-    height: calc(100% - 40px);
-}
-
-.slidecontainer {
-  width: 100%;
-}
-
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 15px;
-  background: linear-gradient(to left, green, yellow 50%, red) content-box;          /* le centre */
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
-
-.slider:hover {
-  opacity: 1;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  background: #04AA6D;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  height: 15px;
-  border-radius: 100%;
-  background: &#x25BE;
-  cursor: pointer;
-}
-
-
