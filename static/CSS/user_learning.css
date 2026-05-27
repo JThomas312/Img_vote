@@ -1,0 +1,45 @@
+
+/* Grid container */
+.grid-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* flexible columns, better than fixed : grid-template-columns: repeat(15, 1fr); */
+    gap: 10px;
+    list-style-type: none;
+    padding: 0;
+}
+
+/* Grid items */
+.grid-list li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-radius: 6px;
+    padding: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s ease;
+}
+
+.grid-list li:hover {
+    background-color: #008899; /* darker on hover */
+}
+
+/* Links inside items */
+.grid-list li a {
+    color: inherit;           /* inherit text color */
+    text-decoration: none;    /* remove underline */
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Correct items */
+.correct-box {
+    background-color: #37de04
+}
+
+/* Wrong items */
+.wrong-box {
+    background-color: red
+}

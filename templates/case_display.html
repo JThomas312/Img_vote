@@ -125,7 +125,7 @@ Created on Mon Mar 31 15:26:07 2025
                             <a>{{category.name}} Confidence Index</a>
                             <div class="slidecontainer">
                               <input type="range" min="0" max="100" value="{{category.trust_criterion.value}}" class="slider" id="{{category.name}}TrustScale" oninput="updateValue('{{category.name}}', {{ViewModel.case_id}}, {{category.trust_criterion.id}}, {{category.cat_id}})">
-                              <p>Value: <span id="{{category.name}}TrustValue">{{category.trust_criterion.value}}</span></p>
+                              <p>Value: <span id="{{category.name}}TrustValue">{% if category.trust_criterion.value != -1 %} {{category.trust_criterion.value}} {% endif %}</span></p>
                             </div>
                         {% endif %}
                     </div>
@@ -136,6 +136,9 @@ Created on Mon Mar 31 15:26:07 2025
                 <a href="/user_home/">
                   <button>Save and leave</button>
                 </a>
+                {% if ViewModel.prevcase != -1 %}<a href="/case_display/{{ViewModel.prevcase}}"><button>Previous Case</button></a>
+                {% else %} <button type="button" disabled>Previous Case</button>
+                {% endif %}
                 {% if ViewModel.nextcase != -1 %}<a href="/case_display/{{ViewModel.nextcase}}"><button>Next Case</button></a>
                 {% else %} <button type="button" disabled>Next Case</button>
                 {% endif %}

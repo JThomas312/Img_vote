@@ -29,6 +29,17 @@ class AdminHomeViewModel():
         self.remaing_users = 0
         self.admin = True
 
+class UserLearnViewModel():
+    userId: int
+    name: str
+    items: list((int, str, bool)) #id, name, correct
+    correct_answers: int
+    total_answers: int
+    def __init__(self):
+        self.items = []
+        self.correct_answers = 0
+        self.total_answers = 0
+        self.admin = False
 
 # ViewModels for admins before study
 class CriterionEditingViewModel():
@@ -48,14 +59,18 @@ class CategoryConfigurationViewModel():
     has_trust: bool
     has_NA: bool
     optional: bool
+    has_gold_standard: bool
+    has_malignancy: bool
     criteria: list(CriterionEditingViewModel)
-    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional):
+    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
         self.id = cat_id
         self.name = name
         self.type = cat_type
         self.has_trust = has_trust
         self.has_tutorial = has_tutorial
         self.has_NA = has_NA
+        self.has_gold_standard = has_gold_standard
+        self.has_malignancy = has_malignancy
         self.optional = optional
         self.criteria = []
   
@@ -98,7 +113,7 @@ class UploadStatusViewModel():
     case_data_needed: bool
     case_data_uploaded: bool
 
-class ReviewerRepartitionViewmodel():
+class ReviewerDistributionViewmodel():
     nb_cases: int
     nb_reviewers: int
     nb_full_reviewers: int
@@ -155,6 +170,7 @@ class CaseDisplayViewModel():
     categories: list(CategoryViewModel)
     max_int: int
     min_int: int
+    prevcase: int
     nextcase: int
     def __init__(self, case_id, case_name, study_name, nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):
         self.case_id = case_id
@@ -165,7 +181,27 @@ class CaseDisplayViewModel():
         self.imgs = imgs
         self.imgs_sizes = imgs_sizes
         self.categories = []
-
+    
+class CaseLearningViewModel():
+    case_id: int
+    case_name: str
+    study_name: str
+    nb_imgs: int 
+    imgs: list()
+    imgs_sizes: list((int, int))
+    answer: str
+    correct_answer: str
+    prevcase: int
+    nextcase: int
+    def __init__(self, case_id, case_name, study_name, answer, correct_answer, nb_imgs=0, imgs=[], imgs_sizes=[]):
+        self.case_id = case_id
+        self.case_name = case_name
+        self.study_name = study_name
+        self.answer = answer
+        self.correct_answer = correct_answer
+        self.nb_imgs = nb_imgs
+        self.imgs = imgs
+        self.imgs_sizes = imgs_sizes
 
 
 

@@ -22,8 +22,8 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.DataModels import CaseAnsDataModel
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO
+from img_vote.Models.DataModels import CaseAnsDataModel, CaseLearnDataModel
+from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO
         
 #read-only
 def get_answer_by_id(identifier, engine):
@@ -124,6 +124,53 @@ def get_cases_and_answers(userId, engine):
         
     return casesAns
 
+def get_cases_and_learn(userId, engine):
+    
+    session = Session(engine)
+    
+    trueValue = 1
+    
+    casesAns = []
+    
+    try:    
+        query = session.query(CasePOCO, AnswerPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).filter(AnswerPOCO.reviewer == userId).order_by(CasePOCO.id)
+        
+        queriedAns = query.all()
+        #0: Case, 1: Answer, 2: AnswerCriterion
+        
+        for i in range(len(queriedAns)):
+            if queriedAns[i][0].gold_standard == queriedAns[i][2].criterion:
+                casesAns.append(CaseLearnDataModel(queriedAns[i][0].id, queriedAns[i][1].name, queriedAns[i][2].value == trueValue))
+    
+    finally:
+        session.close()
+        
+    return casesAns
+
+def get_answer_to_case(userId, caseId, engine):
+    
+    session = Session(engine)
+    
+    trueValue = 1
+    
+    answer = ''
+    
+    try:
+        query = session.query(AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).filter(CategoryPOCO.has_gold_standard).filter(AnswerCriterionPOCO.value == trueValue)
+        ans = query.one_or_none()
+        
+        #0: answer, 1: answerCriterion, 2: criterion, 3: category
+        
+        if ans == None:
+            answer = 'unanswered'
+        else:
+            answer = ans[2].name
+            
+    finally:
+        session.close()
+        
+    return answer
+
 #CRUD
 def update_answer_status(userId, caseId, done, engine):
     
@@ -171,8 +218,12 @@ def create_all_answers(rev_per_case, engine):
             behind_group = [rev.id for rev in standard_reviewers]
             
             for i in range(nb_cases):
+                already_attributed = []
                 for j in range(rev_per_case):
                     k = randint(0, len(behind_group) - 1)
+                    while (behind_group[k] in already_attributed):
+                        k = randint(0, len(behind_group) - 1)
+                    already_attributed.append(behind_group[k])
                     newAns = AnswerPOCO(cases[i].id, behind_group[k])
                     session.add(newAns)
                     ahead_group.append(behind_group[k])

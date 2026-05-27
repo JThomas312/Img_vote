@@ -17,6 +17,8 @@ Created on Fri Apr 10 16:07:16 2026
 
     <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
     
+    <link rel="stylesheet" href="{{url_for('static', filename='CSS/category_edition.css')}}"/>
+    
 </head>
 
 <body>
@@ -87,7 +89,7 @@ Created on Fri Apr 10 16:07:16 2026
                         {% set ns = namespace(i = 1) %}
                         {% for prerequisite in category.prerequisites %}
                             <div class="prerequisiteWrapper">
-                                <input type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}">
+                                <input class="saved" type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}">
                                 <button class="removePrerequisiteButton" id="removePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
                                 <button class="savePrerequisiteButton" id="savePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
                             </div>
@@ -123,14 +125,14 @@ Created on Fri Apr 10 16:07:16 2026
                 {% set ns = namespace(j = 1) %}
                 {% for criterion in category.criteria %}
                     <div class="criterionWrapper">
-                        <input type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}">
+                        <input class="saved" type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}">
                         <button class="removeCriterionButton" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">Remove</button>
                         <button class="saveCriterionButton" id="saveCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'edit')">Save</button>
                         <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
                             <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value=1 {% if criterion.malignancy %} checked {% endif %}>
                             <label for="criterionMalignancy{{ns.j}}">Malignant</label>
                             <input type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value=1 {% if not criterion.malignancy %} checked {% endif %}>
-                            <label for="criterionMalignancy{{ns.j}}">Begnin</label>
+                            <label for="criterionMalignancy{{ns.j}}">Benign</label>
                         </div> 
                     </div>
                     {% set ns.j = ns.j + 1 %}

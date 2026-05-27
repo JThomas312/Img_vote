@@ -1,0 +1,51 @@
+<!--# -*- coding: utf-8 -*-
+"""
+Created on Tue May 19 14:22:21 2026
+
+@author: j.thomas
+"""-->
+
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HomePage</title>
+  <link rel="stylesheet" href="{{url_for('static', filename='CSS/user_learning.css')}}"/>
+
+</head>
+<body>
+
+    <h1>Hello, {{ username }}!</h1>
+    <h2>{{studyname}} – Case review platform</h2>
+
+    <h3>Study is over, you may now look at your answers</h3>
+    
+    <h2>Out of {{ total_answers }} cases you have gotten {{correct_answers}} correct</h2>  
+    
+    <a href="/logout/">
+      <button>Logout</button>
+    </a>
+    <br/>
+    <a href="/change_password/">
+        <button>Change Password</button>
+    </a>
+    <br/><br/>
+
+    <ul class="grid-list">
+    {% for item in items %}
+        <li {% if item[2] %} class="correct-box" {% else %} class="wrong-box" {% endif %}>
+            <a href="/case_learning/{{ item[0] }}">
+              {{ item[1] }}
+              {% if item[2] %}<span></span>{% endif %}
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
+</body>
+{% endautoescape %}
+</html>
+
+
+

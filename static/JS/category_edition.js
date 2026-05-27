@@ -132,15 +132,22 @@ function safeguard_prerequisite(event, nameElement, cat_id){
     $.getJSON(url, function(data){
         
         var newId = data.result;
-        var category_id = document.getElementById('category_id').value;
-        var num = nameElementId.slice(17);
-        
-        var removeButton = document.getElementById('removePrerequisiteButton' + num);
-        var saveButton = document.getElementById('savePrerequisiteButton' + num);
-        
-        removeButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "remove")')
-        
-        saveButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "edit")');
+        if (newId == null){
+            nameElement.parentNode.remove();
+        }
+        else{
+            var category_id = document.getElementById('category_id').value;
+            var num = nameElementId.slice(17);
+            
+            var removeButton = document.getElementById('removePrerequisiteButton' + num);
+            var saveButton = document.getElementById('savePrerequisiteButton' + num);
+            
+            removeButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "remove")')
+            
+            saveButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "edit")');
+            
+            nameElement.classList.add('saved')
+        }
     });
     return false;
 }
@@ -168,23 +175,30 @@ function safeguard_criterion(event, nameElement, malignancyYesElement, malignanc
     var malignancy = document.getElementById(malignancyYesElementId).checked;
     url = '/safeguard_criterion?cat_id=' + cat_id + '&name=' + name + '&malignancy=' + malignancy;
     $.getJSON(url, function(data){
-
+    
         var newId = data.result;
-        var category_id = document.getElementById('category_id').value;
-        var num = nameElementId.slice(14);
-
-        var removeButton = document.getElementById('removeCriterionButton' + num);
-        var saveButton = document.getElementById('saveCriterionButton' + num);
-        var malYes = document.getElementById(malignancyYesElementId);
-        var malNo = document.getElementById(malignancyNoElementId);
-        
-        removeButton.setAttribute('onclick', 'edit_criterion(event, ' + newId + ', "criterionField' + num + '", "criterionMalignancy' + num + '_yes", ' + category_id + ', "remove")');
-        
-        saveButton.setAttribute('onclick', 'edit_criterion(event, ' + newId + ', "criterionField' + num + '", "criterionMalignancy' + num + '_yes", ' + category_id + ', "edit")');
-        
-        malYes.setAttribute('onclick', 'safeguard_criterion_malignancy(' + newId + ', true)');
-        
-        malNo.setAttribute('onclick', 'safeguard_criterion_malignancy(' + newId + ', false)');
+        if (newId == null){
+            nameElement.parentNode.remove();
+        }
+        else{
+            var category_id = document.getElementById('category_id').value;
+            var num = nameElementId.slice(14);
+    
+            var removeButton = document.getElementById('removeCriterionButton' + num);
+            var saveButton = document.getElementById('saveCriterionButton' + num);
+            var malYes = document.getElementById(malignancyYesElementId);
+            var malNo = document.getElementById(malignancyNoElementId);
+            
+            removeButton.setAttribute('onclick', 'edit_criterion(event, ' + newId + ', "criterionField' + num + '", "criterionMalignancy' + num + '_yes", ' + category_id + ', "remove")');
+            
+            saveButton.setAttribute('onclick', 'edit_criterion(event, ' + newId + ', "criterionField' + num + '", "criterionMalignancy' + num + '_yes", ' + category_id + ', "edit")');
+            
+            malYes.setAttribute('onclick', 'safeguard_criterion_malignancy(' + newId + ', true)');
+            
+            malNo.setAttribute('onclick', 'safeguard_criterion_malignancy(' + newId + ', false)');
+            
+            nameElement.classList.add('saved')
+        }
     });
     return false;
 }
@@ -317,7 +331,7 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   
   var newLabelNo = document.createElement('label');
   newRadioNo.htmlFor = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
-  newLabelNo.innerHTML = 'Begnin';
+  newLabelNo.innerHTML = 'Benign';
   
   var category_id = document.getElementById('category_id').value;
   

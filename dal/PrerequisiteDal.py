@@ -81,6 +81,56 @@ def delete_prerequisite(catId, critId, engine):
         
     finally:
         session.close()
+    
+def delete_category_prerequisite(catId, engine):
+
+    session = Session(engine)  
+    
+    try:
+        deleteStmt = delete(PrerequisitePOCO).where(PrerequisitePOCO.category == catId)
+        
+        session.execute(deleteStmt)
+        
+        session.commit()
+        
+    finally:
+        session.close()
+    
+def delete_prerequisite_from_category_criteria(catId, engine):
+
+    session = Session(engine)  
+    
+    try:
+        query = session.query(CriterionPOCO.id).where(CriterionPOCO.category == catId)
+        answer = query.all()
+        
+        for ans in answer:
+            deleteStmt = delete(PrerequisitePOCO).where(PrerequisitePOCO.criterion == ans[0])
+            session.execute(deleteStmt)
+        
+        deleteStmt = delete(PrerequisitePOCO).where(PrerequisitePOCO.category == catId)
+        
+        session.execute(deleteStmt)
+        
+        session.commit()
+        
+    finally:
+        session.close()
+    
+def delete_prerequisite_from_criterion(critId, engine):
+
+    session = Session(engine)  
+    
+    try:
+        deleteStmt = delete(PrerequisitePOCO).where(PrerequisitePOCO.criterion == critId)
+        print(critId)
+        print(deleteStmt)
+        session.execute(deleteStmt)
+
+        session.commit()
+        
+    finally:
+        session.close()
 
 #one-time data creation
 def clear_all_prerequisites(engine):

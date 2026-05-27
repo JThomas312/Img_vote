@@ -31,7 +31,7 @@ from img_vote.utilities.useful import format_r_friendly
 from img_vote.utilities.useful import sanitize
 
 from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
-from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerRepartitionViewmodel
+from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerDistributionViewmodel
 
 #user related
 from img_vote.dal.MasterDal import get_reviewer_by_id, get_reviewer_by_login, count_all_reviewers, create_reviewer 
@@ -49,10 +49,11 @@ from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_lea
 from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
 from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_without_gold_standard, other_gold_standard_exists
 from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, gold_standard_in_wrong_category, new_empty_category
-from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories
+from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_na_tutorial_categories
 
 #prerequisite related
-from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, clear_all_prerequisites
+from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, delete_category_prerequisite
+from img_vote.dal.MasterDal import delete_prerequisite_from_category_criteria, delete_prerequisite_from_criterion, clear_all_prerequisites
 
 #criterion related
 from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, update_criteria_path
@@ -72,14 +73,14 @@ def find_name_and_login(userId):
 def create_user(login, name, admin, status, full_review):
     existing = get_reviewer_by_login(login)
     full = full_review and not admin
-    with open(os.path.join(getcwd(), 'persistence', 'repartition.txt'), 'r', encoding="utf-8") as fr:
-        repartition = fr.readline().removesuffix('\n')
+    with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'r', encoding="utf-8") as fr:
+        distribution = fr.readline().removesuffix('\n')
         case_per_r = fr.readline().removesuffix('\n')
         percentage = fr.readline().removesuffix('\n')
     if ((not admin) and (status == 'ended')):
         raise Exception('While the study is ended only administrator users can be created')
-    elif not full and repartition == 'n per case' and status in ['ready', 'ongoing', 'paused']:
-        raise Exception('You can now only create full reviewers with your chosen repartition')
+    elif not full and distribution == 'n per case' and status in ['ready', 'ongoing', 'paused']:
+        raise Exception('You can now only create full reviewers with your chosen distribution')
     elif existing != None:
         raise Exception('User already exists with login ' + login)
     else:
@@ -88,7 +89,7 @@ def create_user(login, name, admin, status, full_review):
         hashPass = hashpw(password.encode('utf-8'), s).decode('utf-8')
         revId = create_reviewer(name, login, hashPass, admin, full)
         if not admin and status in ['ready', 'ongoing', 'paused']:
-            case_per_rev = compute_case_per_rev(full, repartition, case_per_r, percentage)
+            case_per_rev = compute_case_per_rev(full, distribution, case_per_r, percentage)
             create_user_answers(revId, case_per_rev)
             create_user_answer_to_criterion(revId)
     return password
@@ -97,7 +98,7 @@ def categories_for_editing():
     categoriesDMs = categories_with_criteria()
     categoriesVMs = []
     for categoryDM in categoriesDMs:
-        currentCategoryVM = CategoryConfigurationViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional)
+        currentCategoryVM = CategoryConfigurationViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
         for crit in categoryDM.criteria:
             currentCategoryVM.criteria.append(CriterionEditingViewModel(crit[0], crit[1]))
         categoriesVMs.append(currentCategoryVM)
@@ -164,6 +165,7 @@ def save_criterion(cat_id, name, malignancy):
 
 def change_criterion(cat_id, crit_id, name, malignancy, action):
     if action == 'remove':
+        delete_prerequisite_from_criterion(crit_id)
         erase_criterion(crit_id)    
     if not sanitize(name) or name == '':
         return
@@ -193,8 +195,14 @@ def change_prerequisite(cat_id, crit_id, name, action):
         
 
 def delete_category(cat_id):
+    delete_category_prerequisite(cat_id)
+    delete_prerequisite_from_category_criteria(cat_id)
     erase_category_criteria(cat_id)
     erase_category(cat_id)
+
+def delete_criterion(crit_id):
+    delete_prerequisite_from_criterion(crit_id)
+    erase_criterion(crit_id)
 
 def check_category(cat_id, form_answers):
 
@@ -246,8 +254,10 @@ def check_categories():
     errors = []
     
     incorrect_categories = []
-    if categories_without_name():
+    unnamed_categories = categories_without_name()
+    if len(unnamed_categories) > 0:
         errors.append('Some of your categories are still unnamed')
+        incorrect_categories.extend(unnamed_categories)
     if not at_least_one_mandatory_category():
         errors.append('All of your categories are optional, you need at least one mandatory category')
     
@@ -284,17 +294,19 @@ def check_categories():
     unique_incorrect_categories = list(dict.fromkeys(incorrect_categories))
     
     for i in range(len(unique_incorrect_categories)):
-        if bool(match('^[\\s]*$', incorrect_categories[i][1])):
-            unique_incorrect_categories[i] = (unique_incorrect_categories[i][0], 'unnamed category')
+        (identifier, name) = unique_incorrect_categories[i]
+        if bool(match('^[\\s]*$', name)):
+            unique_incorrect_categories[i] = (identifier, 'unnamed category')
     
     if len(errors) > 0 or len(unique_incorrect_categories) > 0:
         return (errors, unique_incorrect_categories)
 
     clear_malignant_criteria_in_non_malignant_category()
     
+    create_na_criteria()
+
     update_criteria_path(os.path.join(getcwd(), 'data', 'tutorial_data'))
     
-    create_na_criteria()
     create_trust_criteria()
 
     return ([], [])
@@ -305,9 +317,6 @@ def categories_rollback():
     remove_case_images()
     remove_tutorial_images()
     remove_case_data()
-
-def delete_criterion(crit_id):
-    erase_criterion(crit_id)
 
 def optional_category_allowed(categoryId):
     allowed = at_least_one_other_mandatory_category(categoryId)
@@ -327,17 +336,27 @@ def upload_status():
     return VM
 
 def unzip_and_move(path, version):
+    
     if version == 'case':
         extract_path = os.path.join(getcwd(), 'data', 'Img_data')
     elif version == 'tutorial':
         extract_path = os.path.join(getcwd(), 'data', 'tutorial_data')
     else:
         return 'something went wrong'
+    
     try:
         zippy = ZipFile(path)
         zippy.extractall(extract_path)
     except Exception as e:
         return e
+    
+    if version == 'tutorial':
+        #all one of categories with tutorials and n/a enabled need the template n/a tutorial
+        na_categories = get_na_tutorial_categories()
+        
+        for na_category in na_categories:
+            copyfile(os.path.join(getcwd(), 'data', 'na.jpg'), os.path.join(getcwd(), 'data', 'tutorial_data', na_category.name, 'na.jpg'))
+    
     return None
 
 def move(ogpath, newpath):
@@ -379,28 +398,28 @@ def check_uploads_and_create_cases():
 def upload_rollback():
     clear_all_cases()
 
-def data_for_repartition():
+def data_for_distribution():
     nb_cases = count_all_cases()
     nb_standard_reviewers = count_all_reviewers(False)
     nb_full_reviewers = count_all_reviewers(True)
     
-    repartitionVM = ReviewerRepartitionViewmodel(nb_cases, nb_standard_reviewers + nb_full_reviewers, nb_full_reviewers)
+    distributionVM = ReviewerDistributionViewmodel(nb_cases, nb_standard_reviewers + nb_full_reviewers, nb_full_reviewers)
     
-    return repartitionVM
+    return distributionVM
 
-def handle_repartition(method, r_per_case, case_per_r, percentage):
+def handle_distribution(method, r_per_case, case_per_r, percentage):
 
     rev_per_case= compute_rev_per_case(method, r_per_case, case_per_r, percentage)
 
     create_all_answers(rev_per_case)    
     create_all_answer_to_criterion()
     
-    with open(os.path.join(getcwd(), 'persistence', 'repartition.txt'), 'w', encoding="utf-8") as fw:
+    with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'w', encoding="utf-8") as fw:
         fw.writelines([method, '\n', case_per_r, '\n', percentage])
     
     return None
 
-def repartition_rollback():
+def distribution_rollback():
     clear_all_answers()
 
 def compute_rev_per_case(method, r_per_case, case_per_r, percentage):

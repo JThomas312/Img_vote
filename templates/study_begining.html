@@ -10,27 +10,51 @@ Created on Wed Oct  1 21:13:12 2025
 {% autoescape true %}
 <title>Start Study</title>
 
-{% if error %}
-  <h1>There has been an error during study launch: {{ error }}!</h1>
-  <a href="/user_home/">
-    <button>go back</button>
-  </a>
-{% else %}
-    <h1>You are launching a new study<h1>
-    <form method="post">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <a> Study Name </a>
-        <p><input type=text name=study_name>
-        <br/>
-        <br/>
-        <a> When is you study intended to end ? </a>
-        <br/>
-        <a> (date is only used for display purposes, the study can only be stopped manually) </a>
-        <p><input type="date" name=study_end>
-        <p><input type=submit value=Launch Study>
-    </form>
-    <a href="/user_home/">
-      <button>Cancel</button>
-    </a>
-{% endif %}
+<head>
+    <link rel="stylesheet" href="{{url_for('static', filename='CSS/study_begining.css')}}"/>
+</head>
+
+<body>
+    {% if error %}
+    <div class="error">
+        <h1>There has been an error during study launch: {{ error }}!</h1>
+        <a href="/user_home/">
+            <button>go back</button>
+        </a>
+    </div>
+    {% else %}
+        <h1>You are launching a new study<h1>
+        {% if test %}
+            <h3>This is a test study<h3>
+        {% else %}
+            <h3>There is no going back after this step<h3>
+        {% endif %}
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <a> Study Name </a>
+            {% if nameError %}
+                <div class="error">
+                    <br/>
+                    {{nameError}}
+                </div>
+            {% endif %}
+            <p><input type=text name=study_name>
+            <br/>
+            <br/>
+            <a> When is you study intended to end ? </a>
+            <br/>
+            <a> (date is only used for display purposes, the study can only be stopped manually) </a>
+            {% if dateError %}
+                <div class="error">
+                    {{dateError}}
+                </div>
+            {% endif %}
+            <p><input type="date" name=study_end>
+            <p><input type=submit value=Launch Study>
+        </form>
+        <a href="/user_home/">
+          <button>Cancel</button>
+        </a>
+    {% endif %}
+</body>
 {% endautoescape %}

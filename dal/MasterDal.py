@@ -89,6 +89,9 @@ def update_user_count(userId, done):
 def get_case_by_id(identifier):
     return CaseDal.get_case_by_id(identifier, engine)
 
+def get_case_with_gold_standard(identifier):
+    return CaseDal.get_case_with_gold_standard(identifier, engine)
+
 def get_all_cases():
     return CaseDal.get_all_cases(engine)
 
@@ -115,14 +118,20 @@ def clear_all_cases():
 def get_answer_by_id(identifier):
     return AnswerDal.get_answer_by_id(identifier, engine)
 
-def get_cases_and_answers(userId):
-    return AnswerDal.get_cases_and_answers(userId, engine)
-
 def get_answer_name(userId, caseId):
     return AnswerDal.get_answer_name(userId, caseId, engine)
 
 def get_case_by_answer_name(answerName, userId):
     return AnswerDal.get_case_by_answer_name(answerName, userId, engine)
+
+def get_cases_and_answers(userId):
+    return AnswerDal.get_cases_and_answers(userId, engine)
+
+def get_cases_and_learn(userId):
+    return AnswerDal.get_cases_and_learn(userId, engine)
+
+def get_answer_to_case(userId, caseId):
+    return AnswerDal.get_answer_to_case(userId, caseId, engine)
 
 def update_answer_status(userId, caseId, done):
     return AnswerDal.update_answer_status(userId, caseId, done, engine)
@@ -143,6 +152,9 @@ def get_category_by_id(catId):
 
 def get_categories():
     return CategoryDal.get_categories(engine)
+
+def get_na_tutorial_categories():
+    return CategoryDal.get_na_tutorial_categories(engine)
 
 def categories_with_criteria():
     return CategoryDal.categories_with_criteria(engine)
@@ -208,6 +220,15 @@ def new_prerequisite(catId, name):
 
 def delete_prerequisite(catId, critId):
     return PrerequisiteDal.delete_prerequisite(catId, critId, engine)
+
+def delete_category_prerequisite(catId):
+    return PrerequisiteDal.delete_category_prerequisite(catId, engine)
+
+def delete_prerequisite_from_category_criteria(catId):
+    return PrerequisiteDal.delete_prerequisite_from_category_criteria(catId, engine)
+
+def delete_prerequisite_from_criterion(critId):
+    return PrerequisiteDal.delete_prerequisite_from_criterion(critId, engine)
 
 def clear_all_prerequisites():
     return PrerequisiteDal.clear_all_prerequisites(engine)

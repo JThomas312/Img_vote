@@ -59,6 +59,26 @@ def get_categories(engine):
 
     return categoriesDM
 
+def get_na_tutorial_categories(engine):
+    
+    session = Session(engine)
+    
+    one_of_type = 2
+    
+    categoriesDM = []
+    
+    try:
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.has_tutorial == True).filter(CategoryPOCO.type == one_of_type).order_by(CategoryPOCO.id).all()
+        
+        for category in categories:
+            cDM = CategoryDataModel(category.id, category.name, category.type, category.has_tutorial, category.has_trust, category.has_na, category.optional, [])
+            categoriesDM.append(cDM)
+            
+    finally:
+        session.close()
+
+    return categoriesDM
+
 def categories_with_criteria(engine):
     
     session = Session(engine)
@@ -78,7 +98,7 @@ def categories_with_criteria(engine):
                 if (currentCategory != -1):
                     answer.append(currentDataModel)
                 currentCategory = ans[0].id
-                currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional)
+                currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional, ans[0].has_gold_standard, ans[0].has_malignancy)
             if ans[1] != None and not ans[1].is_trust:
                 currentDataModel.criteria.append((ans[1].id, ans[1].name))
         
@@ -297,7 +317,7 @@ def categories_without_name(engine):
     
     try:
         query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.name.regexp_match('^[ ]*$'))
-        answer = session.query(query.exists()).scalar()
+        answer = query.all()
         
     finally:
         session.close()

@@ -38,6 +38,19 @@ class CaseDataModel():
         self.path = path
         self.name = name
 
+class CaseGoldStandardDataModel():
+    caseId: int
+    path: str
+    name: str
+    goldStandard: str
+    
+    def __init__(self, caseId, path, name, goldStandard):
+        self.caseId = caseId
+        self.path = path
+        self.name = name
+        self.goldStandard = goldStandard
+
+
 class CaseAnsDataModel():
     caseId: int
     name: str
@@ -47,6 +60,16 @@ class CaseAnsDataModel():
         self.caseId = caseId
         self.name = name
         self.completed = completed
+
+class CaseLearnDataModel():
+    caseId: int
+    name: str
+    correct: bool
+    
+    def __init__(self, caseId, name, correct):
+        self.caseId = caseId
+        self.name = name
+        self.correct = correct
         
 class UserHomeDataModel():
     userId: int
@@ -125,9 +148,11 @@ class CategoryWithCriteriaDataModel():
      hasTrust: bool
      hasNA: bool
      optional: bool
+     hasGoldStandard: bool
+     hasMalignancy: bool
      criteria: list(int, str) #ids and names of criterions from the category
      
-     def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional):
+     def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional, hasGoldStandard, hasMalignancy):
          self.catId = catId
          self.name = name
          self.catType = catType
@@ -135,6 +160,8 @@ class CategoryWithCriteriaDataModel():
          self.hasTrust = hasTrust
          self.hasNA = hasNA
          self.optional = optional
+         self.hasGoldStandard = hasGoldStandard
+         self.hasMalignancy = hasMalignancy
          self.criteria = []
 
 class CategoryWithCriteriaAndPrerequisitesDataModel():

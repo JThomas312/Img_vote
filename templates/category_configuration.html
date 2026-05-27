@@ -46,6 +46,13 @@ Created on Thu Apr  9 11:58:10 2026
                         <a href="/remove_category/{{category.id}}">
                             <button class="removeButton">Remove</button>
                         </a>
+                        {% if category.type in [1,2,3] %}<a> type: {% if category.type == 1 %} yes/no {% endif %} {% if category.type == 2 %} one of {% endif %} {% if category.type == 3 %} numbers {% endif %}</a>{% endif %}
+                        {% if category.has_tutorial %}<a>tutorial </a>{% endif %}
+                        {% if category.has_trust %}<a>trust </a>{% endif %}
+                        {% if category.has_NA %}<a>n/a </a>{% endif %}
+                        {% if category.optional %}<a>optional </a>{% endif %}
+                        {% if category.has_gold_standard %}<a>gold standard </a>{% endif %}
+                        {% if category.has_malignancy %}<a>malignancy </a>{% endif %}
                     </a>
                     <ol>
                     {% for criterion in category.criteria %}
