@@ -1,51 +1,32 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Tue May 19 14:22:21 2026
+{% extends "base.html" %}
 
-@author: j.thomas
-"""-->
+{% block title %}Learning Results — Img Vote{% endblock %}
 
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold text-gray-800 mb-1">Hello, {{ username }}!</h1>
+  <p class="text-sm text-gray-500 mb-6">{{ studyname }} — Case review platform</p>
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>HomePage</title>
-  <link rel="stylesheet" href="{{url_for('static', filename='CSS/user_learning.css')}}"/>
+  <div class="bg-white rounded-xl shadow p-6 mb-6 text-center">
+    <p class="text-gray-600 text-sm mb-2">Study is over — you may now review your answers.</p>
+    <p class="text-3xl font-bold text-primary">{{ correct_answers }} / {{ total_answers }}</p>
+    <p class="text-sm text-gray-500 mt-1">correct answers</p>
+  </div>
 
-</head>
-<body>
+  <div class="flex gap-3 mb-6">
+    <a href="/change_password/" class="border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Change Password</a>
+  </div>
 
-    <h1>Hello, {{ username }}!</h1>
-    <h2>{{studyname}} – Case review platform</h2>
-
-    <h3>Study is over, you may now look at your answers</h3>
-    
-    <h2>Out of {{ total_answers }} cases you have gotten {{correct_answers}} correct</h2>  
-    
-    <a href="/logout/">
-      <button>Logout</button>
-    </a>
-    <br/>
-    <a href="/change_password/">
-        <button>Change Password</button>
-    </a>
-    <br/><br/>
-
-    <ul class="grid-list">
+  <ul class="grid-list grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
     {% for item in items %}
-        <li {% if item[2] %} class="correct-box" {% else %} class="wrong-box" {% endif %}>
-            <a href="/case_learning/{{ item[0] }}">
-              {{ item[1] }}
-              {% if item[2] %}<span></span>{% endif %}
-            </a>
-        </li>
+      <li class="{% if item[2] %}correct-box bg-success{% else %}wrong-box bg-danger{% endif %} text-white rounded-lg text-center py-4 font-medium text-sm transition-colors">
+        <a href="/case_learning/{{ item[0] }}" class="block w-full h-full">
+          {{ item[1] }}
+          {% if item[2] %}<span></span>{% endif %}
+        </a>
+      </li>
     {% endfor %}
-    </ul>
-</body>
-{% endautoescape %}
-</html>
-
-
+  </ul>
+</div>
+{% endblock %}
 
