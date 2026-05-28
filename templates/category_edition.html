@@ -7,11 +7,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-6">
+<div class="max-w-4xl mx-auto px-4 py-8">
 
   {% if error %}
     <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ status_error }}</div>
-    <a href="/category_configuration/" class="inline-block border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Go back</a>
+    <a href="/category_configuration/" class="inline-block border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm">Go back</a>
   {% else %}
 
     {% if formError %}
@@ -27,158 +27,135 @@
 
         <!-- Left column: category metadata -->
         <div>
-          <h2 class="text-base font-semibold text-gray-700 mb-3 border-b pb-2">Category Settings</h2>
+          <h2 class="text-base font-bold text-slate-700 mb-4 border-b border-slate-200 pb-2 flex items-center gap-2">
+            <span class="text-indigo-500">⚙</span> Category Settings
+          </h2>
 
           <!-- Name -->
           <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <div class="flex gap-2">
-              <input id="category_name" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" type="text" name="name" value="{{category.name}}">
-              <button class="saveNameButton bg-teal text-white text-xs px-3 py-1 rounded hover:bg-teal-dark" onclick="safeguard_name(event, {{category.id}})">Save</button>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Name</label>
+            <div class="flex gap-2 items-center">
+              <input id="category_name" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" type="text" name="name" value="{{category.name}}">
             </div>
           </div>
 
           <!-- Type -->
-          <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
-            <legend class="text-sm font-semibold text-gray-700 px-1">Category Type</legend>
-            <div class="flex flex-col gap-2 text-sm mt-1">
-              <label class="flex items-center gap-2">
-                <input type="radio" id="criteria" name="type" value="1" onclick="safeguard_type({{category.id}}, 1);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, false)" {% if category.type == 1 %} checked {% endif %}/>
+          <fieldset class="border border-slate-200 rounded-xl p-4 mb-4 bg-white">
+            <legend class="text-xs font-semibold text-slate-500 uppercase tracking-wide px-1">Category Type</legend>
+            <div class="flex flex-col gap-2 text-sm mt-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input class="accent-indigo-600" type="radio" id="criteria" name="type" value="1" onclick="safeguard_type({{category.id}}, 1);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, false)" {% if category.type == 1 %} checked {% endif %}/>
                 List of yes/no criteria
               </label>
-              <label class="flex items-center gap-2">
-                <input type="radio" id="one_of" name="type" value="2" onclick="safeguard_type({{category.id}}, 2);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, true)" {% if category.type == 2 %} checked {% endif %}/>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input class="accent-indigo-600" type="radio" id="one_of" name="type" value="2" onclick="safeguard_type({{category.id}}, 2);updateNA({{category.id}}, true);updateGoldStandard({{category.id}}, true)" {% if category.type == 2 %} checked {% endif %}/>
                 One from several
               </label>
-              <label class="flex items-center gap-2">
-                <input type="radio" id="number" name="type" value="3" onclick="safeguard_type({{category.id}}, 3);updateNA({{category.id}}, false);updateGoldStandard({{category.id}}, false)" {% if category.type == 3 %} checked {% endif %}/>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input class="accent-indigo-600" type="radio" id="number" name="type" value="3" onclick="safeguard_type({{category.id}}, 3);updateNA({{category.id}}, false);updateGoldStandard({{category.id}}, false)" {% if category.type == 3 %} checked {% endif %}/>
                 Numerical values
               </label>
             </div>
           </fieldset>
 
           <!-- Trust -->
-          <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
-            <legend class="text-sm font-semibold text-gray-700 px-1">Trust Scale</legend>
-            <div class="flex gap-4 text-sm mt-1">
-              <label class="flex items-center gap-1">
-                <input type="radio" id="trust_yes" name="trust" value="1" onclick="safeguard_trust({{category.id}}, true)" {% if category.has_trust %} checked {% endif %}/> Yes
-              </label>
-              <label class="flex items-center gap-1">
-                <input type="radio" id="trust_no" name="trust" value="0" onclick="safeguard_trust({{category.id}}, false)" {% if not category.has_trust %} checked {% endif %}/> No
-              </label>
+          <fieldset class="border border-slate-200 rounded-xl p-4 mb-4 bg-white">
+            <legend class="text-xs font-semibold text-slate-500 uppercase tracking-wide px-1">Trust Scale</legend>
+            <div class="flex gap-6 text-sm mt-2">
+              <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="trust_yes" name="trust" value="1" onclick="safeguard_trust({{category.id}}, true)" {% if category.has_trust %} checked {% endif %}/> Yes</label>
+              <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="trust_no" name="trust" value="0" onclick="safeguard_trust({{category.id}}, false)" {% if not category.has_trust %} checked {% endif %}/> No</label>
             </div>
           </fieldset>
 
           <!-- Tutorial -->
-          <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
-            <legend class="text-sm font-semibold text-gray-700 px-1">Display Tutorials</legend>
-            <div class="flex gap-4 text-sm mt-1">
-              <label class="flex items-center gap-1">
-                <input type="radio" id="tutorial_yes" name="tutorial" value="1" onclick="safeguard_tutorial({{category.id}}, true)" {% if category.has_tutorial %} checked {% endif %}/> Yes
-              </label>
-              <label class="flex items-center gap-1">
-                <input type="radio" id="tutorial_no" name="tutorial" value="0" onclick="safeguard_tutorial({{category.id}}, false)" {% if not category.has_tutorial %} checked {% endif %}/> No
-              </label>
+          <fieldset class="border border-slate-200 rounded-xl p-4 mb-4 bg-white">
+            <legend class="text-xs font-semibold text-slate-500 uppercase tracking-wide px-1">Display Tutorials</legend>
+            <div class="flex gap-6 text-sm mt-2">
+              <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="tutorial_yes" name="tutorial" value="1" onclick="safeguard_tutorial({{category.id}}, true)" {% if category.has_tutorial %} checked {% endif %}/> Yes</label>
+              <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="tutorial_no" name="tutorial" value="0" onclick="safeguard_tutorial({{category.id}}, false)" {% if not category.has_tutorial %} checked {% endif %}/> No</label>
             </div>
           </fieldset>
 
           <!-- N/A -->
           <div id="na_visibility">
-            <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
-              <legend class="text-sm font-semibold text-gray-700 px-1">Allow N/A</legend>
-              <div class="flex gap-4 text-sm mt-1">
-                <label class="flex items-center gap-1">
-                  <input type="radio" id="na_yes" name="na" value="1" onclick="safeguard_na({{category.id}}, true)" {% if category.has_NA %} checked {% endif %}/> Yes
-                </label>
-                <label class="flex items-center gap-1">
-                  <input type="radio" id="na_no" name="na" value="0" onclick="safeguard_na({{category.id}}, false)" {% if not category.has_NA %} checked {% endif %}/> No
-                </label>
+            <fieldset class="border border-slate-200 rounded-xl p-4 mb-4 bg-white">
+              <legend class="text-xs font-semibold text-slate-500 uppercase tracking-wide px-1">Allow N/A</legend>
+              <div class="flex gap-6 text-sm mt-2">
+                <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="na_yes" name="na" value="1" onclick="safeguard_na({{category.id}}, true)" {% if category.has_NA %} checked {% endif %}/> Yes</label>
+                <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="na_no" name="na" value="0" onclick="safeguard_na({{category.id}}, false)" {% if not category.has_NA %} checked {% endif %}/> No</label>
               </div>
             </fieldset>
           </div>
 
           <!-- Optional -->
           <div {% if not optional_allowed %} hidden {% endif %}>
-            <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
-              <legend class="text-sm font-semibold text-gray-700 px-1">Optional (conditioned by a previous answer)</legend>
-              <div class="flex gap-4 text-sm mt-1">
-                <label class="flex items-center gap-1">
-                  <input type="radio" id="optional_yes" name="optional" onclick="updateOptional(true);safeguard_optional({{category.id}}, true)" value="1" {% if category.optional %} checked {% endif %}/> Yes
-                </label>
-                <label class="flex items-center gap-1">
-                  <input type="radio" id="optional_no" name="optional" onclick="updateOptional(false);safeguard_optional({{category.id}}, false)" value="0" {% if not category.optional %} checked {% endif %}/> No
-                </label>
+            <fieldset class="border border-slate-200 rounded-xl p-4 mb-4 bg-white">
+              <legend class="text-xs font-semibold text-slate-500 uppercase tracking-wide px-1">Optional <span class="font-normal normal-case">(conditioned by a previous answer)</span></legend>
+              <div class="flex gap-6 text-sm mt-2">
+                <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="optional_yes" name="optional" onclick="updateOptional(true);safeguard_optional({{category.id}}, true)" value="1" {% if category.optional %} checked {% endif %}/> Yes</label>
+                <label class="flex items-center gap-2 cursor-pointer"><input class="accent-indigo-600" type="radio" id="optional_no" name="optional" onclick="updateOptional(false);safeguard_optional({{category.id}}, false)" value="0" {% if not category.optional %} checked {% endif %}/> No</label>
               </div>
             </fieldset>
 
             <div id="PrerequisitesVisibility">
-              <div class="mb-3">
-                <p class="text-sm font-medium text-gray-700 mb-2">Prerequisites <span class="text-gray-400 font-normal">(use exact names of existing answers)</span></p>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Prerequisites <span class="font-normal normal-case text-slate-400">(exact names of existing answers)</span></p>
                 <div id="prerequisiteContainer" class="space-y-2">
                   {% set ns = namespace(i = 1) %}
                   {% for prerequisite in category.prerequisites %}
-                    <div class="prerequisiteWrapper flex items-center gap-2 bg-surface rounded-lg px-3 py-2">
-                      <input class="saved flex-1 border border-gray-300 rounded px-2 py-1 text-sm" type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}">
-                      <button class="removePrerequisiteButton text-danger text-xs px-3 py-1 rounded border border-danger hover:bg-red-50" id="removePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
-                      <button class="savePrerequisiteButton bg-teal text-white text-xs px-3 py-1 rounded hover:bg-teal-dark" id="savePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'edit')">Save</button>
+                    <div class="prerequisiteWrapper flex items-center gap-2 bg-indigo-50 rounded-xl px-3 py-2">
+                      <input class="saved flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white" type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}" data-pre-id="{{prerequisite.id}}" data-cat-id="{{category.id}}">
+                      <button class="removePrerequisiteButton text-danger text-xs px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium" id="removePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{category.id}}, 'remove')">Remove</button>
                     </div>
                     {% set ns.i = ns.i + 1 %}
                   {% endfor %}
                 </div>
-                <button id="addPrerequisiteButton" class="mt-2 text-sm border border-gray-300 text-gray-600 px-3 py-1 rounded hover:bg-gray-50">Add Prerequisite Field</button>
+                <button id="addPrerequisiteButton" class="mt-2 text-xs border border-slate-300 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-50 font-medium">+ Add Prerequisite</button>
               </div>
             </div>
           </div>
 
           <!-- Gold Standard -->
           <div id="gold_standard_visibility" {% if not gold_standard_allowed %} hidden {% endif %}>
-            <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
-              <legend class="text-sm font-semibold text-gray-700 px-1">Gold Standard <span class="font-normal text-gray-400">(one per study)</span></legend>
-              <div class="flex gap-4 text-sm mt-1">
-                <label class="flex items-center gap-1">
-                  <input type="radio" id="gold_standard_yes" name="gold_standard" onclick="updateMalignancy(true);safeguard_gold_standard({{category.id}}, true)" value="1" {% if category.has_gold_standard %} checked {% endif %}/> Yes
-                </label>
-                <label class="flex items-center gap-1">
-                  <input type="radio" id="gold_standard_no" name="gold_standard" onclick="updateMalignancy(false);safeguard_gold_standard({{category.id}}, false)" value="0" {% if not category.has_gold_standard %} checked {% endif %}/> No
-                </label>
+            <fieldset class="border border-amber-200 rounded-xl p-4 mb-4 bg-amber-50">
+              <legend class="text-xs font-semibold text-amber-700 uppercase tracking-wide px-1">Gold Standard <span class="font-normal normal-case text-amber-500">(one per study)</span></legend>
+              <div class="flex gap-6 text-sm mt-2">
+                <label class="flex items-center gap-2 cursor-pointer"><input class="accent-amber-600" type="radio" id="gold_standard_yes" name="gold_standard" onclick="updateMalignancy(true);safeguard_gold_standard({{category.id}}, true)" value="1" {% if category.has_gold_standard %} checked {% endif %}/> Yes</label>
+                <label class="flex items-center gap-2 cursor-pointer"><input class="accent-amber-600" type="radio" id="gold_standard_no" name="gold_standard" onclick="updateMalignancy(false);safeguard_gold_standard({{category.id}}, false)" value="0" {% if not category.has_gold_standard %} checked {% endif %}/> No</label>
               </div>
             </fieldset>
             <div id="malignancy_choice">
-              <fieldset class="border border-gray-200 rounded-lg p-3 mb-4">
-                <legend class="text-sm font-semibold text-gray-700 px-1">Classify by Malignancy</legend>
-                <div class="flex gap-4 text-sm mt-1">
-                  <label class="flex items-center gap-1">
-                    <input type="radio" id="malignancy_yes" name="malignancy" value="1" onclick="updateMalignancyVisibility(true);safeguard_malignancy({{category.id}}, true)" {% if category.has_malignancy %} checked {% endif %}/> Yes
-                  </label>
-                  <label class="flex items-center gap-1">
-                    <input type="radio" id="malignancy_no" name="malignancy" value="0" onclick="updateMalignancyVisibility(false);safeguard_malignancy({{category.id}}, false)" {% if not category.has_malignancy %} checked {% endif %}/> No
-                  </label>
+              <fieldset class="border border-rose-200 rounded-xl p-4 mb-4 bg-rose-50">
+                <legend class="text-xs font-semibold text-rose-700 uppercase tracking-wide px-1">Classify by Malignancy</legend>
+                <div class="flex gap-6 text-sm mt-2">
+                  <label class="flex items-center gap-2 cursor-pointer"><input class="accent-rose-600" type="radio" id="malignancy_yes" name="malignancy" value="1" onclick="updateMalignancyVisibility(true);safeguard_malignancy({{category.id}}, true)" {% if category.has_malignancy %} checked {% endif %}/> Yes</label>
+                  <label class="flex items-center gap-2 cursor-pointer"><input class="accent-rose-600" type="radio" id="malignancy_no" name="malignancy" value="0" onclick="updateMalignancyVisibility(false);safeguard_malignancy({{category.id}}, false)" {% if not category.has_malignancy %} checked {% endif %}/> No</label>
                 </div>
               </fieldset>
             </div>
           </div>
 
-          <button type="submit" class="mt-4 bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark text-sm font-medium">Validate Category</button>
+          <button type="submit" class="mt-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">Validate Category</button>
         </div>
 
         <!-- Right column: criteria -->
         <div>
-          <h2 class="text-base font-semibold text-gray-700 mb-3 border-b pb-2">Answers</h2>
+          <h2 class="text-base font-bold text-slate-700 mb-4 border-b border-slate-200 pb-2 flex items-center gap-2">
+            <span class="text-teal">✓</span> Answers
+          </h2>
           <div id="criteriaContainer" class="space-y-2 mb-3">
             {% set ns = namespace(j = 1) %}
             {% for criterion in category.criteria %}
-              <div class="criterionWrapper flex items-center gap-2 bg-surface rounded-lg px-3 py-2">
-                <input class="saved flex-1 border border-gray-300 rounded px-2 py-1 text-sm" type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}">
-                <button class="removeCriterionButton text-danger text-xs px-3 py-1 rounded border border-danger hover:bg-red-50" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">Remove</button>
-                <button class="saveCriterionButton bg-teal text-white text-xs px-3 py-1 rounded hover:bg-teal-dark" id="saveCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'edit')">Save</button>
+              <div class="criterionWrapper flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2 shadow-sm">
+                <input class="saved flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-slate-50" type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}" data-crit-id="{{criterion.id}}" data-cat-id="{{category.id}}">
+                <button class="removeCriterionButton text-danger text-xs px-2.5 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{category.id}}, 'remove')">✕</button>
                 <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
                   <div class="flex gap-2 text-xs mt-1">
-                    <label class="flex items-center gap-1">
-                      <input type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value="1" {% if criterion.malignancy %} checked {% endif %}> Malignant
+                    <label class="flex items-center gap-1 cursor-pointer">
+                      <input class="accent-rose-600" type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value="1" {% if criterion.malignancy %} checked {% endif %}> Malignant
                     </label>
-                    <label class="flex items-center gap-1">
-                      <input type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value="1" {% if not criterion.malignancy %} checked {% endif %}> Benign
+                    <label class="flex items-center gap-1 cursor-pointer">
+                      <input class="accent-green-600" type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value="1" {% if not criterion.malignancy %} checked {% endif %}> Benign
                     </label>
                   </div>
                 </div>
@@ -186,14 +163,14 @@
               {% set ns.j = ns.j + 1 %}
             {% endfor %}
           </div>
-          <button id="addCriterionButton" class="text-sm border border-gray-300 text-gray-600 px-3 py-1 rounded hover:bg-gray-50">Add Answer Field</button>
+          <button id="addCriterionButton" class="text-xs border border-slate-300 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-50 font-medium">+ Add Answer</button>
         </div>
 
       </div>
     </form>
 
-    <div class="mt-4">
-      <a href="/category_configuration/" class="inline-block border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Leave</a>
+    <div class="mt-6">
+      <a href="/category_configuration/" class="inline-block border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">← Leave</a>
     </div>
 
   {% endif %}
@@ -203,4 +180,3 @@
 {% block scripts %}
   <script src="{{ url_for('static', filename='JS/category_edition.js')}}"></script>
 {% endblock %}
-

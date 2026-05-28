@@ -3,30 +3,31 @@
 {% block title %}Admin Dashboard — Img Vote{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-6">
+<div class="max-w-4xl mx-auto px-4 py-8">
 
   <!-- Status banner -->
-  <div class="bg-header text-gray-800 rounded-lg p-4 mb-6">
-    <div class="flex flex-wrap justify-between items-center gap-2">
+  <div class="bg-gradient-to-r from-indigo-700 to-blue-700 text-white rounded-2xl shadow-xl p-6 mb-8">
+    <div class="flex flex-wrap justify-between items-start gap-4">
       <div>
-        <h1 class="text-xl font-bold">Hello, {{ username }}!</h1>
-        <p class="text-sm text-gray-600">Welcome to Img Vote</p>
+        <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-1">Admin Dashboard</p>
+        <h1 class="text-2xl font-extrabold tracking-tight">Hello, {{ username }}!</h1>
+        <p class="text-indigo-200 text-sm mt-0.5">Welcome to Img Vote</p>
       </div>
       {% if study_status in ['ongoing', 'paused', 'test'] %}
-        <div class="text-sm text-right">
+        <div class="bg-white bg-opacity-15 rounded-xl px-5 py-3 text-sm text-right">
           {% if remaing_users > 0 %}
             {% if remaining_days > 0 %}
-              <p>Study <strong>{{ studyname }}</strong> ends in {{ remaining_days }} days</p>
+              <p>Study <strong>{{ studyname }}</strong> ends in <strong>{{ remaining_days }}</strong> days</p>
             {% else %}
               <p>Study is supposed to be over — you may end it anytime</p>
             {% endif %}
-            <p>{{ remaing_users }} of {{ total_users }} users yet to finish their reviews</p>
+            <p class="text-indigo-200 text-xs mt-1">{{ remaing_users }} of {{ total_users }} users yet to finish</p>
           {% else %}
-            <p>Everyone has finished their reviews — you may close the study anytime</p>
+            <p class="font-semibold text-green-300">Everyone has finished their reviews!</p>
             {% if remaining_days > 0 %}
-              <p>{{ remaining_days }} days remaining before intended end date</p>
+              <p class="text-indigo-200 text-xs mt-1">{{ remaining_days }} days before intended end date</p>
             {% else %}
-              <p>Study is supposed to be over — you may end it anytime</p>
+              <p class="text-indigo-200 text-xs mt-1">Study is supposed to be over — you may end it anytime</p>
             {% endif %}
           {% endif %}
         </div>
@@ -35,88 +36,89 @@
   </div>
 
   <!-- Action buttons grid -->
-  <div class="grid grid-cols-2 gap-4 md:grid-cols-3 mb-8">
+  <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Actions</h2>
+  <div class="grid grid-cols-2 gap-3 md:grid-cols-3 mb-10">
 
-    <a href="/change_password/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+    <a href="/change_password/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50 transition-all text-center text-sm font-semibold text-slate-700 group">
+      <span class="block text-indigo-400 text-lg mb-1 group-hover:text-indigo-600">🔑</span>
       Change Password
     </a>
 
-    <a href="/new_user/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+    <a href="/new_user/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50 transition-all text-center text-sm font-semibold text-slate-700 group">
+      <span class="block text-indigo-400 text-lg mb-1 group-hover:text-indigo-600">👤</span>
       Create User
     </a>
 
     {% if study_status == 'stopped' %}
-    <a href="/category_configuration/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+    <a href="/category_configuration/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50 transition-all text-center text-sm font-semibold text-slate-700 group">
+      <span class="block text-indigo-400 text-lg mb-1 group-hover:text-indigo-600">🗂</span>
       Manage Categories
     </a>
     {% endif %}
 
     {% if study_status == 'categories_done' %}
-    <a href="/manage_uploads/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+    <a href="/manage_uploads/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50 transition-all text-center text-sm font-semibold text-slate-700 group">
+      <span class="block text-teal text-lg mb-1 group-hover:text-teal-dark">📁</span>
       Manage Uploads
     </a>
-    <a href="/rollback_categories/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Back to Categories
+    <a href="/rollback_categories/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">
+      ← Back to Categories
     </a>
     {% endif %}
 
     {% if study_status == 'uploads_done' %}
-    <a href="/manage_reviewer_distribution/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Manage Reviewer Distribution
+    <a href="/manage_reviewer_distribution/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50 transition-all text-center text-sm font-semibold text-slate-700 group">
+      <span class="block text-indigo-400 text-lg mb-1 group-hover:text-indigo-600">⚖️</span>
+      Manage Distribution
     </a>
-    <a href="/rollback_uploads/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Back to Uploads
+    <a href="/rollback_uploads/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">
+      ← Back to Uploads
     </a>
     {% endif %}
 
     {% if study_status == 'ready' %}
-    <a href="/begin_study/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Begin Study
+    <a href="/begin_study/" class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow p-5 hover:shadow-md transition-all text-center text-sm font-bold text-white">
+      ▶ Begin Study
     </a>
-    <a href="/begin_testing/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+    <a href="/begin_testing/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50 transition-all text-center text-sm font-semibold text-slate-700">
       Begin Testing
     </a>
-    <a href="/rollback_distribution/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Back to Distribution
+    <a href="/rollback_distribution/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">
+      ← Back to Distribution
     </a>
     {% endif %}
 
     {% if study_status == 'test' %}
-    <a href="/test_rollback/categories" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Back to Categories
-    </a>
-    <a href="/test_rollback/uploads" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Back to Uploads
-    </a>
-    <a href="/test_rollback/distribution" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Back to Distribution
-    </a>
+    <a href="/test_rollback/categories" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">← Back to Categories</a>
+    <a href="/test_rollback/uploads" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">← Back to Uploads</a>
+    <a href="/test_rollback/distribution" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">← Back to Distribution</a>
     {% endif %}
 
     {% if study_status == 'ongoing' %}
-    <a href="/pause_study/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Pause Study
+    <a href="/pause_study/" class="bg-white rounded-xl shadow border border-amber-200 p-5 hover:shadow-md hover:bg-amber-50 transition-all text-center text-sm font-semibold text-amber-700">
+      ⏸ Pause Study
     </a>
     {% endif %}
 
     {% if study_status == 'paused' %}
-    <a href="/resume_study/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
-      Resume Study
+    <a href="/resume_study/" class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow p-5 hover:shadow-md transition-all text-center text-sm font-bold text-white">
+      ▶ Resume Study
     </a>
-    <a href="/confirm_end/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-danger transition-all text-center text-sm font-medium text-danger border-danger">
-      End Study
+    <a href="/confirm_end/" class="bg-white rounded-xl shadow border border-red-200 p-5 hover:shadow-md hover:bg-red-50 transition-all text-center text-sm font-semibold text-danger">
+      ⏹ End Study
     </a>
     {% endif %}
 
     {% if ((study_status == 'ended') or (study_status == 'paused') or (study_status == 'test')) %}
-    <a href="/export_data/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-primary transition-all text-center text-sm font-medium text-gray-700">
+    <a href="/export_data/" class="bg-white rounded-xl shadow border border-teal-200 p-5 hover:shadow-md hover:bg-teal-50 transition-all text-center text-sm font-semibold text-teal group">
+      <span class="block text-lg mb-1">📊</span>
       Export Data
     </a>
     {% endif %}
 
     {% if study_status == 'ended' %}
-    <a href="/confirm_clear_users/" class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 hover:shadow-md hover:border-danger transition-all text-center text-sm font-medium text-danger border-danger">
-      Clear Users and Data
+    <a href="/confirm_clear_users/" class="bg-white rounded-xl shadow border border-red-200 p-5 hover:shadow-md hover:bg-red-50 transition-all text-center text-sm font-semibold text-danger">
+      🗑 Clear Users and Data
     </a>
     {% endif %}
 
@@ -124,31 +126,36 @@
 
   <!-- Reviewer list -->
   {% if display_others %}
-  <h2 class="text-base font-semibold text-gray-700 mb-3">Users</h2>
-  <div class="bg-white rounded-xl shadow divide-y divide-gray-100">
+  <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Users</h2>
+  <div class="bg-white rounded-2xl shadow divide-y divide-slate-100">
     {% for otherUser in otherUsers %}
-    <div class="flex justify-between items-center px-4 py-3 text-sm">
-      <div>
-        <span class="font-medium text-gray-800">{{ otherUser[1] }}</span>
-        <span class="text-gray-400 mx-1">·</span>
-        <span class="text-gray-500">{{ otherUser[2] }}</span>
+    <div class="flex justify-between items-center px-5 py-3.5 text-sm hover:bg-indigo-50 transition-colors">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+          {{ otherUser[1][0]|upper }}
+        </div>
+        <div>
+          <span class="font-semibold text-slate-800">{{ otherUser[1] }}</span>
+          <span class="text-slate-400 mx-1 text-xs">·</span>
+          <span class="text-slate-400 text-xs">{{ otherUser[2] }}</span>
+        </div>
         {% if otherUser[3] %}
-          <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-primary-light text-primary">Admin</span>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Admin</span>
         {% else %}
-          <span class="ml-2 text-xs text-gray-500">Reviewer</span>
+          <span class="text-xs text-slate-400">Reviewer</span>
           {% if otherUser[4] > 0 and (study_status in ['ongoing', 'paused', 'test']) %}
-            <span class="ml-1 text-xs text-amber-600">{{ otherUser[4] }} remaining</span>
+            <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{{ otherUser[4] }} remaining</span>
           {% endif %}
           {% if otherUser[4] == 0 and (study_status in ['ongoing', 'paused', 'test']) %}
-            <span class="ml-1 text-xs text-green-600">Reviews finished!</span>
+            <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Done</span>
           {% endif %}
         {% endif %}
       </div>
       <div class="flex gap-2">
         {% if study_status != 'ongoing' %}
-          <a href="/confirm_delete_user/{{otherUser[0]}}" class="text-xs text-danger border border-danger px-2 py-1 rounded hover:bg-red-50">Delete</a>
+          <a href="/confirm_delete_user/{{otherUser[0]}}" class="text-xs text-danger border border-red-200 px-2.5 py-1 rounded-lg hover:bg-red-50 transition-colors">Delete</a>
         {% endif %}
-        <a href="/reset_password/{{otherUser[0]}}" class="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-gray-50">Reset password</a>
+        <a href="/reset_password/{{otherUser[0]}}" class="text-xs border border-slate-200 text-slate-500 px-2.5 py-1 rounded-lg hover:bg-slate-50 transition-colors">Reset password</a>
       </div>
     </div>
     {% endfor %}
@@ -157,4 +164,3 @@
 
 </div>
 {% endblock %}
-

@@ -25,9 +25,9 @@
 .split.right {
     left: calc(69% + 5px);
     width: calc(30% - 5px);
-    background-color: #f7f7f7;
-    border-left: 5px solid #f7f7f7;
-    border-right: 5px solid #f7f7f7;
+    background: linear-gradient(160deg, #eef2ff 0%, #e0e7ff 100%);
+    border-left: 5px solid #eef2ff;
+    border-right: 5px solid #eef2ff;
     padding-bottom: 80px;
 }
 
@@ -40,14 +40,15 @@
     left: 0;
     width: 100%;
     height: 40px;
-    background-color: #bbbbbb;
-    color: #000;
+    background: linear-gradient(to right, #4338ca, #1d4ed8);
+    color: #fff;
     text-align: center;
     font-size: 20px;
     font-weight: bold;
     line-height: 40px;
     z-index: 2000;
-    border-bottom: 1px solid #aaa;
+    border-bottom: none;
+    letter-spacing: 0.01em;
 }
 
 /* Push splits below header */
@@ -72,23 +73,24 @@
 
 .options label {
     display: inline-block;
-    padding: 1px 12px;
-    border: 1px solid #bbb;
-    border-radius: 6px;
-    background-color: #eee;
+    padding: 2px 14px;
+    border: 1px solid #c7d2fe;
+    border-radius: 9999px;
+    background-color: #fff;
     cursor: pointer;
-    margin-right: 8px;
-    transition: background-color 0.2s, border 0.2s;
+    margin-right: 6px;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
     text-align: center;
-    line-height: 1.2;
-    font-size: 14px;
-    color: #000;
+    line-height: 1.5;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4338ca;
 }
 
 .options input[type="radio"]:checked + label {
-    background-color: #90caf9;
-    color: black;
-    border: 1px solid #0d47a1;
+    background-color: #4f46e5;
+    color: #fff;
+    border: 1px solid #3730a3;
 }
 
 .options input[type="radio"]:disabled + label {
@@ -124,48 +126,62 @@
 
 /* Tutorial button */
 .tutorial-btn input[type="button"] {
-    width: 25px;
-    height: 25px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
-    background-color: #eee;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid #c7d2fe;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
     cursor: pointer;
-    font-size: 18px;
-    transition: background-color 0.2s;
+    font-size: 13px;
+    font-weight: bold;
+    transition: opacity 0.15s;
     margin-top: -5px;
 }
 
-.tutorial-btn input[type="button"]:hover { background-color: #ddd; }
+.tutorial-btn input[type="button"]:hover { opacity: 0.85; }
 
 /* Range slider (WebKit/Mozilla pseudo-elements — Tailwind cannot replace) */
 .slidecontainer { width: 100%; }
 
 .slider {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
-    height: 15px;
-    background: linear-gradient(to left, green, yellow 50%, red) content-box;
-    opacity: 0.7;
-    -webkit-transition: .2s;
-    transition: opacity .2s;
+    height: 6px;
+    border-radius: 9999px;
+    background: linear-gradient(to right, red, yellow 50%, green);
+    outline: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
 }
 
-.slider:hover { opacity: 1; }
+.slider:hover { opacity: 0.9; }
 
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 25px;
-    height: 25px;
-    background: #04AA6D;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #4f46e5;
+    box-shadow: 0 1px 4px rgba(79, 70, 229, 0.35);
     cursor: pointer;
+    transition: box-shadow 0.15s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.15);
 }
 
 .slider::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: #04AA6D;
+    background: #fff;
+    border: 2px solid #4f46e5;
+    box-shadow: 0 1px 4px rgba(79, 70, 229, 0.35);
     cursor: pointer;
 }
 

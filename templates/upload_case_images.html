@@ -3,22 +3,30 @@
 {% block title %}Upload Case Images — Img Vote{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-xl shadow-md p-8 max-w-lg mx-auto mt-10">
-  <h1 class="text-xl font-semibold text-gray-800 mb-6">Upload Case Image Files</h1>
-  {% if errors %}
-    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ errors }}</div>
-  {% endif %}
-  <form method="post" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <label class="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors mb-4">
-      <span class="text-sm text-gray-500">Click to select a ZIP file</span>
-      <input type="file" name="file" class="hidden">
-    </label>
-    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-900 mt-4 text-sm">Upload</button>
-  </form>
-  <div class="mt-6">
-    <a href="/manage_uploads/" class="border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Go Back</a>
+<div class="max-w-lg mx-auto mt-10">
+  <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-5">
+      <h1 class="text-xl font-bold text-white">Upload Case Image Files</h1>
+      <p class="text-indigo-200 text-xs mt-0.5">ZIP archive containing all case images</p>
+    </div>
+    <div class="px-8 py-7">
+      {% if errors %}
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ errors }}</div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <label class="block border-2 border-dashed border-indigo-200 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all mb-5">
+          <p class="text-3xl mb-2">📁</p>
+          <p class="text-sm font-medium text-slate-600">Click to select a ZIP file</p>
+          <p class="text-xs text-slate-400 mt-1">Drag & drop also works</p>
+          <input type="file" name="file" class="hidden">
+        </label>
+        <div class="flex gap-3">
+          <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all">Upload</button>
+          <a href="/manage_uploads/" class="border border-slate-300 text-slate-600 px-4 py-2.5 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Go Back</a>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}
-

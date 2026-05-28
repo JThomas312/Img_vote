@@ -191,7 +191,7 @@ def change_prerequisite(cat_id, crit_id, name, action):
         delete_prerequisite(cat_id, crit_id)    
     if action == 'edit':
         delete_prerequisite(cat_id, crit_id) 
-        new_prerequisite(cat_id, name)
+        return new_prerequisite(cat_id, name)
         
 
 def delete_category(cat_id):

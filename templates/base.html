@@ -11,64 +11,33 @@
       theme: {
         extend: {
           colors: {
-            primary:  { DEFAULT: '#0d47a1', light: '#90caf9', dark: '#08306b' },
-            teal:     { DEFAULT: '#00aabb', dark: '#008899' },
-            navy:     '#075f9c',
-            success:  '#37de37',
-            danger:   '#ff0000',
-            surface:  { DEFAULT: '#f7f7f7', dark: '#eeeeee' },
-            header:   '#bbbbbb',
+            primary:  { DEFAULT: '#4f46e5', light: '#c7d2fe', dark: '#3730a3' },
+            teal:     { DEFAULT: '#0891b2', dark: '#0e7490' },
+            navy:     '#1e3a5f',
+            success:  '#16a34a',
+            danger:   '#dc2626',
+            surface:  { DEFAULT: '#eef2ff', dark: '#e0e7ff' },
+            header:   '#6366f1',
           }
         }
       }
     }
   </script>
 
-  <style>
-    /* Range slider — Tailwind has no equivalent for WebKit/Mozilla pseudo-elements */
-    .slidecontainer { width: 100%; }
-    .slider {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 15px;
-      background: linear-gradient(to left, green, yellow 50%, red) content-box;
-      opacity: 0.7;
-      -webkit-transition: .2s;
-      transition: opacity .2s;
-    }
-    .slider:hover { opacity: 1; }
-    .slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 25px;
-      height: 25px;
-      background: #04AA6D;
-      cursor: pointer;
-    }
-    .slider::-moz-range-thumb {
-      width: 25px;
-      height: 25px;
-      border-radius: 50%;
-      background: #04AA6D;
-      cursor: pointer;
-    }
-  </style>
-
   {% block head %}{% endblock %}
 </head>
-<body class="{% block body_class %}bg-surface min-h-screen pt-14{% endblock %}">
+<body class="{% block body_class %}bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 min-h-screen pt-16{% endblock %}">
 
   {% block nav %}
-  <!-- Global navigation bar -->
-  <nav class="fixed top-0 left-0 w-full h-14 bg-primary text-white flex items-center justify-between px-6 z-50 shadow">
-    <span class="text-xl font-bold">Img Vote</span>
+  <nav class="fixed top-0 left-0 w-full h-16 bg-gradient-to-r from-indigo-700 to-blue-700 text-white flex items-center justify-between px-6 z-50 shadow-lg">
+    <span class="text-xl font-extrabold tracking-tight">Img<span class="text-indigo-200">Vote</span></span>
     <div class="flex items-center gap-4 text-sm">
       {% if session.get('admin') %}
-        <span class="opacity-80">Admin</span>
+        <span class="bg-indigo-500 bg-opacity-50 text-indigo-100 text-xs font-semibold px-2.5 py-0.5 rounded-full">Admin</span>
       {% endif %}
       {% if session.get('username') %}
-        <span class="opacity-80">{{ session['username'] }}</span>
-        <a href="/logout/" class="underline hover:opacity-100">Logout</a>
+        <span class="text-indigo-200">{{ session['username'] }}</span>
+        <a href="/logout/" class="bg-white bg-opacity-15 hover:bg-opacity-25 transition-all px-3 py-1 rounded-lg text-white text-xs font-medium">Logout</a>
       {% endif %}
     </div>
   </nav>

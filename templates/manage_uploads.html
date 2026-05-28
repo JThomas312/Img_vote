@@ -3,78 +3,83 @@
 {% block title %}Manage Uploads — Img Vote{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 py-6">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">Manage File Uploads</h1>
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <div class="mb-6">
+    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Manage File Uploads</h1>
+    <p class="text-slate-500 text-sm mt-1">Upload the assets required before starting the study</p>
+  </div>
 
   {% if errors %}
     <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ errors }}</div>
   {% endif %}
 
-  <div class="bg-white rounded-xl shadow divide-y divide-gray-100">
+  <div class="bg-white rounded-2xl shadow-lg divide-y divide-slate-100 mb-6">
 
     <!-- Case images -->
-    <div class="flex items-center justify-between px-4 py-4">
+    <div class="flex items-center justify-between px-5 py-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center {% if upload_status.case_images_uploaded %}bg-green-100 text-green-600{% else %}bg-slate-100 text-slate-400{% endif %} text-lg">🖼</div>
+        <div>
+          <p class="font-semibold text-slate-800 text-sm">Case Images</p>
+          <p class="text-xs {% if upload_status.case_images_uploaded %}text-green-600{% else %}text-slate-400{% endif %}">
+            {% if upload_status.case_images_uploaded %}Uploaded{% else %}Not yet uploaded{% endif %}
+          </p>
+        </div>
+      </div>
       {% if upload_status.case_images_uploaded %}
-        <div>
-          <p class="font-medium text-gray-800 text-sm">Case Images</p>
-          <p class="text-xs text-green-600">Already uploaded</p>
-        </div>
-        <a href="/delete_case_images/" class="text-xs text-danger border border-danger px-3 py-1 rounded-lg hover:bg-red-50">Delete</a>
+        <a href="/delete_case_images/" class="text-xs text-danger border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors font-medium">Delete</a>
       {% else %}
-        <div>
-          <p class="font-medium text-gray-800 text-sm">Case Images</p>
-          <p class="text-xs text-gray-400">Not yet uploaded</p>
-        </div>
-        <a href="/upload_case_images/" class="text-xs bg-primary text-white px-3 py-1 rounded-lg hover:bg-primary-dark">Upload</a>
+        <a href="/upload_case_images/" class="text-xs bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-3 py-1.5 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all font-medium shadow-sm">Upload</a>
       {% endif %}
     </div>
 
     <!-- Tutorial images -->
     {% if upload_status.tutorial_images_needed %}
-    <div class="flex items-center justify-between px-4 py-4">
+    <div class="flex items-center justify-between px-5 py-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center {% if upload_status.tutorial_images_uploaded %}bg-green-100 text-green-600{% else %}bg-slate-100 text-slate-400{% endif %} text-lg">📋</div>
+        <div>
+          <p class="font-semibold text-slate-800 text-sm">Tutorial Images</p>
+          <p class="text-xs {% if upload_status.tutorial_images_uploaded %}text-green-600{% else %}text-slate-400{% endif %}">
+            {% if upload_status.tutorial_images_uploaded %}Uploaded{% else %}Not yet uploaded{% endif %}
+          </p>
+        </div>
+      </div>
       {% if upload_status.tutorial_images_uploaded %}
-        <div>
-          <p class="font-medium text-gray-800 text-sm">Tutorial Images</p>
-          <p class="text-xs text-green-600">Already uploaded</p>
-        </div>
-        <a href="/delete_tutorial_images/" class="text-xs text-danger border border-danger px-3 py-1 rounded-lg hover:bg-red-50">Delete</a>
+        <a href="/delete_tutorial_images/" class="text-xs text-danger border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors font-medium">Delete</a>
       {% else %}
-        <div>
-          <p class="font-medium text-gray-800 text-sm">Tutorial Images</p>
-          <p class="text-xs text-gray-400">Not yet uploaded</p>
-        </div>
-        <a href="/upload_tutorial_images/" class="text-xs bg-primary text-white px-3 py-1 rounded-lg hover:bg-primary-dark">Upload</a>
+        <a href="/upload_tutorial_images/" class="text-xs bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-3 py-1.5 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all font-medium shadow-sm">Upload</a>
       {% endif %}
     </div>
     {% endif %}
 
     <!-- Case data -->
     {% if upload_status.case_data_needed %}
-    <div class="flex items-center justify-between px-4 py-4">
+    <div class="flex items-center justify-between px-5 py-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center {% if upload_status.case_data_uploaded %}bg-green-100 text-green-600{% else %}bg-slate-100 text-slate-400{% endif %} text-lg">📊</div>
+        <div>
+          <p class="font-semibold text-slate-800 text-sm">Case Data</p>
+          <p class="text-xs {% if upload_status.case_data_uploaded %}text-green-600{% else %}text-slate-400{% endif %}">
+            {% if upload_status.case_data_uploaded %}Uploaded{% else %}Not yet uploaded{% endif %}
+          </p>
+        </div>
+      </div>
       {% if upload_status.case_data_uploaded %}
-        <div>
-          <p class="font-medium text-gray-800 text-sm">Case Data</p>
-          <p class="text-xs text-green-600">Already uploaded</p>
-        </div>
-        <a href="/delete_case_data/" class="text-xs text-danger border border-danger px-3 py-1 rounded-lg hover:bg-red-50">Delete</a>
+        <a href="/delete_case_data/" class="text-xs text-danger border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors font-medium">Delete</a>
       {% else %}
-        <div>
-          <p class="font-medium text-gray-800 text-sm">Case Data</p>
-          <p class="text-xs text-gray-400">Not yet uploaded</p>
-        </div>
-        <a href="/upload_case_data/" class="text-xs bg-primary text-white px-3 py-1 rounded-lg hover:bg-primary-dark">Upload</a>
+        <a href="/upload_case_data/" class="text-xs bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-3 py-1.5 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all font-medium shadow-sm">Upload</a>
       {% endif %}
     </div>
     {% endif %}
 
   </div>
 
-  <div class="mt-6 flex gap-3">
-    <a href="/user_home/" class="border border-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 text-sm">Go Back</a>
+  <div class="flex gap-3">
+    <a href="/user_home/" class="border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Go Back</a>
     {% if upload_status.case_images_uploaded and (not upload_status.tutorial_images_needed or upload_status.tutorial_images_uploaded) and (not upload_status.case_data_needed or upload_status.case_data_uploaded) %}
-      <a href="/finish_uploading/" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark text-sm">Finish Uploading</a>
+      <a href="/finish_uploading/" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">Finish Uploading</a>
     {% endif %}
   </div>
 </div>
 {% endblock %}
-

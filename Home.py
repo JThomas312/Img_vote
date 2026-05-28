@@ -925,8 +925,8 @@ def edit_prerequisite():
                 pre_id = request.args.get('pre_id')
                 name = request.args.get('name')
                 action = request.args.get('action')
-                change_prerequisite(cat_id, pre_id, name, action)
-                return '', 204
+                new_id = change_prerequisite(cat_id, pre_id, name, action)
+                return jsonify(result=new_id)
             
         return(redirect(url_for('user_home')))
     else:
