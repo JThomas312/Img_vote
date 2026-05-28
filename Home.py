@@ -827,8 +827,12 @@ def case_display(case):
 @app.route('/case_learning/<case>', methods=['GET'])
 def case_learning(case):
     if 'userId' in session:
-        caseVM = caseForLearning(session['userId'], case)
-        return render_template('case_learning.html', ViewModel=caseVM)
+        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+            status = fr.read().replace('\n', '')
+        if status == 'ended':
+            caseVM = caseForLearning(session['userId'], case)
+            return render_template('case_learning.html', ViewModel=caseVM)
+        return redirect(url_for('user_home'))
     else:
         return redirect(url_for('login'))
  
