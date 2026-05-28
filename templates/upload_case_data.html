@@ -16,7 +16,8 @@
           <p class="text-3xl mb-2">📊</p>
           <p class="text-sm font-medium text-slate-600">Click to select an Excel file</p>
           <p class="text-xs text-slate-400 mt-1">.xls or .xlsx format</p>
-          <input type="file" name="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="hidden">
+          <input type="file" name="file" id="fileInput" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="hidden">
+          <p id="file-name" class="hidden mt-3 text-xs font-medium text-indigo-700 bg-indigo-100 border border-indigo-200 rounded-full px-3 py-1 inline-block truncate max-w-full"></p>
         </label>
         <div class="flex gap-3">
           <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all">Upload</button>
@@ -26,4 +27,8 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='JS/file_upload_dropzone.js') }}"></script>
 {% endblock %}
