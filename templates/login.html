@@ -1,32 +1,39 @@
-<!--# -*- coding: utf-8 -*-
-"""
+{% extends "base.html" %}
 
-@author: jacques
-"""-->
+{% block title %}Login — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<title>Login to Lyon Dermoscopy Studies</title>
+{% block body_class %}bg-gradient-to-br from-indigo-700 via-blue-700 to-cyan-600 min-h-screen flex items-center justify-center{% endblock %}
+{% block nav %}{% endblock %}
 
-{% if error %}
-  <h1>There has been an error during login: {{ error }}!</h1>
-  <a href="/login/">
-    <button>try again</button>
-  </a>
-{% else %}
-    {% if logout %}
-        <h3>You have been successfully logged out !</h3>
-    {% endif %}
-    <form method="post">
+{% block content %}
+<div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+  <!-- Accent header strip -->
+  <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-10 py-6 text-center">
+    <h1 class="text-2xl font-extrabold text-white tracking-tight">Img<span class="text-indigo-200">Vote</span></h1>
+    <p class="text-indigo-200 text-xs mt-1">Clinical Image Review Platform</p>
+  </div>
+
+  <div class="px-10 py-8">
+    {% if error %}
+      <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ error }}</div>
+      <a href="/login/" class="block text-center text-sm text-primary underline">Try again</a>
+    {% else %}
+      {% if logout %}
+        <p class="mb-4 text-sm text-green-700 text-center">You have been successfully logged out.</p>
+      {% endif %}
+      <form method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <a> Login </a>
-        <p><input type=text name=username>
-        <br/>
-        <br/>
-        <a> Password </a>
-        <p><input type=password name=password>
-        <p><input type=submit value=Login>
-    </form>
-{% endif %}
-
-{% endautoescape %}
+        <div class="mb-4">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5" for="username">Login</label>
+          <input id="username" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" type="text" name="username">
+        </div>
+        <div class="mb-6">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5" for="password">Password</label>
+          <input id="password" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" type="password" name="password">
+        </div>
+        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-2.5 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all">Sign in</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

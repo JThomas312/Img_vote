@@ -25,45 +25,39 @@
 .split.right {
     left: calc(69% + 5px);
     width: calc(30% - 5px);
-    background-color: #f7f7f7;
-    border-left: 5px solid #f7f7f7;
-    border-right: 5px solid #f7f7f7;
+    background: linear-gradient(160deg, #eef2ff 0%, #e0e7ff 100%);
+    border-left: 5px solid #eef2ff;
+    border-right: 5px solid #eef2ff;
     padding-bottom: 80px;
 }
 
 .case_img { max-width: 100%; height: auto; cursor: pointer; }
 
+/* Case header bar */
 .case-header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 40px;
-    background-color: #bbb;
-    color: #000;
+    background: linear-gradient(to right, #4338ca, #1d4ed8);
+    color: #fff;
     text-align: center;
-    font-size: 28px;
+    font-size: 20px;
     font-weight: bold;
     line-height: 40px;
     z-index: 2000;
-    border-bottom: 1px solid #aaa;
+    border-bottom: none;
+    letter-spacing: 0.01em;
 }
 
-/* Adjust layout so the split sections start below the header */
+/* Push splits below header */
 .split {
-    top: 40px; /* Push content below header */
+    top: 40px;
     height: calc(100% - 40px);
 }
 
-.correct{
-    color: #37de04;
-}
-
-.wrong{
-    color: red;
-}
-
-.incorrect{
-    color: blue;
-}
-
+/* Answer comparison color classes */
+.correct  { color: #37de04; }
+.wrong    { color: red; }
+.incorrect { color: blue; }

@@ -1,54 +1,37 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 17 15:16:10 2026
+{% extends "base.html" %}
 
-@author: j.thomas
-"""-->
+{% block title %}Category Errors — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+{% endblock %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Category Error List</title>
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+    <div class="bg-gradient-to-r from-red-600 to-rose-600 px-8 py-5">
+      <h1 class="text-xl font-bold text-white">Categories could not be confirmed</h1>
+      <p class="text-red-200 text-xs mt-0.5">Please fix the errors below before continuing</p>
+    </div>
+    <div class="divide-y divide-slate-100">
+      {% for error in errors %}
+        <p class="px-6 py-3 text-sm text-slate-700">{{ error }}</p>
+      {% endfor %}
+    </div>
+  </div>
 
-    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
-    
-</head>
+  {% if nb_incorrect_categories > 0 %}
+    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Responsible categories</h2>
+    <div class="bg-white rounded-2xl shadow-lg divide-y divide-slate-100 mb-6">
+      {% for incorrect_category in incorrect_categories %}
+        <div class="flex items-center justify-between px-5 py-3.5 hover:bg-indigo-50 transition-colors">
+          <span class="text-sm font-medium text-slate-800">{{ incorrect_category[1] }}</span>
+          <a href="/edit_category/{{incorrect_category[0]}}" class="editButton text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 font-medium transition-colors">Edit</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
-<body>
-
-    <h1> Categories could not be confirmed because of the following error(s): </h1>
-
-    {% for error in errors %}
-    
-        {{error}}
-        </br>
-    
-    {% endfor %}
-    
-    {% if nb_incorrect_categories > 0 %}
-        
-        <h3> The following categories are responsible for the errors </h3>
-        
-        {% for incorrect_category in incorrect_categories %}
-        
-            {{incorrect_category[1]}} <a href="/edit_category/{{incorrect_category[0]}}"><button class="editButton">Edit</button></a>
-            </br>
-            
-        {% endfor %}
-    
-    {% endif %}
-    
-    </br>
-    <a href="/category_configuration/">
-        <button>Go Back</button>
-    </a>
-    
-</body>
-
-{% endautoescape %}
-</html>
+  <a href="/category_configuration/" class="inline-block border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">← Go Back</a>
+</div>
+{% endblock %}

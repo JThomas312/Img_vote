@@ -5,6 +5,101 @@
 //@author: j.thomas
 //"""
 
+function debounce(fn, delay) {
+    var timer;
+    return function() {
+        var args = arguments;
+        var ctx = this;
+        clearTimeout(timer);
+        timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
+    };
+}
+
+function attachCriterionAutoSave(input, getCritId, catId) {
+    var handler = debounce(function() {
+        var critId = getCritId();
+        var wrapper = input.parentNode;
+        var malYes = wrapper.querySelector('[id$="_yes"][type="radio"]');
+        var malNo  = wrapper.querySelector('[id$="_no"][type="radio"]');
+        var name = input.value;
+        var malignancy = malYes ? malYes.checked : false;
+        if (!critId) {
+            if (!name.trim()) return;
+            // No DB id yet — trigger first-save via safeguard_criterion
+            var url = '/safeguard_criterion?cat_id=' + catId + '&name=' + encodeURIComponent(name) + '&malignancy=' + malignancy;
+            $.getJSON(url, function(data) {
+                var newId = data.result;
+                if (newId == null) {
+                    wrapper.remove();
+                } else {
+                    input.dataset.critId = newId;
+                    if (malYes) malYes.setAttribute('onclick', 'safeguard_criterion_malignancy(' + newId + ', true)');
+                    if (malNo)  malNo.setAttribute('onclick',  'safeguard_criterion_malignancy(' + newId + ', false)');
+                    var removeBtn = wrapper.querySelector('.removeCriterionButton');
+                    if (removeBtn) {
+                        var num = input.id.slice(14);
+                        removeBtn.setAttribute('onclick', 'edit_criterion(event, ' + newId + ', "criterionField' + num + '", "criterionMalignancy' + num + '_yes", ' + catId + ', "remove")');
+                    }
+                    input.classList.add('saved');
+                }
+            });
+        } else {
+            // Already has a DB id — use edit_criterion
+            var url = '/edit_criterion?cat_id=' + catId + '&crit_id=' + critId + '&name=' + encodeURIComponent(name) + '&malignancy=' + malignancy + '&action=edit';
+            $.getJSON(url, function() {});
+        }
+    }, 800);
+    input.addEventListener('input', handler);
+}
+function setPrerequisiteError(input, message) {
+    input.classList.add('border-red-500');
+    input.classList.remove('saved');
+    input.title = message;
+}
+
+function clearPrerequisiteError(input) {
+    input.classList.remove('border-red-500');
+    input.title = '';
+}
+
+function attachPrerequisiteAutoSave(input, getPreId, catId) {
+    var handler = debounce(function() {
+        var preId = getPreId();
+        var name = input.value;
+        clearPrerequisiteError(input);
+        if (!preId) {
+            if (!name.trim()) return;
+            var url = '/safeguard_prerequisite?cat_id=' + catId + '&name=' + encodeURIComponent(name);
+            $.getJSON(url, function(data) {
+                var newId = data.result;
+                if (newId == null) {
+                    setPrerequisiteError(input, 'No matching answer found. The name must exactly match an existing answer from another category.');
+                } else {
+                    input.dataset.preId = newId;
+                    var removeBtn = input.parentNode.querySelector('.removePrerequisiteButton');
+                    if (removeBtn) {
+                        var num = input.id.slice(17);
+                        removeBtn.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', prerequisiteField' + num + ', ' + catId + ', "remove")');
+                    }
+                    input.classList.add('saved');
+                }
+            });
+        } else {
+            $.getJSON('/edit_prerequisite?cat_id=' + catId + '&pre_id=' + preId + '&name=' + encodeURIComponent(name) + '&action=edit', function(data) {
+                if (data.result != null) {
+                    input.dataset.preId = data.result;
+                } else {
+                    setPrerequisiteError(input, 'No matching answer found. The name must exactly match an existing answer from another category.');
+                }
+            });
+        }
+    }, 800);
+    input.addEventListener('input', function() {
+        clearPrerequisiteError(input);
+        handler.apply(this, arguments);
+    });
+}
+
 
 function updateMalignancyVisibility(show){
     var blocks = document.getElementsByClassName( 'criterionMalignancy' );
@@ -66,14 +161,31 @@ window.addEventListener('load', initMalignancy);
 window.addEventListener('load', initMalignancyVisibility);
 window.addEventListener('load', initOptional);
 
+window.addEventListener('load', function() {
+    var catId = document.getElementById('category_id').value;
 
-function safeguard_name(event, cat_id){
-    event.preventDefault();
-    var name = document.getElementById("category_name").value;
-    url = '/safeguard_category?cat_id=' + cat_id + '&value=' + name + '&field=name';
-    $.getJSON(url, function(data){});
-    return false;
-}
+    // Auto-save for category name
+    var nameInput = document.getElementById('category_name');
+    var debouncedSaveName = debounce(function() {
+        $.getJSON('/safeguard_category?cat_id=' + catId + '&value=' + encodeURIComponent(nameInput.value) + '&field=name');
+    }, 800);
+    nameInput.addEventListener('input', debouncedSaveName);
+
+    // Auto-save for existing criteria inputs
+    var criteriaContainer = document.getElementById('criteriaContainer');
+    criteriaContainer.querySelectorAll('input[data-crit-id]').forEach(function(input) {
+        attachCriterionAutoSave(input, function() { return input.dataset.critId; }, catId);
+    });
+
+    // Auto-save for existing prerequisite inputs
+    var prerequisiteContainer = document.getElementById('prerequisiteContainer');
+    if (prerequisiteContainer) {
+        prerequisiteContainer.querySelectorAll('input[data-pre-id]').forEach(function(input) {
+            attachPrerequisiteAutoSave(input, function() { return input.dataset.preId; }, catId);
+        });
+    }
+});
+
 
 function safeguard_trust(cat_id, value){
     url = '/safeguard_category?cat_id=' + cat_id + '&value=' + value + '&field=trust';
@@ -121,34 +233,6 @@ function safeguard_gold_standard(cat_id, value){
 function safeguard_malignancy(cat_id, value){
     url = '/safeguard_category?cat_id=' + cat_id + '&value=' + value + '&field=malignancy';
     $.getJSON(url, function(data){});
-    return false;
-}
- 
-function safeguard_prerequisite(event, nameElement, cat_id){
-    event.preventDefault();
-    var nameElementId = nameElement.id;
-    var name = document.getElementById(nameElementId).value;
-    url = '/safeguard_prerequisite?cat_id=' + cat_id + '&name=' + name;
-    $.getJSON(url, function(data){
-        
-        var newId = data.result;
-        if (newId == null){
-            nameElement.parentNode.remove();
-        }
-        else{
-            var category_id = document.getElementById('category_id').value;
-            var num = nameElementId.slice(17);
-            
-            var removeButton = document.getElementById('removePrerequisiteButton' + num);
-            var saveButton = document.getElementById('savePrerequisiteButton' + num);
-            
-            removeButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "remove")')
-            
-            saveButton.setAttribute('onclick', 'edit_prerequisite(event, ' + newId + ', "prerequisiteField' + num + '", ' + category_id + ', "edit")');
-            
-            nameElement.classList.add('saved')
-        }
-    });
     return false;
 }
 
@@ -284,23 +368,24 @@ document.getElementById('addCriterionButton').addEventListener('click', function
 
   var criteriaContainer = document.getElementById('criteriaContainer');
   var newcriterionWrapper = document.createElement('div');
-  newcriterionWrapper.classList.add('criterionWrapper');
+  newcriterionWrapper.className = 'criterionWrapper flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2 shadow-sm';
 
   var newInput = document.createElement('input');
   newInput.type = 'text';
   newInput.id = 'criterionField' + (criteriaContainer.children.length + 1);
   newInput.name = 'criterionField' + (criteriaContainer.children.length + 1);
-  
+  newInput.className = 'flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-slate-50';
+
   newcriterionWrapper.appendChild(newInput);
 
   var newButton = document.createElement('button');
-  newButton.textContent = 'Remove';
-  newButton.classList.add('removeCriterionButton');
+  newButton.textContent = '✕';
+  newButton.className = 'removeCriterionButton text-danger text-xs px-2.5 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium';
   newButton.id = 'removeCriterionButton' + (criteriaContainer.children.length + 1);
   newButton.setAttribute('onclick', 'removeParent(event)');
-  
+
   newcriterionWrapper.appendChild(newButton);
-  
+
   var display = document.getElementById('malignancy_yes').checked
 
   var newDiv = document.createElement('div');
@@ -312,44 +397,47 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   else{
       newDiv.style.display='none'
   }
-  
+
+  var newInnerDiv = document.createElement('div');
+  newInnerDiv.className = 'flex gap-2 text-xs mt-1';
+
   var newRadioYes = document.createElement('input');
   newRadioYes.type = 'radio';
   newRadioYes.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_yes';
   newRadioYes.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
   newRadioYes.value = 1;
-  
+  newRadioYes.className = 'accent-rose-600';
+
   var newLabelYes = document.createElement('label');
-  newRadioYes.htmlFor = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
-  newLabelYes.innerHTML = 'Malignant';
-  
+  newLabelYes.htmlFor = newRadioYes.id;
+  newLabelYes.className = 'flex items-center gap-1 cursor-pointer';
+  newLabelYes.appendChild(newRadioYes);
+  newLabelYes.appendChild(document.createTextNode(' Malignant'));
+
   var newRadioNo = document.createElement('input');
   newRadioNo.type = 'radio';
   newRadioNo.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_no';
   newRadioNo.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
   newRadioNo.value = 0;
-  
+  newRadioNo.className = 'accent-green-600';
+
   var newLabelNo = document.createElement('label');
-  newRadioNo.htmlFor = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
-  newLabelNo.innerHTML = 'Benign';
-  
+  newLabelNo.htmlFor = newRadioNo.id;
+  newLabelNo.className = 'flex items-center gap-1 cursor-pointer';
+  newLabelNo.appendChild(newRadioNo);
+  newLabelNo.appendChild(document.createTextNode(' Benign'));
+
   var category_id = document.getElementById('category_id').value;
-  
-  var newSaveButton = document.createElement('button');
-  newSaveButton.textContent = 'Save';
-  newSaveButton.classList.add('saveCriterionButton');
-  newSaveButton.id = 'saveCriterionButton' + (criteriaContainer.children.length + 1);
-  newSaveButton.setAttribute('onclick', 'safeguard_criterion(event, ' + newInput.id + ', ' + newRadioYes.id + ', ' + newRadioNo.id + ', ' + category_id + ')');
-  
-  newcriterionWrapper.appendChild(newSaveButton);
-  
+
   newcriterionWrapper.appendChild(newDiv);
-  newDiv.appendChild(newRadioYes);
-  newDiv.appendChild(newLabelYes);
-  newDiv.appendChild(newRadioNo);
-  newDiv.appendChild(newLabelNo);
+  newDiv.appendChild(newInnerDiv);
+  newInnerDiv.appendChild(newLabelYes);
+  newInnerDiv.appendChild(newLabelNo);
 
   criteriaContainer.appendChild(newcriterionWrapper);
+
+  // Wire up debounced auto-save for this new criterion (no DB id yet)
+  attachCriterionAutoSave(newInput, function() { return newInput.dataset.critId || null; }, category_id);
 });
 
 document.getElementById('addPrerequisiteButton').addEventListener('click', function(event) {
@@ -357,32 +445,25 @@ document.getElementById('addPrerequisiteButton').addEventListener('click', funct
 
   var prerequisiteContainer = document.getElementById('prerequisiteContainer');
   var newprerequisiteWrapper = document.createElement('div');
-  newprerequisiteWrapper.classList.add('prerequisiteWrapper');
+  newprerequisiteWrapper.className = 'prerequisiteWrapper flex items-center gap-2 bg-indigo-50 rounded-xl px-3 py-2';
 
   var newInput = document.createElement('input');
   newInput.type = 'text';
   newInput.id = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
   newInput.name = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
+  newInput.className = 'flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white';
   newprerequisiteWrapper.appendChild(newInput);
 
   var newButton = document.createElement('button');
   newButton.textContent = 'Remove';
-  newButton.classList.add('removePrerequisiteButton');
+  newButton.className = 'removePrerequisiteButton text-danger text-xs px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium';
   newButton.id = 'removePrerequisiteButton' + (prerequisiteContainer.children.length + 1);
   newButton.setAttribute('onclick', 'removeParent(event)');
-  
   newprerequisiteWrapper.appendChild(newButton);
 
-  var category_id = document.getElementById('category_id').value;
-
-  var newSaveButton = document.createElement('button');
-  newSaveButton.textContent = 'Save';
-  newSaveButton.classList.add('savePrerequisiteButton');
-  newSaveButton.id = 'savePrerequisiteButton' + (prerequisiteContainer.children.length + 1);
-  newSaveButton.setAttribute('onclick', 'safeguard_prerequisite(event, ' + newInput.id + ', ' + category_id + ')');
-  
-  newprerequisiteWrapper.appendChild(newSaveButton);
-
   prerequisiteContainer.appendChild(newprerequisiteWrapper);
+
+  var category_id = document.getElementById('category_id').value;
+  attachPrerequisiteAutoSave(newInput, function() { return newInput.dataset.preId || null; }, category_id);
 });
 

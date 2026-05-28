@@ -1,22 +1,15 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep 19 23:43:54 2025
+{% extends "base.html" %}
 
-@author: jacques
-"""
-"""-->
+{% block title %}Tutorial — Img Vote{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<title>Tutorial</title>
-
+{% block head %}
 <style>
-    img {
-        max-width: 100%;
-        max-height: 100%;
-    }
+  body { background: #000; }
+  img { max-width: 100%; max-height: 100%; display: block; margin: auto; }
 </style>
+{% endblock %}
 
-<img src="data:image/jpeg;base64,{{ img_tuto }}">
+{% block content %}
+<img src="data:image/jpeg;base64,{{ img_tuto }}" alt="Tutorial image">
+{% endblock %}
 
-{% endautoescape %}
