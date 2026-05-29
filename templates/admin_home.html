@@ -142,7 +142,7 @@
         {% if otherUser[3] %}
           <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Admin</span>
         {% else %}
-          <span class="text-xs text-slate-400">Reviewer</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-400">Reviewer</span>
           {% if otherUser[4] > 0 and (study_status in ['ongoing', 'paused', 'test']) %}
             <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{{ otherUser[4] }} remaining</span>
           {% endif %}
