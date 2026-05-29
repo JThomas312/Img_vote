@@ -18,7 +18,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.DataModels import CategoryDataModel, CategoryWithCriteriaDataModel, CategoryWithCriteriaAndPrerequisitesDataModel
+from img_vote.Models.DataModels import CategoryDataModel, CategoryCreationDataModel, CategoryWithCriteriaDataModel, CategoryWithCriteriaAndPrerequisitesDataModel
 from img_vote.Models.POCO import CategoryPOCO, CriterionPOCO, PrerequisitePOCO
 
 
@@ -288,6 +288,36 @@ def get_gold_standards(engine):
         query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True)
         
         answer = query.all()
+        
+    finally:
+        session.close()
+        
+    return answer
+ 
+def get_gold_standard(engine):
+    
+    session = Session(engine)
+
+    answer = []
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True)
+        
+        ans = query.one_or_none()
+        
+        if ans != None:
+            answer = CategoryCreationDataModel()
+            
+            answer.name = ans[0].name
+            answer.catType = ans[0].type
+            answer.hasTutorial = ans[0].has_tutorial
+            answer.hasTrust = ans[0].has_trust
+            answer.hasNA = ans[0].has_na
+            answer.optional = ans[0].optional
+            answer.hasGoldStandard = True
+            answer.hasMalignancy = ans[0].has_malignancy
+        else:
+            answer = None
             
     finally:
         session.close()

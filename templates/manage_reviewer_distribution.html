@@ -56,16 +56,14 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 pt-2">
             <div id="display_reviewers_per_case" class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-4 text-center">
-              <p class="text-xs text-indigo-400 font-semibold uppercase tracking-wide mb-1">Min. reviewers/case</p>
+              <p class="text-xs text-indigo-400 font-semibold uppercase tracking-wide mb-1">With current parameters, each case will be reviewed by at least this many reviewers</p>
               <input id="nb_reviewers_per_case" class="text-3xl font-extrabold text-indigo-600 w-full text-center border-none bg-transparent" type="number" name="nb_reviewers_per_case" value="" readonly>
             </div>
             <div id="display_cases_per_reviewer" class="bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-100 rounded-xl p-4 text-center">
-              <p class="text-xs text-teal font-semibold uppercase tracking-wide mb-1">Min. cases/reviewer</p>
+              <p class="text-xs text-teal font-semibold uppercase tracking-wide mb-1">With current parameters, each reviewer will review at least this many cases</p>
               <input id="nb_cases_per_reviewer" class="text-3xl font-extrabold text-teal w-full text-center border-none bg-transparent" type="number" name="nb_cases_per_reviewer" value="" readonly>
             </div>
-          </div>
 
         </div>
       </form>
@@ -115,7 +113,7 @@
         </div>
 
         <div class="flex gap-3 mt-7">
-          <button type="submit" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">Confirm Distribution</button>
+          <button type="submit" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">Confirm Distribution</button>
           <a href="/user_home/" class="border border-slate-300 text-slate-600 px-4 py-2.5 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Leave</a>
         </div>
       </form>

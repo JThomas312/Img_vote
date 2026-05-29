@@ -48,7 +48,7 @@ from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria,
 from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_least_one_mandatory_category, tutorial_category_exists
 from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
 from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_without_gold_standard, other_gold_standard_exists
-from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, gold_standard_in_wrong_category, new_empty_category
+from img_vote.dal.MasterDal import gold_standard_exists, get_gold_standards, get_gold_standard, gold_standard_in_wrong_category, new_empty_category
 from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_na_tutorial_categories
 
 #prerequisite related
@@ -475,7 +475,7 @@ def get_data_for_export():
     
     nbCategories = len(finalExtract[0].categories)
     
-    gold_standard_existing = gold_standard_exists()
+    gold_standard = get_gold_standard()
     
     one_of_category = 2
     column_increment = 1
@@ -498,21 +498,23 @@ def get_data_for_export():
             ws.cell(row=1, column=column_increment, value=format_r_friendly(format_r_friendly(current_category.name) + '_confidence'))
             column_increment += 1
             
-    if gold_standard_existing:
+    if gold_standard != None:
         ws.cell(row=1 , column=column_increment, value='reviewer_gold_standard_answer')
         column_increment +=1
-        ws.cell(row=1 , column=column_increment, value='gold_standard_confidence')
-        column_increment +=1
+        if gold_standard.hasTrust:
+            ws.cell(row=1 , column=column_increment, value='gold_standard_confidence')
+            column_increment +=1
         ws.cell(row=1 , column=column_increment, value='gold_standard_answer')
         column_increment +=1
         ws.cell(row=1 , column=column_increment, value='gold_standard_comparison')
         column_increment +=1
-        ws.cell(row=1 , column=column_increment, value='reviewer_gold_standard_malignancy')
-        column_increment +=1
-        ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy')
-        column_increment +=1
-        ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy_comparison')
-        column_increment +=1
+        if gold_standard.hasMalignancy:
+            ws.cell(row=1 , column=column_increment, value='reviewer_gold_standard_malignancy')
+            column_increment +=1
+            ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy')
+            column_increment +=1
+            ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy_comparison')
+            column_increment +=1
     
     for i in range(len(finalExtract)):
         column_increment = 1
@@ -533,21 +535,23 @@ def get_data_for_export():
                 ws.cell(row=i + 2, column=column_increment, value=current_category.confidence)
                 column_increment += 1
         
-        if gold_standard_existing:
+        if gold_standard != None:
             ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].reviewer_gold_standard_answer))
             column_increment +=1
-            ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_confidence)
-            column_increment +=1
+            if gold_standard.hasTrust:
+                ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_confidence)
+                column_increment +=1
             ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].gold_standard_answer))
             column_increment +=1
             ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_comparison)
             column_increment +=1
-            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].reviewer_gold_standard_malignancy))
-            column_increment +=1
-            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].gold_standard_malignancy))
-            column_increment +=1
-            ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_malignancy_comparison)
-            column_increment +=1
+            if gold_standard.hasMalignancy:
+                ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].reviewer_gold_standard_malignancy))
+                column_increment +=1
+                ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].gold_standard_malignancy))
+                column_increment +=1
+                ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_malignancy_comparison)
+                column_increment +=1
         
     wb.save(wb_path)
     
