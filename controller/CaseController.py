@@ -79,18 +79,6 @@ def caseForDisplay(userId, case):
             
             newCritVM = CriterionViewModel(criterion.critId, criterion.name, criterion.value, criterion.isTrust)
             
-            tutorial_slide_path = criterion.path_to_tutorial
-            
-            try:
-                slide_im = Image.open(tutorial_slide_path)
-                data = io.BytesIO()
-                slide_im.save(data, 'PNG')
-                slide_encoded_img_data = base64.b64encode(data.getvalue())
-                slide_img_data = slide_encoded_img_data.decode('utf-8')
-                newCritVM.tutorial = slide_img_data
-            except:
-                newCritVM.tutorial = bytearray()
-                
             if newCritVM.isTrust:
                 newCatVM.trust_criterion = newCritVM
             else:

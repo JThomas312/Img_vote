@@ -127,7 +127,6 @@ class CriterionViewModel():
     name: str
     value: int
     isTrust: bool
-    tutorial: bytearray
     def __init__(self, critId, name, value, isTrust):
         self.id = critId
         self.name = name
