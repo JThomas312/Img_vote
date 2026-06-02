@@ -1,0 +1,4 @@
+jquery
+viewerjs
+tailwindcss
+@tailwindcss/cli
