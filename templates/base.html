@@ -5,24 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Img Vote{% endblock %}</title>
 
-  <script src="{{url_for('static', filename='node_modules/tailwind/tailwind.js')}}"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary:  { DEFAULT: '#4f46e5', light: '#c7d2fe', dark: '#3730a3' },
-            teal:     { DEFAULT: '#0891b2', dark: '#0e7490' },
-            navy:     '#1e3a5f',
-            success:  '#16a34a',
-            danger:   '#dc2626',
-            surface:  { DEFAULT: '#eef2ff', dark: '#e0e7ff' },
-            header:   '#6366f1',
-          }
-        }
-      }
-    }
-  </script>
+  <link href="{{url_for('static', filename='CSS/base.css')}}" rel="stylesheet">
 
   {% block head %}{% endblock %}
 </head>
