@@ -14,7 +14,7 @@
         <p class="text-indigo-200 text-sm mt-0.5">Welcome to Img Vote</p>
       </div>
       {% if study_status in ['ongoing', 'paused', 'test'] %}
-        <div class="bg-white bg-opacity-15 rounded-xl px-5 py-3 text-sm text-right">
+        <div class="bg-white/15 rounded-xl px-5 py-3 text-sm text-right">
           {% if remaing_users > 0 %}
             {% if remaining_days > 0 %}
               <p>Study <strong>{{ studyname }}</strong> ends in <strong>{{ remaining_days }}</strong> days</p>

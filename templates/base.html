@@ -16,11 +16,11 @@
     <span class="text-xl font-extrabold tracking-tight">Img<span class="text-indigo-200">Vote</span></span>
     <div class="flex items-center gap-4 text-sm">
       {% if session.get('admin') %}
-        <span class="bg-indigo-500 bg-opacity-50 text-indigo-100 text-xs font-semibold px-2.5 py-0.5 rounded-full">Admin</span>
+        <span class="bg-indigo-500/50 text-indigo-100 text-xs font-semibold px-2.5 py-0.5 rounded-full">Admin</span>
       {% endif %}
       {% if session.get('username') %}
         <span class="text-indigo-200">{{ session['username'] }}</span>
-        <a href="/logout/" class="bg-white bg-opacity-15 hover:bg-opacity-25 transition-all px-3 py-1 rounded-lg text-white text-xs font-medium">Logout</a>
+        <a href="/logout/" class="bg-white/15 hover:bg-white/25 transition-all px-3 py-1 rounded-lg text-white text-xs font-medium">Logout</a>
       {% endif %}
     </div>
   </nav>
