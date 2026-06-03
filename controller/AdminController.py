@@ -41,7 +41,7 @@ from img_vote.dal.MasterDal import delete_reviewer_by_id, update_password, clear
 from img_vote.dal.MasterDal import count_all_cases, extract_all_data, create_all_cases, clear_all_cases
 
 #answer related
-from img_vote.dal.MasterDal import create_all_answers, create_user_answers
+from img_vote.dal.MasterDal import create_all_answers, create_user_answers, get_all_remarks
 
 #category related
 from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria, category_with_criteria_and_prerequisites
@@ -457,6 +457,30 @@ def compute_case_per_rev(full, method, case_per_r, percentage):
         case_per_rev = ceil( float( nb_cases * int( percentage ) ) / float(100) )
     
     return case_per_rev
+
+def get_remarks_for_export():
+    
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "case_remarks"
+    
+    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
+        study_name = (fr.read()).replace('\n', '')
+    
+    file_name = study_name + '_case_remarks.xlsx'
+
+    wb_path = os.path.join(getcwd(), 'results', file_name)
+    
+    remarks = get_all_remarks()
+    
+    for i in range(len(remarks)):
+        ws.cell(row=i + 1, column=1, value=remarks[i].case)
+        ws.cell(row=i + 1, column=2, value=remarks[i].reviewer)
+        ws.cell(row=i + 1, column=3, value=remarks[i].remarks)
+    
+    wb.save(wb_path)
+    
+    return (wb_path, file_name)
 
 def get_data_for_export():
 

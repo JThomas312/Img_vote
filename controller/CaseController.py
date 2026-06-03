@@ -34,6 +34,8 @@ from img_vote.dal.MasterDal import get_case_with_gold_standard
 from img_vote.dal.MasterDal import get_case_by_answer_name
 from img_vote.dal.MasterDal import update_answer_status
 from img_vote.dal.MasterDal import get_answer_to_case
+from img_vote.dal.MasterDal import get_answer_remarks
+from img_vote.dal.MasterDal import save_remarks
 
 #answer related
 from img_vote.dal.MasterDal import get_answer_name
@@ -56,8 +58,9 @@ def caseForDisplay(userId, case):
     naValue = 3
     one_of_type = 2
     
-    #maximum and minimum values acceptable for database
+    #maximum value acceptable for database
     max_int_db = 1000000000
+    #numerical value MUST be positive
     min_int_db = 0
     
     caseDM = get_case_by_id(case)
@@ -78,18 +81,6 @@ def caseForDisplay(userId, case):
         for criterion in criteriaForCase:
             
             newCritVM = CriterionViewModel(criterion.critId, criterion.name, criterion.value, criterion.isTrust)
-            
-            tutorial_slide_path = criterion.path_to_tutorial
-            
-            try:
-                slide_im = Image.open(tutorial_slide_path)
-                data = io.BytesIO()
-                slide_im.save(data, 'PNG')
-                slide_encoded_img_data = base64.b64encode(data.getvalue())
-                slide_img_data = slide_encoded_img_data.decode('utf-8')
-                newCritVM.tutorial = slide_img_data
-            except:
-                newCritVM.tutorial = bytearray()
                 
             if newCritVM.isTrust:
                 newCatVM.trust_criterion = newCritVM
@@ -106,11 +97,23 @@ def caseForDisplay(userId, case):
     with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = fr.readline().removesuffix('\n')
     
+    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+        study_status = fr.readline().removesuffix('\n')
+    
     caseVM = CaseDisplayViewModel(caseDM.caseId, name, study_name, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
     
     caseVM.categories = categoriesVM
 
     caseVM.criteria = criteriaVM
+
+    
+    if study_status == 'test':
+        remarks = get_answer_remarks(userId, case)
+        caseVM.remarks = remarks
+        caseVM.show_remarks = True
+    else:
+        caseVM.remarks = ''
+        caseVM.show_remarks = False
 
     path = caseDM.path
     
@@ -201,6 +204,9 @@ def safeguardDiagnosis(userId, case, criterionId, value, category):
     else:
         safeguard_Criterion(userId, case, criterionId, value)
 
+def safeguardRemarks(userId, case, value):
+    
+    save_remarks(userId, case, value)
     
 def checkProgress(userId, case):
     

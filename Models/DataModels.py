@@ -263,6 +263,14 @@ class FinalExtractDataModel():
         self.gold_standard_malignancy_comparison = gold_standard_malignancy_comparison
         self.categories = categories
         
+class RemarksDataModel():
+    case: int
+    reviewer: str
+    remarks: str
     
+    def __init__(self, case, reviewer, remarks):
+        self.case = case
+        self.reviewer = reviewer
+        self.remarks = remarks
     
     

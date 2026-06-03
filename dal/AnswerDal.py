@@ -22,7 +22,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.DataModels import CaseAnsDataModel, CaseLearnDataModel
+from img_vote.Models.DataModels import CaseAnsDataModel, CaseLearnDataModel, RemarksDataModel
 from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO
         
 #read-only
@@ -124,6 +124,41 @@ def get_cases_and_answers(userId, engine):
         
     return casesAns
 
+def get_answer_remarks(userId, caseId, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(AnswerPOCO.remarks).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId)
+        ans = query.one_or_none()
+        if ans.remarks == None:
+            answer = ''
+        else:
+            answer = ans.remarks
+        
+    finally:
+        session.close()
+        
+    return answer
+
+def get_all_remarks(engine):
+    
+    session = Session(engine)
+    
+    answer = []
+    
+    try:
+        query = session.query(AnswerPOCO.remarks, ReviewerPOCO.name, CasePOCO.name).join(ReviewerPOCO, AnswerPOCO.reviewer == ReviewerPOCO.id).join(CasePOCO, AnswerPOCO.study_case == CasePOCO.id).order_by(AnswerPOCO.study_case, AnswerPOCO.reviewer)
+        queriedAns = query.all()
+        for ans in queriedAns:
+            #0:Answer, 1: Reviewer, 2: Case
+            answer.append(RemarksDataModel(ans[2], ans[1], ans[0]))
+        
+    finally:
+        session.close()
+        
+    return answer
+
 def get_cases_and_learn(userId, engine):
     
     session = Session(engine)
@@ -172,6 +207,18 @@ def get_answer_to_case(userId, caseId, engine):
     return answer
 
 #CRUD
+def save_remarks(userId, caseId, value, engine):
+    
+    session = Session(engine)
+    
+    try:
+        updatestmt = update(AnswerPOCO).where(AnswerPOCO.reviewer == userId).where(AnswerPOCO.study_case == caseId).values(remarks=value)
+        session.execute(updatestmt)
+        session.commit()
+        
+    finally:
+        session.close()
+
 def update_answer_status(userId, caseId, done, engine):
     
     session = Session(engine)

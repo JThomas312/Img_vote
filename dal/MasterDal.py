@@ -127,11 +127,20 @@ def get_case_by_answer_name(answerName, userId):
 def get_cases_and_answers(userId):
     return AnswerDal.get_cases_and_answers(userId, engine)
 
+def get_answer_remarks(userId, caseId):
+    return AnswerDal.get_answer_remarks(userId, caseId, engine)
+
+def get_all_remarks():
+    return AnswerDal.get_all_remarks(engine)
+
 def get_cases_and_learn(userId):
     return AnswerDal.get_cases_and_learn(userId, engine)
 
 def get_answer_to_case(userId, caseId):
     return AnswerDal.get_answer_to_case(userId, caseId, engine)
+
+def save_remarks(userId, caseId, value):
+    return AnswerDal.save_remarks(userId, caseId, value, engine)
 
 def update_answer_status(userId, caseId, done):
     return AnswerDal.update_answer_status(userId, caseId, done, engine)

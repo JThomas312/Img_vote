@@ -19,7 +19,12 @@
 
   <ul class="grid-list grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
     {% for item in items %}
-      <li class="{% if item[2] %}correct-box bg-success{% else %}wrong-box bg-danger{% endif %} text-white rounded-lg text-center py-4 font-medium text-sm transition-colors">
+      <li class="rounded-xl text-center py-4 font-semibold text-sm transition-all
+        {% if item[2] %}
+          bg-gradient-to-br from-green-400  to-emerald-700 text-white shadow hover:shadow-md hover:scale-105
+        {% else %}
+          bg-gradient-to-br from-red-400  to-red-700 text-white shadow hover:shadow-md hover:scale-105
+        {% endif %}">
         <a href="/case_learning/{{ item[0] }}" class="block w-full h-full">
           {{ item[1] }}
           {% if item[2] %}<span></span>{% endif %}

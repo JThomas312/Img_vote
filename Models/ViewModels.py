@@ -127,7 +127,6 @@ class CriterionViewModel():
     name: str
     value: int
     isTrust: bool
-    tutorial: bytearray
     def __init__(self, critId, name, value, isTrust):
         self.id = critId
         self.name = name
@@ -170,6 +169,8 @@ class CaseDisplayViewModel():
     categories: list(CategoryViewModel)
     max_int: int
     min_int: int
+    show_remarks : int
+    remarks: str
     prevcase: int
     nextcase: int
     def __init__(self, case_id, case_name, study_name, nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):

@@ -70,11 +70,13 @@ from controller.AdminController import handle_distribution
 from controller.AdminController import distribution_rollback
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
+from controller.AdminController import get_remarks_for_export
 
 from controller.CaseController import caseForDisplay
 from controller.CaseController import caseForLearning
 from controller.CaseController import safeguardProgress
 from controller.CaseController import safeguardDiagnosis
+from controller.CaseController import safeguardRemarks
 from controller.CaseController import criterion_for_tutorial
 from controller.CaseController import checkProgress
 
@@ -703,6 +705,17 @@ def export_data():
     else:
         return(redirect(url_for('login')))
     
+@app.route('/export_remarks/')
+def export_remarks():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                (file_path, name) = get_remarks_for_export()
+                return send_file(file_path, download_name=name, as_attachment=True)
+        return '', 204
+    else:
+        return(redirect(url_for('login')))
+    
 @app.route('/confirm_clear_users/')   
 def confirm_clear_users():
     if 'userId' in session:
@@ -977,6 +990,14 @@ def safeguard_diagnosis():
         category = request.args.get('category')
         safeguardDiagnosis(session['userId'], case_id, criterion_id, value, category)
         checkProgress(session['userId'], int(request.args.get('case_id')))
+        return '', 204
+
+@app.route('/safeguard_remarks/')    
+def safeguard_remarks():
+    if 'userId' in session:
+        case_id = request.args.get('case_id')
+        value = request.args.get('value')
+        safeguardRemarks(session['userId'], case_id, value)
         return '', 204
     
 def valid_login(username, password):

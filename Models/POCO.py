@@ -119,15 +119,17 @@ class AnswerPOCO(Base):
     reviewer: Mapped[int] = mapped_column(ForeignKey("reviewer.id"))
     name: Mapped[str] = mapped_column(String(10))
     completed: Mapped[bool]
+    remarks: Mapped[str] = mapped_column(String(2000))
     
     def __repr__(self) -> str:
-        return f"Answer(id={self.id!r}, case={self.study_case!r}, reviewer={self.reviewer!r}, completed={self.completed!r})"
+        return f"Answer(id={self.id!r}, case={self.study_case!r}, reviewer={self.reviewer!r}, completed={self.completed!r}, remarks={self.remarks!r})"
     
-    def __init__(self, case, rev, name='', completed = False):
+    def __init__(self, case, rev, name='', completed = False, remarks = ''):
         self.study_case = case
         self.reviewer = rev
         self.name = name
         self.completed = completed
+        self.remarks = remarks
         
 class AnswerCriterionPOCO(Base):
     __tablename__ = "answer_to_criterion"

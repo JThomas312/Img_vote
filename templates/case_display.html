@@ -31,6 +31,7 @@
   <div class="centered">
     <form id="criteria-form" method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" id="case_id" value="{{ ViewModel.case_id }}"/>
       {% for category in ViewModel.categories %}
         <div {% if category.optional %} class="optional_category" {% else %} class="mandatory_category" {% endif %} id="{{category.name}}">
           {% if category.optional %}
@@ -122,6 +123,12 @@
           {% endif %}
         </div>
       {% endfor %}
+      {% if ViewModel.show_remarks %}
+          <fieldset class="border border-indigo-100 rounded-xl bg-white shadow-sm p-3 mb-2">
+            <legend class="text-xs font-semibold text-indigo-500 px-1 uppercase tracking-wide">Remarks on this case (2000 characters max)</legend>
+            <input id="remarks" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" type="text" name="remarks" value="{{ViewModel.remarks}}">
+          </fieldset>
+      {% endif %}
     </form>
 
     <div class="button_area flex gap-2 justify-end p-3 border-t border-indigo-100">
