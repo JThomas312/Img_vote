@@ -23,7 +23,7 @@ sys.path.append(str(path_root))
 
 #local imports
 from img_vote.Models.DataModels import CaseAnsDataModel, CaseLearnDataModel, RemarksDataModel
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO
+from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO, PrerequisitePOCO
         
 #read-only
 def get_answer_by_id(identifier, engine):
@@ -241,7 +241,7 @@ def update_answer_status(userId, caseId, done, engine):
 
     return databaseUpdated
 
-#one-time data creation
+#one-time data manipulation
 def create_all_answers(rev_per_case, engine):
     
     session = Session(engine)
@@ -333,7 +333,49 @@ def create_user_answers(userId, case_per_rev, engine):
 
     finally:
         session.close()
+
+def erase_optional_answers(engine):
+    
+    session = Session(engine)
+    
+    unansweredValue = -1
+    trueValue = 1
+    
+    try:
+        #get all optional categories
+        querycat = session.query(CategoryPOCO.id).filter(CategoryPOCO.optional == True)
+        cats = querycat.all()
         
+        categories = []
+        
+        for cat in cats:
+            querypre = session.query(CriterionPOCO.id).join(PrerequisitePOCO, CriterionPOCO.id == PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == cat.id)
+            prerequisites = querypre.all()
+            querycrit = session.query(CriterionPOCO.id).filter(CriterionPOCO.category == cat.id)
+            criteria = querycrit.all()
+            #0: category, 1: prerequisites, 2: criteria
+            #I don't actually need the category here it sipmly makes the data more human readable just incase
+            categories.append((cat, prerequisites, criteria))
+        
+        #get all answers with optional criterion answered
+        queryans = session.query(AnswerPOCO.id).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.optional == True).filter(AnswerCriterionPOCO.value != unansweredValue).group_by(AnswerPOCO.id)
+        answers = queryans.all()
+        
+        for answer in answers:
+            for category in categories:
+                prerequistes = [x.id for x in category[1]]
+                criteria = [y.id for y in category[2]]
+                prerequery = session.query(AnswerCriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).filter(AnswerCriterionPOCO.answer == answer.id).filter(AnswerCriterionPOCO.value == trueValue).filter(AnswerCriterionPOCO.criterion.in_(prerequistes))
+                ok_prerequisites = session.query(prerequery.exists()).scalar()
+                if not ok_prerequisites:
+                    updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == answer.id).where(AnswerCriterionPOCO.criterion.in_(criteria)).values(value=unansweredValue)
+                    session.execute(updatestmt)
+        
+        session.commit()
+        
+    finally:
+        session.close()
+
 def clear_all_answers(engine):
     
     session = Session(engine)

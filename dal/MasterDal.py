@@ -151,6 +151,9 @@ def create_all_answers(rev_per_case):
 def create_user_answers(userId, case_per_rev):
     return AnswerDal.create_user_answers(userId, case_per_rev, engine)
     
+def erase_optional_answers():
+    return AnswerDal.erase_optional_answers(engine)
+    
 def clear_all_answers():
     return AnswerDal.clear_all_answers(engine)
 

@@ -73,7 +73,7 @@ CREATE TABLE answer_to_criterion
 (
     answer INT NOT NULL,
     criterion INT NOT NULL,
-    value INT NOT NULL DEFAULT 0,
+    value INT NOT NULL,
     PRIMARY KEY (answer, criterion),
     FOREIGN KEY (answer) REFERENCES answer(id),
     FOREIGN KEY (criterion) REFERENCES criterion(id)

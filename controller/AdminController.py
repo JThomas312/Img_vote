@@ -41,7 +41,7 @@ from img_vote.dal.MasterDal import delete_reviewer_by_id, update_password, clear
 from img_vote.dal.MasterDal import count_all_cases, extract_all_data, create_all_cases, clear_all_cases
 
 #answer related
-from img_vote.dal.MasterDal import create_all_answers, create_user_answers, get_all_remarks
+from img_vote.dal.MasterDal import create_all_answers, create_user_answers, get_all_remarks, erase_optional_answers
 
 #category related
 from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria, category_with_criteria_and_prerequisites
@@ -481,6 +481,10 @@ def get_remarks_for_export():
     wb.save(wb_path)
     
     return (wb_path, file_name)
+
+def clear_optional_answers():
+    
+    erase_optional_answers()
 
 def get_data_for_export():
 

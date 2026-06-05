@@ -71,6 +71,7 @@ from controller.AdminController import distribution_rollback
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
 from controller.AdminController import get_remarks_for_export
+from controller.AdminController import clear_optional_answers
 
 from controller.CaseController import caseForDisplay
 from controller.CaseController import caseForLearning
@@ -690,6 +691,7 @@ def end_study():
                 if status == 'paused':
                     with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                         fw.write('ended')
+                        clear_optional_answers()
         return(redirect(url_for('user_home')))
     else:
         return(redirect(url_for('login')))
