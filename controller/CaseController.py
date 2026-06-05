@@ -21,6 +21,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
+from img_vote.utilities.useful import sanitize_text
 from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
@@ -111,6 +112,8 @@ def caseForDisplay(userId, case):
         remarks = get_answer_remarks(userId, case)
         caseVM.remarks = remarks
         caseVM.show_remarks = True
+        print(caseVM.remarks)
+        print(len(caseVM.remarks))
     else:
         caseVM.remarks = ''
         caseVM.show_remarks = False
@@ -206,7 +209,8 @@ def safeguardDiagnosis(userId, case, criterionId, value, category):
 
 def safeguardRemarks(userId, case, value):
     
-    save_remarks(userId, case, value)
+    if sanitize_text(value):
+        save_remarks(userId, case, value)
     
 def checkProgress(userId, case):
     

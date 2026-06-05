@@ -157,6 +157,15 @@ window.addEventListener('load', function() {
     remarksInput.addEventListener('input', debouncedSaveRemarks);
 });
 
+//prevent subbmitting the form with enter key
+let form = document.getElementById("criteria-form");
+    form.onkeypress = function (key) {
+        let btn = 0 || key.keyCode || key.charCode;
+        if (btn == 13) {
+            key.preventDefault();
+        }
+    } 
+
 // Update whenever any radio is clicked
 document.addEventListener('change', function(e) {
     if (e.target.matches('.options input[type="radio"]')) {

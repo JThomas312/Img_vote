@@ -153,7 +153,7 @@ def update_category(cat_id, value, parameter):
 
 def save_criterion(cat_id, name, malignancy):
     
-    if not sanitize(name) or name == '':
+    if not sanitize(name) or name == '' or name == 'na':
         return
     
     category_name = get_category_by_id(cat_id).name
