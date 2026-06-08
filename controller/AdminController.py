@@ -18,6 +18,10 @@ from zipfile import ZipFile
 from shutil import rmtree
 from shutil import copyfile
 from re import match
+from datetime import datetime
+from threading import Thread
+from werkzeug.utils import secure_filename
+
 
 #enable imports from local modules
 from pathlib import Path
@@ -29,9 +33,11 @@ sys.path.append(str(path_root))
 from img_vote.utilities.useful import generate_password
 from img_vote.utilities.useful import format_r_friendly
 from img_vote.utilities.useful import sanitize
+from img_vote.utilities.useful import natural_sort_key
 
 from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
-from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel, ReviewerDistributionViewmodel
+from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
+from img_vote.Models.ViewModels import ReviewerDistributionViewmodel, ManageDownloadsViewModel
 
 #user related
 from img_vote.dal.MasterDal import get_reviewer_by_id, get_reviewer_by_login, count_all_reviewers, create_reviewer 
@@ -460,6 +466,10 @@ def compute_case_per_rev(full, method, case_per_r, percentage):
 
 def get_remarks_for_export():
     
+    Thread(target=get_remarks_for_export_async).start()
+
+def get_remarks_for_export_async():
+    
     wb = Workbook()
     ws = wb.active
     ws.title = "case_remarks"
@@ -467,9 +477,13 @@ def get_remarks_for_export():
     with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = (fr.read()).replace('\n', '')
     
-    file_name = study_name + '_case_remarks.xlsx'
+    now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
+    
+    file_name1 = study_name + '_study_data' + now + '.xlsx'
+    file_name2 = study_name + '_study_data' + now + '.ods'
 
-    wb_path = os.path.join(getcwd(), 'results', file_name)
+    wb_path1 = os.path.join(getcwd(), 'results', file_name1)
+    wb_path2 = os.path.join(getcwd(), 'results', file_name2)
     
     remarks = get_all_remarks()
     
@@ -478,15 +492,19 @@ def get_remarks_for_export():
         ws.cell(row=i + 1, column=2, value=remarks[i].reviewer)
         ws.cell(row=i + 1, column=3, value=remarks[i].remarks)
     
-    wb.save(wb_path)
-    
-    return (wb_path, file_name)
+    wb.save(wb_path1)
+    wb.save(wb_path2)
+
 
 def clear_optional_answers():
     
     erase_optional_answers()
 
 def get_data_for_export():
+
+    Thread(target=get_data_for_export_async).start()
+
+def get_data_for_export_async():
 
     wb = Workbook()
     ws = wb.active
@@ -495,9 +513,13 @@ def get_data_for_export():
     with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = (fr.read()).replace('\n', '')
     
-    file_name = study_name + '_study_data.xlsx'
+    now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
+    
+    file_name1 = study_name + '_study_data' + now + '.xlsx'
+    file_name2 = study_name + '_study_data' + now + '.ods'
 
-    wb_path = os.path.join(getcwd(), 'results', file_name)
+    wb_path1 = os.path.join(getcwd(), 'results', file_name1)
+    wb_path2 = os.path.join(getcwd(), 'results', file_name2)
     
     finalExtract = extract_all_data()
     
@@ -581,10 +603,47 @@ def get_data_for_export():
                 ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_malignancy_comparison)
                 column_increment +=1
         
-    wb.save(wb_path)
+    wb.save(wb_path1)
+    wb.save(wb_path2)
     
-    return (wb_path, file_name)
+
+def get_data_to_download(status):
     
+    viewmodel = ManageDownloadsViewModel()
+    
+    show_remarks = status == 'test'
+    
+    for filename in os.listdir(os.path.join(getcwd(), 'results')):
+        if show_remarks or ('_study_data' in filename):
+            viewmodel.files_to_show = True
+            viewmodel.files.append(filename)
+
+    viewmodel.files = sorted(list(viewmodel.files), key=natural_sort_key)
+    
+    return viewmodel
+    
+def get_result_file(filename):
+    
+    file = secure_filename(filename)
+    
+    filepath = os.path.join(getcwd(), 'results', file)
+    
+    #in case an evol hides filenames from front
+    return (filepath, file)
+
+def remove_result_file(filename):
+    
+    file = secure_filename(filename)
+    
+    filepath = os.path.join(getcwd(), 'results', file)    
+    
+    remove(filepath)
+
+def remove_all_result_files():
+    
+    for filename in os.listdir(os.path.join(getcwd(), 'results')):
+        remove(os.path.join(getcwd(), 'results', filename))    
+
 def clear_data():
 
     clear_all_answers()
@@ -601,6 +660,8 @@ def clear_data():
     
     if os.path.exists(os.path.join(getcwd(), 'uploads', 'case_data')):
         remove_case_data()
+    
+    remove_all_result_files()
 
 def delete_user(userId):
     delete_reviewer_by_id(userId)

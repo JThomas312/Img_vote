@@ -133,6 +133,16 @@ class CriterionViewModel():
         self.value = value
         self.isTrust = isTrust
 
+# ViewModels for admins during study
+class ManageDownloadsViewModel():
+    errors: str
+    files_to_show: bool
+    files: list(str)
+    def __init__(self):
+        self.errors = ''
+        self.files_to_show = False
+        self.files = []
+
 # ViewModels for user pages during study
 class CategoryViewModel():
     cat_id: int

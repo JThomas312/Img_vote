@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard — Img Vote{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-8">
@@ -92,7 +92,10 @@
     <a href="/test_rollback/categories" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">← Back to Categories</a>
     <a href="/test_rollback/uploads" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">← Back to Uploads</a>
     <a href="/test_rollback/distribution" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">← Back to Distribution</a>
-    <a href="/export_remarks/" class="bg-white rounded-xl shadow border border-slate-100 p-5 hover:shadow-md hover:border-slate-300 hover:bg-slate-50 transition-all text-center text-sm font-medium text-slate-500">Export Remarks</a>
+    <a href="/export_remarks/" class="bg-white rounded-xl shadow border border-teal-200 p-5 hover:shadow-md hover:bg-teal-50 transition-all text-center text-sm font-semibold text-teal group">
+        <span class="block text-lg mb-1">🙋</span>
+        Export Remarks
+    </a>
     {% endif %}
 
     {% if study_status == 'ongoing' %}
@@ -114,6 +117,13 @@
     <a href="/export_data/" class="bg-white rounded-xl shadow border border-teal-200 p-5 hover:shadow-md hover:bg-teal-50 transition-all text-center text-sm font-semibold text-teal group">
       <span class="block text-lg mb-1">📊</span>
       Export Data
+    </a>
+    {% endif %}
+
+    {% if ((study_status == 'ended') or (study_status == 'paused') or (study_status == 'test') or (study_status == 'ongoing')) %}
+    <a href="/manage_downloads/" class="bg-white rounded-xl shadow border border-teal-200 p-5 hover:shadow-md hover:bg-teal-50 transition-all text-center text-sm font-semibold text-teal group">
+      <span class="block text-lg mb-1">⬇</span>
+      Download Data
     </a>
     {% endif %}
 

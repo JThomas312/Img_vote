@@ -70,6 +70,10 @@ from controller.AdminController import handle_distribution
 from controller.AdminController import distribution_rollback
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
+from controller.AdminController import get_data_to_download
+from controller.AdminController import get_result_file
+from controller.AdminController import remove_result_file
+from controller.AdminController import remove_all_result_files
 from controller.AdminController import get_remarks_for_export
 from controller.AdminController import clear_optional_answers
 
@@ -701,9 +705,63 @@ def export_data():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                (file_path, name) = get_data_for_export()
+                get_data_for_export()
+        return '', 204
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/manage_downloads/')
+def manage_downloads():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status in ['test', 'ongoing', 'paused', 'ended']:
+                    viewmodel = get_data_to_download(status)
+                    return render_template('manage_downloads.html', ViewModel=viewmodel)
+        return(redirect(url_for('user_home')))
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/download_result_data/<filename>')
+def download_result_data(filename):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                (file_path, name) = get_result_file(filename)
                 return send_file(file_path, download_name=name, as_attachment=True)
         return '', 204
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_result_data/<filename>')
+def delete_result_data(filename):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                remove_result_file(filename)
+        return '', 204
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_all_results/')
+def confirm_delete_all_result_files():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                return render_template('confirm_delete_result_files.html')
+        return redirect(url_for('user_home'))
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_result_files/')
+def delete_all_result_files():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                remove_all_result_files()
+        return redirect(url_for('user_home'))
     else:
         return(redirect(url_for('login')))
     
@@ -712,8 +770,7 @@ def export_remarks():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                (file_path, name) = get_remarks_for_export()
-                return send_file(file_path, download_name=name, as_attachment=True)
+                get_remarks_for_export()
         return '', 204
     else:
         return(redirect(url_for('login')))
