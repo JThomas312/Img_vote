@@ -6,7 +6,6 @@ Created on Tue Apr  1 11:55:48 2025
 @author: jacques
 """
 
-from os import getcwd
 from os import listdir
 import os.path
 
@@ -21,7 +20,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.utilities.useful import sanitize_text
+from img_vote.utilities.useful import sanitize_text, get_study_name, get_status
 from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
@@ -95,11 +94,9 @@ def caseForDisplay(userId, case):
             
         categoriesVM.append(newCatVM)
     
-    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
-        study_name = fr.readline().removesuffix('\n')
+    study_name = get_study_name()
     
-    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-        study_status = fr.readline().removesuffix('\n')
+    study_status = get_status()
     
     caseVM = CaseDisplayViewModel(caseDM.caseId, name, study_name, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
     
@@ -112,8 +109,6 @@ def caseForDisplay(userId, case):
         remarks = get_answer_remarks(userId, case)
         caseVM.remarks = remarks
         caseVM.show_remarks = True
-        print(caseVM.remarks)
-        print(len(caseVM.remarks))
     else:
         caseVM.remarks = ''
         caseVM.show_remarks = False
@@ -153,8 +148,7 @@ def caseForLearning(userId, case):
     name = get_answer_name(userId, case)
     answer = get_answer_to_case(userId, case)
         
-    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
-        study_name = fr.readline().removesuffix('\n')
+    study_name = get_study_name()
     
     caseVM = CaseLearningViewModel(caseDM.caseId, name, study_name, answer, caseDM.goldStandard, nb_imgs=0, imgs=[], imgs_sizes=[])
     

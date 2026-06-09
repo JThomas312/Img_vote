@@ -7,9 +7,6 @@ Created on Mon Mar 31 16:04:36 2025
 """
 
 #general modules
-from os import getcwd
-import os.path
-
 from bcrypt import gensalt, hashpw
 
 #enable imports from local modules
@@ -20,7 +17,7 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.Models.ViewModels import UserHomeViewModel, AdminHomeViewModel, UserLearnViewModel
-from img_vote.utilities.useful import natural_sort_key
+from img_vote.utilities.useful import natural_sort_key, get_study_name
 
 #user related
 from img_vote.dal.MasterDal import get_reviewer_by_login
@@ -39,8 +36,7 @@ def user_for_home(username):
     user = get_reviewer_by_login(username)
     
     try:
-        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
-            study_name = fr.readline().removesuffix('\n')
+        study_name = get_study_name()
     except FileNotFoundError:
         study_name = ''
    

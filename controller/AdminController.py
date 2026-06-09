@@ -34,6 +34,9 @@ from img_vote.utilities.useful import generate_password
 from img_vote.utilities.useful import format_r_friendly
 from img_vote.utilities.useful import sanitize
 from img_vote.utilities.useful import natural_sort_key
+from img_vote.utilities.useful import get_study_name
+from img_vote.utilities.useful import get_distribution
+from img_vote.utilities.useful import update_distribution
 
 from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
 from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
@@ -77,27 +80,33 @@ def find_name_and_login(userId):
 
 
 def create_user(login, name, admin, status, full_review):
+    
     existing = get_reviewer_by_login(login)
+    
     full = full_review and not admin
-    with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'r', encoding="utf-8") as fr:
-        distribution = fr.readline().removesuffix('\n')
-        case_per_r = fr.readline().removesuffix('\n')
-        percentage = fr.readline().removesuffix('\n')
+    
+    (distribution, case_per_r, percentage) = get_distribution()
+    
     if ((not admin) and (status == 'ended')):
         raise Exception('While the study is ended only administrator users can be created')
+    
     elif not full and distribution == 'n per case' and status in ['ready', 'ongoing', 'paused']:
         raise Exception('You can now only create full reviewers with your chosen distribution')
+    
     elif existing != None:
         raise Exception('User already exists with login ' + login)
+    
     else:
         password = generate_password()
         s = gensalt()
         hashPass = hashpw(password.encode('utf-8'), s).decode('utf-8')
         revId = create_reviewer(name, login, hashPass, admin, full)
+    
         if not admin and status in ['ready', 'ongoing', 'paused']:
             case_per_rev = compute_case_per_rev(full, distribution, case_per_r, percentage)
             create_user_answers(revId, case_per_rev)
             create_user_answer_to_criterion(revId)
+    
     return password
 
 def categories_for_editing():
@@ -420,8 +429,7 @@ def handle_distribution(method, r_per_case, case_per_r, percentage):
     create_all_answers(rev_per_case)    
     create_all_answer_to_criterion()
     
-    with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'w', encoding="utf-8") as fw:
-        fw.writelines([method, '\n', case_per_r, '\n', percentage])
+    update_distribution(method, case_per_r, percentage)
     
     return None
 
@@ -473,8 +481,7 @@ def get_remarks_for_export_async():
     ws = Sheet()
     ws.title = "case_remarks"
 
-    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
-        study_name = (fr.read()).replace('\n', '')
+    study_name = get_study_name()
     
     study_name = format_r_friendly(study_name)
     
@@ -514,8 +521,7 @@ def get_data_for_export_async():
     ws = Sheet()
     ws.title = "Study_data"
     
-    with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
-        study_name = (fr.read()).replace('\n', '')
+    study_name = get_study_name()
     
     study_name = format_r_friendly(study_name)
     

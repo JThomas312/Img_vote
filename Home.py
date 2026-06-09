@@ -20,8 +20,6 @@ from cachelib.file import FileSystemCache
 
 from flask_wtf.csrf import CSRFProtect
 
-from datetime import datetime
-
 from os import getcwd
 import os.path
 from bcrypt import checkpw
@@ -30,6 +28,11 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
 from utilities.useful import sanitize
+from utilities.useful import get_status
+from utilities.useful import update_status
+from utilities.useful import get_remaining_days
+from utilities.useful import update_study_end
+from utilities.useful import update_study_name
 
 from controller.UserController import user_for_home
 from controller.UserController import user_for_login
@@ -150,18 +153,10 @@ def logout():
 def user_home():    
     if 'username' in session:
         (user, study_name) = user_for_home(session["username"])
-        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-            status = fr.read().replace('\n', '')
+        status = get_status()
+        
         if (status != 'stopped') and status != 'ended':
-            try:
-                with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'r', encoding="utf-8") as f:
-                   try:
-                       study_end = datetime.strptime(f.read(), '%Y-%m-%d')
-                       remaining_days = (study_end - datetime.today()).days
-                   except:
-                       remaining_days = -1
-            except FileNotFoundError:
-                remaining_days = -1
+            remaining_days = get_remaining_days()
         else:
             remaining_days = -1
         if user.admin:
@@ -191,8 +186,7 @@ def category_configuration():
             if session['admin']:
                 status_error = None
                 deletion_error = None
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'stopped':
                     status_error = 'Categories are already locked, current status is: ' + status 
                 pending_categories = categories_for_editing()
@@ -206,8 +200,7 @@ def add_category():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'stopped':
                     return(redirect(url_for('category_configuration')))                
                 category_id = create_empty_category()
@@ -224,8 +217,7 @@ def edit_category(categoryId):
         if 'admin' in session:
             if session['admin']:
                 error = None
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'stopped':
                     return(redirect(url_for('category_configuration')))
                 optional_allowed = optional_category_allowed(categoryId)
@@ -251,15 +243,16 @@ def finish_category_configuration():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
+
                 if status != 'stopped':
                     return(redirect(url_for('category_configuration')))
                 (errors, incorrect_categories) = check_categories()
+
                 if len(errors) > 0 or len(incorrect_categories) > 0:
                     return render_template('category_errors.html', errors=errors, incorrect_categories=incorrect_categories, nb_incorrect_categories=len(incorrect_categories))                        
-                with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
-                    fw.write('categories_done')
+
+                update_status('categories_done')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -269,13 +262,13 @@ def rollback_categories():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
+
                 if status == 'categories_done':
                     if request.method == 'GET':
                         categories_rollback()
-                        with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write('stopped')
+                        update_status('stopped')
+
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -285,8 +278,7 @@ def manage_uploads():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 if request.method == 'GET':
@@ -301,8 +293,7 @@ def upload_case_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 
@@ -335,8 +326,7 @@ def upload_tutorial_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 
@@ -369,8 +359,7 @@ def upload_case_data():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 
@@ -403,8 +392,7 @@ def delete_case_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 remove_case_images()
@@ -419,8 +407,7 @@ def delete_tutorial_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 remove_tutorial_images()
@@ -435,8 +422,7 @@ def delete_case_data():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 remove_case_data()
@@ -451,15 +437,13 @@ def finish_uploading():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'categories_done':
                     errors = check_uploads_and_create_cases()
                     if errors != None:
                         uploadStatusVM = upload_status()
                         return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('uploads_done')
+                    update_status('uploads_done')
                 return redirect(url_for('user_home'))
 
         return(redirect(url_for('user_home')))    
@@ -471,12 +455,10 @@ def rollback_uploads():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'uploads_done':
                     upload_rollback()
-                    with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('categories_done')
+                    update_status('categories_done')
 
         return(redirect(url_for('user_home')))    
     else:
@@ -487,8 +469,7 @@ def manage_reviewer_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'uploads_done':
                     if request.method == 'GET':
                         viewModel = data_for_distribution()
@@ -499,8 +480,8 @@ def manage_reviewer_distribution():
                         cases_per_reviewer = request.form['cases_per_reviewer']
                         percentage = request.form['percentage']
                         handle_distribution(distribution_method, reviewer_per_case, cases_per_reviewer, percentage)
-                        with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write('ready')
+                        update_status('ready')
+                        
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -510,13 +491,11 @@ def rollback_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'ready':
                     if request.method == 'GET':
                         distribution_rollback()
-                        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write('uploads_done')
+                        update_status('uploads_done')
         return(redirect(url_for('user_home'))) 
     else:
         return(redirect(url_for('login')))
@@ -527,8 +506,7 @@ def begin_study():
         if 'admin' in session:
             if session['admin']:
                 error = None
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if request.method == 'GET':
                     if status != 'ready':
                         error = 'Study has already begun, current status is: ' + status 
@@ -549,16 +527,11 @@ def begin_study():
                         if nameError != None or dateError != None:
                             return render_template('study_begining.html', error=None, nameError=nameError, dateError=dateError, test=False)
                         
-                        endDate = datetime.strptime(endresponse, '%Y-%m-%d')
+                        update_study_end(endresponse)
                         
-                        with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write(endDate.strftime('%Y-%m-%d'))
-                        
-                        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write(name)
+                        update_study_name(name)
                             
-                        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write('ongoing')
+                        update_status('ongoing')
                             
         return(redirect(url_for('user_home'))) 
     else:
@@ -570,8 +543,7 @@ def begin_testing():
         if 'admin' in session:
             if session['admin']:
                 error = None
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if request.method == 'GET':
                     if status != 'ready':
                         error = 'Study has already begun, current status is: ' + status 
@@ -592,16 +564,11 @@ def begin_testing():
                         if nameError != None or dateError != None:
                             return render_template('study_begining.html', error=None, nameError=nameError, dateError=dateError, test=True)
                         
-                        endDate = datetime.strptime(endresponse, '%Y-%m-%d')
+                        update_study_end(endresponse)
                         
-                        with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write(endDate.strftime('%Y-%m-%d'))
-                        
-                        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write(name)
+                        update_study_name(name)
                             
-                        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write('test')
+                        update_status('test')
                             
         return(redirect(url_for('user_home'))) 
     else:
@@ -612,33 +579,27 @@ def test_rollback(step):
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'test':
                     if request.method == 'GET':
-                        with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write('')
+                        update_study_end('', False)
                         
-                        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write('')
+                        update_study_name('')
                         
                         if step == 'distribution':
                             distribution_rollback()
-                            with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                                fw.write('uploads_done')
+                            update_status('uploads_done')
                         
                         if step == 'uploads':
                             distribution_rollback()
                             upload_rollback()
-                            with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                                fw.write('categories_done')
+                            update_status('categories_done')
                         
                         if step == 'categories':
                             distribution_rollback()
                             upload_rollback()
                             categories_rollback()
-                            with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                                fw.write('stopped')
+                            update_status('stopped')
                         
         return(redirect(url_for('user_home'))) 
     else:
@@ -649,11 +610,9 @@ def pause_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'ongoing':
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('paused')
+                    update_status('paused')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -663,11 +622,9 @@ def resume_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'paused':
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('ongoing')
+                    update_status('ongoing')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -677,8 +634,7 @@ def confirm_end():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'paused':
                     return render_template('confirm_end.html')
         return redirect(url_for('user_home'))
@@ -690,12 +646,10 @@ def end_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'paused':
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('ended')
-                        clear_optional_answers()
+                    update_status('ended')
+                    clear_optional_answers()
         return(redirect(url_for('user_home')))
     else:
         return(redirect(url_for('login')))
@@ -715,8 +669,7 @@ def manage_downloads():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status in ['test', 'ongoing', 'paused', 'ended']:
                     viewmodel = get_data_to_download(status)
                     return render_template('manage_downloads.html', ViewModel=viewmodel)
@@ -790,12 +743,10 @@ def clear_users():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read().replace('\n', '')
+                status = get_status()
                 if status == 'ended':
                     clear_data()
-                    with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
-                        fw.write('stopped')
+                    update_status('stopped')
         return redirect(url_for('user_home'))
     else:
         return(redirect(url_for('login')))    
@@ -867,8 +818,7 @@ def new_user_creation():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-                    status = fr.read()
+                status = get_status()
                 error = None
                 login = request.form['login']
                 fullname = request.form['fullname']
@@ -899,8 +849,7 @@ def case_display(case):
 @app.route('/case_learning/<case>', methods=['GET'])
 def case_learning(case):
     if 'userId' in session:
-        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
-            status = fr.read().replace('\n', '')
+        status = get_status()
         if status == 'ended':
             caseVM = caseForLearning(session['userId'], case)
             return render_template('case_learning.html', ViewModel=caseVM)
