@@ -9,7 +9,7 @@ Created on Tue Sep  9 19:33:36 2025
 #general imports
 from bcrypt import gensalt, hashpw
 
-from openpyxl import Workbook
+from pyexcel.sheet import Sheet
 from os import getcwd
 import os.path
 from os import remove
@@ -470,31 +470,35 @@ def get_remarks_for_export():
 
 def get_remarks_for_export_async():
     
-    wb = Workbook()
-    ws = wb.active
+    ws = Sheet()
     ws.title = "case_remarks"
-    
+
     with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = (fr.read()).replace('\n', '')
     
+    study_name = format_r_friendly(study_name)
+    
     now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
     
-    file_name1 = study_name + '_study_data' + now + '.xlsx'
-    #unsupported yet, change library in future updates
-    #file_name2 = study_name + '_study_data' + now + '.ods'
-
+    file_name1 = study_name + '_remarks' + now + '.xlsx'
+    file_name2 = study_name + '_remarks' + now + '.ods'
+    
     wb_path1 = os.path.join(getcwd(), 'results', file_name1)
-    #wb_path2 = os.path.join(getcwd(), 'results', file_name2)
+    wb_path2 = os.path.join(getcwd(), 'results', file_name2)
     
     remarks = get_all_remarks()
     
-    for i in range(len(remarks)):
-        ws.cell(row=i + 1, column=1, value=remarks[i].case)
-        ws.cell(row=i + 1, column=2, value=remarks[i].reviewer)
-        ws.cell(row=i + 1, column=3, value=remarks[i].remarks)
+    ws[0, 0] = 'case'
+    ws[0, 1] = 'reviewer'
+    ws[0, 2] = 'remarks'
     
-    wb.save(wb_path1)
-    #wb.save(wb_path2)
+    for i in range(len(remarks)):
+        ws[i + 1, 0] = remarks[i].case
+        ws[i + 1, 1] = remarks[i].reviewer
+        ws[i + 1, 2] = remarks[i].remarks
+    
+    ws.save_as(wb_path1)
+    ws.save_as(wb_path2)
 
 
 def clear_optional_answers():
@@ -506,22 +510,22 @@ def get_data_for_export():
     Thread(target=get_data_for_export_async).start()
 
 def get_data_for_export_async():
-
-    wb = Workbook()
-    ws = wb.active
+    
+    ws = Sheet()
     ws.title = "Study_data"
     
     with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'r', encoding="utf-8") as fr:
         study_name = (fr.read()).replace('\n', '')
     
+    study_name = format_r_friendly(study_name)
+    
     now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
     
     file_name1 = study_name + '_study_data' + now + '.xlsx'
-    #unsupported yet, change library in future updates
-    #file_name2 = study_name + '_study_data' + now + '.ods'
-
+    file_name2 = study_name + '_study_data' + now + '.ods'
+    
     wb_path1 = os.path.join(getcwd(), 'results', file_name1)
-    #wb_path2 = os.path.join(getcwd(), 'results', file_name2)
+    wb_path2 = os.path.join(getcwd(), 'results', file_name2)
     
     finalExtract = extract_all_data()
     
@@ -530,83 +534,83 @@ def get_data_for_export_async():
     gold_standard = get_gold_standard()
     
     one_of_category = 2
-    column_increment = 1
+    column_increment = 0
     
-    ws.cell(row=1, column=1, value='cases')
-    ws.cell(row=1, column=2, value='reviewers')
+    ws[0, 0] = 'cases'
+    ws[0, 1] = 'reviewers'
     
     column_increment += 2
     
     for i in range(nbCategories):
         current_category = finalExtract[0].categories[i]
         if current_category.catType == one_of_category:
-            ws.cell(row=1, column=column_increment, value=format_r_friendly(current_category.name))
+            ws[0, column_increment] = format_r_friendly(current_category.name)
             column_increment += 1
         else:
             for criterion in current_category.criteria:
-                ws.cell(row=1, column=column_increment, value=format_r_friendly(criterion.name))
+                ws[0, column_increment] = format_r_friendly(criterion.name)
                 column_increment += 1
         if current_category.confidence != -2:
-            ws.cell(row=1, column=column_increment, value=format_r_friendly(format_r_friendly(current_category.name) + '_confidence'))
+            ws[0, column_increment] = format_r_friendly(format_r_friendly(current_category.name) + '_confidence')
             column_increment += 1
             
     if gold_standard != None:
-        ws.cell(row=1 , column=column_increment, value='reviewer_gold_standard_answer')
+        ws[0 , column_increment] = 'reviewer_gold_standard_answer'
         column_increment +=1
         if gold_standard.hasTrust:
-            ws.cell(row=1 , column=column_increment, value='gold_standard_confidence')
+            ws[0, column_increment] = 'gold_standard_confidence'
             column_increment +=1
-        ws.cell(row=1 , column=column_increment, value='gold_standard_answer')
+        ws[0 , column_increment] = 'gold_standard_answer'
         column_increment +=1
-        ws.cell(row=1 , column=column_increment, value='gold_standard_comparison')
+        ws[0 , column_increment] = 'gold_standard_comparison'
         column_increment +=1
         if gold_standard.hasMalignancy:
-            ws.cell(row=1 , column=column_increment, value='reviewer_gold_standard_malignancy')
+            ws[0, column_increment] = 'reviewer_gold_standard_malignancy'
             column_increment +=1
-            ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy')
+            ws[0, column_increment] = 'gold_standard_malignancy'
             column_increment +=1
-            ws.cell(row=1 , column=column_increment, value='gold_standard_malignancy_comparison')
+            ws[1, column_increment] = 'gold_standard_malignancy_comparison'
             column_increment +=1
     
     for i in range(len(finalExtract)):
-        column_increment = 1
-        ws.cell(row=i + 2, column=1, value=finalExtract[i].case)
-        ws.cell(row=i + 2, column=2, value=finalExtract[i].reviewer)
+        column_increment = 0
+        ws[i + 1, 0] = finalExtract[i].case
+        ws[i + 1, 1], = finalExtract[i].reviewer
         column_increment +=2
         for current_category in finalExtract[i].categories:
             if current_category.catType == one_of_category:
-                ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(current_category.diagnosis))
+                ws[i + 1, column_increment] = format_r_friendly(current_category.diagnosis)
                 column_increment += 1
                 
             else:
                 for criterion in current_category.criteria:
-                    ws.cell(row=i + 2, column=column_increment, value=criterion.value)
+                    ws[i + 1, column_increment] = criterion.value
                     column_increment += 1
                     
             if current_category.confidence != -2:
-                ws.cell(row=i + 2, column=column_increment, value=current_category.confidence)
+                ws[i + 1, column_increment] = current_category.confidence
                 column_increment += 1
         
         if gold_standard != None:
-            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].reviewer_gold_standard_answer))
+            ws[i + 1, column_increment] = format_r_friendly(finalExtract[i].reviewer_gold_standard_answer)
             column_increment +=1
             if gold_standard.hasTrust:
-                ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_confidence)
+                ws[i + 1, column_increment] = finalExtract[i].gold_standard_confidence
                 column_increment +=1
-            ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].gold_standard_answer))
+            ws[i + 1, column_increment] = format_r_friendly(finalExtract[i].gold_standard_answer)
             column_increment +=1
-            ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_comparison)
+            ws[i + 1, column_increment] = finalExtract[i].gold_standard_comparison
             column_increment +=1
             if gold_standard.hasMalignancy:
-                ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].reviewer_gold_standard_malignancy))
+                ws[i + 1, column_increment] = format_r_friendly(finalExtract[i].reviewer_gold_standard_malignancy)
                 column_increment +=1
-                ws.cell(row=i + 2, column=column_increment, value=format_r_friendly(finalExtract[i].gold_standard_malignancy))
+                ws[i + 1, column_increment] = format_r_friendly(finalExtract[i].gold_standard_malignancy)
                 column_increment +=1
-                ws.cell(row=i + 2, column=column_increment, value=finalExtract[i].gold_standard_malignancy_comparison)
+                ws[i + 1, column_increment] = finalExtract[i].gold_standard_malignancy_comparison
                 column_increment +=1
         
-    wb.save(wb_path1)
-    #wb.save(wb_path2)
+    ws.save_as(wb_path1)
+    ws.save_as(wb_path2)
     
 
 def get_data_to_download(status):
@@ -627,7 +631,7 @@ def get_data_to_download(status):
 def get_result_file(filename):
     
     file = secure_filename(filename)
-    
+        
     filepath = os.path.join(getcwd(), 'results', file)
     
     #in case an evol hides filenames from front

@@ -4,5 +4,9 @@ flask_session
 sqlalchemy
 psycopg2-binary
 bcrypt
+pyexcel
+pyexcel-xls
+pyexcel-xlsx
+pyexcel-ods3
 openpyxl
 pillow

@@ -16,7 +16,7 @@ from os import getcwd
 from os import listdir
 import os.path
 
-from openpyxl import load_workbook
+from pyexcel import get_sheet
 
 #enable imports from local modules
 from pathlib import Path
@@ -251,63 +251,62 @@ def extract_all_data(engine):
 def create_all_cases(engine):
     
     session = Session(engine)
-
+    
     try:
         criteria = get_gold_standard_criteria(engine)
         gold_standard = len(criteria) > 0
-        
+     
         if gold_standard:
             criteriaDict = dict()
-            
+         
             for criterion in criteria:
                 criteriaDict[criterion[1]] = criterion[0]
-        
+         
         cwd = getcwd()
         path = os.path.join(cwd,'data', 'Img_data')
         case_files = [file for file in listdir(path) if not file.startswith('.')]
-        
+         
         if gold_standard:
             wbfolderpath = os.path.join(cwd, 'data')
             for filename in os.listdir(wbfolderpath):
                 if filename.startswith('case_data'):
                     wbpath = os.path.join(wbfolderpath, filename)
-        
+         
             case_files = sorted(list(case_files), key=natural_sort_key)
-            wb_obj = load_workbook(wbpath)
-            sheet_obj = wb_obj.active
-        
-        counter = 2
-        
+            sheet_obj = get_sheet(file_name=wbpath)
+         
+        counter = 1
+         
         for case_file in case_files:
             newpath = os.path.join(path, case_file)
-            
+         
             if gold_standard:
-                newname = str(sheet_obj.cell(row=counter, column=1).value)
-
+                newname = str(sheet_obj[counter, 0])
+        
                 if newname != case_file:
                     session.rollback()
                     session.close()
-                    
+         
                     return ('file name discrepancy', filename, newname)
-
-                cell_value = sheet_obj.cell(row=counter, column=2).value
+        
+                cell_value = sheet_obj[counter, 1]
                 gld_std_name = cell_value.removesuffix(' ')
-
+        
                 try:
                     gld_std = criteriaDict[gld_std_name]
                 except KeyError:
                     return ('gold standard name discrepancy', gld_std_name)
                 newcase = CasePOCO(newpath, newname, gld_std)
             else:
-                newname = str(counter - 1)
+                newname = str(counter)
                 newcase = CasePOCO(newpath, newname)
-                
+         
             counter += 1
-            
+         
             session.add(newcase)
-        
+            
         session.commit()
-        
+            
     finally: 
         session.close()
      
