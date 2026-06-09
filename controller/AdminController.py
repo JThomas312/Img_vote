@@ -480,10 +480,11 @@ def get_remarks_for_export_async():
     now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
     
     file_name1 = study_name + '_study_data' + now + '.xlsx'
-    file_name2 = study_name + '_study_data' + now + '.ods'
+    #unsupported yet, change library in future updates
+    #file_name2 = study_name + '_study_data' + now + '.ods'
 
     wb_path1 = os.path.join(getcwd(), 'results', file_name1)
-    wb_path2 = os.path.join(getcwd(), 'results', file_name2)
+    #wb_path2 = os.path.join(getcwd(), 'results', file_name2)
     
     remarks = get_all_remarks()
     
@@ -493,7 +494,7 @@ def get_remarks_for_export_async():
         ws.cell(row=i + 1, column=3, value=remarks[i].remarks)
     
     wb.save(wb_path1)
-    wb.save(wb_path2)
+    #wb.save(wb_path2)
 
 
 def clear_optional_answers():
@@ -516,10 +517,11 @@ def get_data_for_export_async():
     now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
     
     file_name1 = study_name + '_study_data' + now + '.xlsx'
-    file_name2 = study_name + '_study_data' + now + '.ods'
+    #unsupported yet, change library in future updates
+    #file_name2 = study_name + '_study_data' + now + '.ods'
 
     wb_path1 = os.path.join(getcwd(), 'results', file_name1)
-    wb_path2 = os.path.join(getcwd(), 'results', file_name2)
+    #wb_path2 = os.path.join(getcwd(), 'results', file_name2)
     
     finalExtract = extract_all_data()
     
@@ -604,7 +606,7 @@ def get_data_for_export_async():
                 column_increment +=1
         
     wb.save(wb_path1)
-    wb.save(wb_path2)
+    #wb.save(wb_path2)
     
 
 def get_data_to_download(status):
