@@ -35,6 +35,7 @@ orm_driver = database_credentials_file.readline().removesuffix('\n')
 usrname = database_credentials_file.readline().removesuffix('\n')
 passw = database_credentials_file.readline().removesuffix('\n')
 db_host = database_credentials_file.readline().removesuffix('\n')
+db_port = database_credentials_file.readline().removesuffix('\n')
 db_name = database_credentials_file.readline().removesuffix('\n')
 
 database_credentials_file.close()
@@ -44,6 +45,7 @@ url_object = URL.create(
     username=usrname,
     password=passw,  # plain (unescaped) text
     host=db_host,
+    port=db_port,
     database=db_name,
 )
 
