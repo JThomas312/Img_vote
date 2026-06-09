@@ -27,7 +27,7 @@ sys.path.append(str(path_root))
 #local imports
 from img_vote.utilities.useful import natural_sort_key, format_r_friendly
 
-from img_vote.Models.DataModels import CaseDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
+from img_vote.Models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
 from img_vote.Models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
 from img_vote.dal.CriterionDal import get_gold_standard_criteria
 from img_vote.dal.UserDal import get_all_non_admin_reviewers
@@ -42,6 +42,24 @@ def get_case_by_id(identifier, engine):
         casePOCO = session.get(CasePOCO, identifier)
         
         case = CaseDataModel(casePOCO.id, casePOCO.path, casePOCO.name)
+
+    finally:        
+        session.close()
+    
+    return case
+
+def get_case_with_gold_standard(identifier, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CasePOCO, CriterionPOCO).join(CriterionPOCO, CasePOCO.gold_standard == CriterionPOCO.id).filter(CasePOCO.id == identifier)
+        
+        ans = query.one_or_none()
+        
+        #0: case, 1: criterion
+        
+        case = CaseGoldStandardDataModel(ans[0].id, ans[0].path, ans[0].name, ans[1].name)
 
     finally:        
         session.close()
@@ -153,45 +171,45 @@ def extract_all_data(engine):
                         gold_standard_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(AnswerCriterionPOCO.value == trueValue).where(CriterionPOCO.is_trust == False)
                         gold_standard_answer = gold_standard_query.one_or_none()
                         
+                        rev_diag = 'unanswered'
                         
                         if gold_standard_answer != None:
-    
-                            rev_diag = 'unanswered'
                                 
                             rev_diag = format_r_friendly(gold_standard_answer[1].name)
-                            
-                            gld_std_name = format_r_friendly(case[1].name)
-                            
-                            newExtract.reviewer_gold_standard_answer = rev_diag
-                            newExtract.gold_standard_answer = gld_std_name
-                            newExtract.gold_standard_comparison = rev_diag == gld_std_name
     
-                            if gold_standard_category.has_malignancy:
+                        if gold_standard_category.has_malignancy:
+                            rev_malignancy = 'unanswered'
+                            gld_std_malignancy = 'unanswered'
     
-                                rev_malignancy = 'unanswered'
-                                gld_std_malignancy = 'unanswered'
-    
+                            if gold_standard_answer != None:
                                 if gold_standard_answer[1].malignancy:
                                     rev_malignancy = 'malignant'
                                 else:
                                     rev_malignancy = 'benign'
-        
-                                if case[1].malignancy:
-                                    gld_std_malignancy = 'malignant'
-                                else:            
-                                    gld_std_malignancy = 'benign'
     
-                                newExtract.reviewer_gold_standard_malignancy = rev_malignancy
-                                newExtract.gold_standard_malignancy = gld_std_malignancy
-                                newExtract.gold_standard_malignancy_comparison = rev_malignancy == gld_std_malignancy
-                            
-                            if gold_standard_category.has_trust:
-                            
-                                gold_standard_trust_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(CriterionPOCO.is_trust == True)
-                                gold_standard_trust_answer = gold_standard_trust_query.one_or_none()
+                            if case[1].malignancy:
+                                gld_std_malignancy = 'malignant'
+                            else:            
+                                gld_std_malignancy = 'benign'
     
+                            newExtract.reviewer_gold_standard_malignancy = rev_malignancy
+                            newExtract.gold_standard_malignancy = gld_std_malignancy
+                            newExtract.gold_standard_malignancy_comparison = rev_malignancy == gld_std_malignancy
+                            
+                        if gold_standard_category.has_trust:
+                        
+                            gold_standard_trust_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(CriterionPOCO.is_trust == True)
+                            gold_standard_trust_answer = gold_standard_trust_query.one_or_none()
+                            
+                            if gold_standard_trust_answer != None:
                                 newExtract.gold_standard_confidence = gold_standard_trust_answer[0].value
+                            else:
+                                newExtract.gold_standard_confidence = -1
                             
+                            gld_std_name = format_r_friendly(case[1].name)
+                            newExtract.reviewer_gold_standard_answer = rev_diag
+                            newExtract.gold_standard_answer = gld_std_name
+                            newExtract.gold_standard_comparison = rev_diag == gld_std_name
                         
                     for category in categories:
                         

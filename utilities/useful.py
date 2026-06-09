@@ -25,6 +25,9 @@ def format_r_friendly(name):
 def sanitize(userinput):
     return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))
 
+def sanitize_text(userinput):
+    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\s]*$', userinput))
+
 def natural_sort_key(item):                                              # ERG added
     """
     Robust key for natural sorting:

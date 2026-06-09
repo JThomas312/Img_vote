@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Downloads{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Manage Result Downloads</h1>
+        <p class="text-slate-500 text-sm mt-1">Download the exported results of your study</p>
+    </div>
+
+    {% if ViewModel.errors %}
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ ViewModel.errors }}</div>
+    {% endif %}
+    <div class="bg-white rounded-2xl shadow-lg divide-y divide-slate-100 mb-6">
+        {% if ViewModel.files_to_show %}
+            <div class="flex px-5 py-4">
+                <a href="/delete_all_results/" class="ml-auto bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-2 py-1 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">Delete All</a>
+            </div>                                        
+            <!-- Case data -->
+            {% for filename in ViewModel.files %}
+                <div class="flex items-center justify-between px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 text-slate-400 text-lg">📊</div>
+                    <div>
+                      <p class="font-semibold text-slate-800 text-sm">{{filename}}</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-8 shrink-0 ml-2">
+                    <a href="/download_result_data/{{filename}}" class="text-xs bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-3 py-1.5 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all font-medium shadow-sm">Download</a>
+                    <a href="/delete_result_data/{{filename}}" class="text-xs text-danger border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors font-medium" onclick="remove_file(event)">Delete</a>
+                  </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="mb-6 px-4 py-2">
+                <p class="text-slate-700 text-sm mb-2">No data has been exported yet, mayhap your latest export is yet to complete.</p>
+            </div>
+        {% endif %}
+    </div>
+
+
+  <div class="flex gap-3">
+    <a href="/user_home/" class="border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Go Back</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='JS/manage_downloads.js')}}"></script>
+{% endblock %}

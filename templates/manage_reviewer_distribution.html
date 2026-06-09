@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Reviewer Distribution{% endblock %}
+
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="mb-6">
+    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Reviewer Distribution</h1>
+    <p class="text-slate-500 text-sm mt-0.5">Configure how cases are assigned to reviewers</p>
+  </div>
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+    <!-- Left panel: study figures -->
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+      <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-5">Study Figures</h2>
+      <form id="nb_reviewers_form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="space-y-4">
+
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-slate-600">Cases in study</label>
+            <input id="nb_cases" class="w-20 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm bg-slate-50 text-right font-medium" type="number" name="nb_cases" value="{{VM.nb_cases}}" readonly>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-slate-600">Current reviewers</label>
+            <input id="nb_reviewers" class="w-20 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm bg-slate-50 text-right font-medium" type="number" name="nb_reviewers" value="{{VM.nb_reviewers}}" readonly>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-slate-600">Current full reviewers</label>
+            <input id="nb_full_reviewers" class="w-20 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm bg-slate-50 text-right font-medium" type="number" name="nb_full_reviewers" value="{{VM.nb_full_reviewers}}" readonly>
+          </div>
+
+          <div class="border-t border-slate-100 pt-4">
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-sm text-slate-600">Additional reviewers expected</label>
+              <input id="expected_additional_reviewers" class="w-20 border border-indigo-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 text-right font-medium" type="number" name="additional_reviewers" value="0" min="0" oninput="update_figures()">
+            </div>
+            <div class="flex items-center justify-between">
+              <label class="text-sm text-slate-600">Of which full reviewers</label>
+              <input id="expected_additional_full_reviewers" class="w-20 border border-indigo-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 text-right font-medium" type="number" name="additional_full_reviewers" value="0" min="0" oninput="update_figures()">
+            </div>
+          </div>
+
+          <div class="border-t border-slate-100 pt-4">
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-sm text-slate-600">Grand total reviewers</label>
+              <input id="total_nb_reviewers" class="w-20 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm bg-slate-50 text-right font-semibold" type="number" name="total_nb_reviewers" value="{{VM.nb_reviewers}}" readonly>
+            </div>
+            <div class="flex items-center justify-between">
+              <label class="text-sm text-slate-600">Grand total full reviewers</label>
+              <input id="total_nb_full_reviewers" class="w-20 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm bg-slate-50 text-right font-semibold" type="number" name="total_nb_full_reviewers" value="{{VM.nb_full_reviewers}}" readonly>
+            </div>
+          </div>
+
+            <div id="display_reviewers_per_case" class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-4 text-center">
+              <p class="text-xs text-indigo-400 font-semibold uppercase tracking-wide mb-1">With current parameters, each case will be reviewed by at least this many reviewers</p>
+              <input id="nb_reviewers_per_case" class="text-3xl font-extrabold text-indigo-600 w-full text-center border-none bg-transparent" type="number" name="nb_reviewers_per_case" value="" readonly>
+            </div>
+            <div id="display_cases_per_reviewer" class="bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-100 rounded-xl p-4 text-center">
+              <p class="text-xs text-teal font-semibold uppercase tracking-wide mb-1">With current parameters, each reviewer will review at least this many cases</p>
+              <input id="nb_cases_per_reviewer" class="text-3xl font-extrabold text-teal w-full text-center border-none bg-transparent" type="number" name="nb_cases_per_reviewer" value="" readonly>
+            </div>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- Right panel: distribution method -->
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+      <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-5">Distribution Method</h2>
+      <form id="distribution_form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <fieldset class="mb-5">
+          <legend class="sr-only">Distribution method</legend>
+          <div class="flex flex-col gap-3 text-sm">
+            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition-colors">
+              <input class="accent-indigo-600" type="radio" id="distribution_all" name="distribution" value="all for all" onclick="update_everything()" checked/>
+              All cases reviewed by all reviewers
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition-colors">
+              <input class="accent-indigo-600" type="radio" id="n_per_case" name="distribution" value="n per case" onclick="update_everything()"/>
+              Set a minimum number of reviewers per case
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition-colors">
+              <input class="accent-indigo-600" type="radio" id="n_per_reviewer" name="distribution" value="n per reviewer" onclick="update_everything()"/>
+              Set a minimum number of cases per reviewer
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition-colors">
+              <input class="accent-indigo-600" type="radio" id="percent_per_reviewer" name="distribution" value="percent per reviewer" onclick="update_everything()"/>
+              Set a percentage of cases per reviewer
+            </label>
+          </div>
+        </fieldset>
+
+        <div id="select_n_per_case" class="mb-3">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Reviewers per case</label>
+          <input class="w-24 border border-indigo-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" type="number" id="reviewers_per_case" name="reviewer_per_case" value="{{VM.nb_reviewers}}" min="0" step="1" oninput="update_figures()"/>
+        </div>
+        <div id="select_n_per_reviewer" class="mb-3">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cases per reviewer</label>
+          <input class="w-24 border border-indigo-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" type="number" id="cases_per_reviewer" name="cases_per_reviewer" value="{{VM.nb_cases}}" min="0" max="{{VM.nb_cases}}" step="1" oninput="update_figures()"/>
+        </div>
+        <div id="select_percent_per_reviewer" class="mb-3">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Percentage per reviewer</label>
+          <div class="flex items-center gap-2">
+            <input class="w-24 border border-indigo-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" type="number" id="percentage" name="percentage" value="100" min="0" max="100" step="1" oninput="update_figures()"/>
+            <span class="text-sm font-semibold text-slate-500">%</span>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-7">
+          <button type="submit" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">Confirm Distribution</button>
+          <a href="/user_home/" class="border border-slate-300 text-slate-600 px-4 py-2.5 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Leave</a>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{url_for('static', filename='JS/manage_reviewer_distribution.js')}}"></script>
+{% endblock %}

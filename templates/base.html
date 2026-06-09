@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Img Vote{% endblock %}</title>
+
+  <link href="{{url_for('static', filename='CSS/base.css')}}" rel="stylesheet">
+
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 min-h-screen pt-16{% endblock %}">
+
+  {% block nav %}
+  <nav class="fixed top-0 left-0 w-full h-16 bg-gradient-to-r from-indigo-700 to-blue-700 text-white flex items-center justify-between px-6 z-50 shadow-lg">
+    <span class="text-xl font-extrabold tracking-tight">Img<span class="text-indigo-200">Vote</span></span>
+    <div class="flex items-center gap-4 text-sm">
+      {% if session.get('admin') %}
+        <span class="bg-indigo-500/50 text-indigo-100 text-xs font-semibold px-2.5 py-0.5 rounded-full">Admin</span>
+      {% endif %}
+      {% if session.get('username') %}
+        <span class="text-indigo-200">{{ session['username'] }}</span>
+        <a href="/logout/" class="bg-white/15 hover:bg-white/25 transition-all px-3 py-1 rounded-lg text-white text-xs font-medium">Logout</a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endblock %}
+
+  {% block content %}{% endblock %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

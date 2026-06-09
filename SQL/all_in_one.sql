@@ -78,6 +78,7 @@ CREATE TABLE answer
     reviewer INT NOT NULL,     
     name VARCHAR (10) NOT NULL,                                       
     completed BOOLEAN DEFAULT FALSE,
+    remarks VARCHAR(2000),
     PRIMARY KEY (id),
     FOREIGN KEY (study_case) REFERENCES study_case(id),
     FOREIGN KEY (reviewer) REFERENCES reviewer(id)
@@ -94,8 +95,5 @@ CREATE TABLE answer_to_criterion
 );;
 
 
-INSERT INTO reviewer (name, login, password, admin, remaining_cases) VALUES ('Jacques THOMAS', 'jthomas', '$2b$12$H0P2muE8yXwdHBXMmIbo7uJ//6fl.a4PoFAKjf1ubhZNq0reyI1WG', true, 0);;
-INSERT INTO reviewer (name, login, password, admin, remaining_cases) VALUES ('Emmanuel Ribereau', 'eribereau', '$2b$12$H0P2muE8yXwdHBXMmIbo7uJ//6fl.a4PoFAKjf1ubhZNq0reyI1WG', true, 0);;
-INSERT INTO reviewer (name, login, password, admin, remaining_cases) VALUES ('Emmanuel Ribereau', 'erib', '$2b$12$H0P2muE8yXwdHBXMmIbo7uJ//6fl.a4PoFAKjf1ubhZNq0reyI1WG', false, 0);;
-INSERT INTO reviewer (name, login, password, admin, remaining_cases) VALUES ('Julien Anriot', 'Janriot', '$2b$12$H0P2muE8yXwdHBXMmIbo7uJ//6fl.a4PoFAKjf1ubhZNq0reyI1WG', true, 0);;
-INSERT INTO reviewer (name, login, password, admin, remaining_cases) VALUES ('Julien Anriot', 'JANRIOT', '$2b$12$H0P2muE8yXwdHBXMmIbo7uJ//6fl.a4PoFAKjf1ubhZNq0reyI1WG', false, 0);;
+INSERT INTO reviewer (name, login, password, admin, remaining_cases) VALUES ('Original Admin', 'admin', '$2b$12$H0P2muE8yXwdHBXMmIbo7uJ//6fl.a4PoFAKjf1ubhZNq0reyI1WG', true, 0);;
+INSERT INTO reviewer (name, login, password, admin, remaining_cases) VALUES ('Test User', 'test', '$2b$12$H0P2muE8yXwdHBXMmIbo7uJ//6fl.a4PoFAKjf1ubhZNq0reyI1WG', false, 0);;

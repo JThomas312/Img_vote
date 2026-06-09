@@ -27,7 +27,7 @@ function update_figures(){
     var reviewers_per_case = document.getElementById('nb_reviewers_per_case');
     var case_per_reviewer = document.getElementById('nb_cases_per_reviewer');
     
-    if (document.getElementById('repartition_all').checked){
+    if (document.getElementById('distribution_all').checked){
         case_per_reviewer.value = nb_cases;
     }
     
@@ -63,7 +63,7 @@ function update_figures(){
 }
 
 function update_everything(){
-    if (document.getElementById('repartition_all').checked){
+    if (document.getElementById('distribution_all').checked){
         var to_hide = ['select_n_per_case','select_n_per_reviewer','select_percent_per_reviewer', 'display_reviewers_per_case'];
         var to_show = ['display_cases_per_reviewer'];
     }

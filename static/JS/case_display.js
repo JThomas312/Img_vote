@@ -136,6 +136,35 @@ function updateUnansweredBorders() {
 window.addEventListener('load', updateUnansweredBorders);
 window.addEventListener('load', updateVisibility);
 
+function debounce(fn, delay) {
+    var timer;
+    return function() {
+        var args = arguments;
+        var ctx = this;
+        clearTimeout(timer);
+        timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
+    };
+}
+
+window.addEventListener('load', function() {
+    var caseId = document.getElementById('case_id').value;
+
+    // Auto-save for category name
+    var remarksInput = document.getElementById('remarks');
+    var debouncedSaveRemarks = debounce(function() {
+        $.getJSON('/safeguard_remarks?case_id=' + caseId + '&value=' + encodeURIComponent(remarksInput.value));
+    }, 800);
+    remarksInput.addEventListener('input', debouncedSaveRemarks);
+});
+
+//prevent subbmitting the form with enter key
+let form = document.getElementById("criteria-form");
+    form.onkeypress = function (key) {
+        let btn = 0 || key.keyCode || key.charCode;
+        if (btn == 13) {
+            key.preventDefault();
+        }
+    } 
 
 // Update whenever any radio is clicked
 document.addEventListener('change', function(e) {

@@ -83,6 +83,7 @@ CREATE TABLE answer
     reviewer INT NOT NULL,     
     name VARCHAR (10) NOT NULL,                                       
     completed BOOLEAN DEFAULT FALSE,
+    remarks VARCHAR(2000),
     PRIMARY KEY (id),
     FOREIGN KEY (study_case) REFERENCES study_case(id),
     FOREIGN KEY (reviewer) REFERENCES reviewer(id)
@@ -92,7 +93,7 @@ CREATE TABLE answer_to_criterion
 (
     answer INT NOT NULL,
     criterion INT NOT NULL,
-    value INT NOT NULL DEFAULT 0,
+    value INT NOT NULL,
     PRIMARY KEY (answer, criterion),
     FOREIGN KEY (answer) REFERENCES answer(id),
     FOREIGN KEY (criterion) REFERENCES criterion(id)

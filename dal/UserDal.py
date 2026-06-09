@@ -87,7 +87,7 @@ def get_users_for_admin(identifier, engine):
     try:
         users = []
     
-        userQuery = select(ReviewerPOCO).where(ReviewerPOCO.id != identifier)
+        userQuery = select(ReviewerPOCO).where(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.admin, ReviewerPOCO.remaining_cases, ReviewerPOCO.id)
         userPOCO = session.execute(userQuery).all()
     
         for i in range(len(userPOCO)):

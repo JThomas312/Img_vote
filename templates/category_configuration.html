@@ -1,87 +1,85 @@
-<!--# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr  9 11:58:10 2026
+{% extends "base.html" %}
 
-@author: jacques
-"""-->
+{% block title %}Category Configuration{% endblock %}
 
-<!DOCTYPE html>
-{% autoescape true %}
-<html lang="en">
+{% block head %}
+  <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+  <script src="{{ url_for('static', filename='JS/category_configuration.js')}}"></script>
+{% endblock %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta content="width=device-width, initial-scale=1.0"/>
-    <title>Category Configuration</title>
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
 
-    <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
-    <script src="{{ url_for('static', filename='JS/category_configuration.js')}}"></script>
-    
-    <link rel="stylesheet" href="{{url_for('static', filename='CSS/category_configuration.css')}}"/>
-</head>
+  {% if status_error %}
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ status_error }}</div>
+    <a href="/user_home/" class="inline-block border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm">Go back</a>
+  {% else %}
 
-<body>
-    {% if status_error %}
-        <h1>There has been an error during study configuration: {{ status_error }}!</h1>
-        <a href="/user_home/">
-            <button>go back</button>
-        </a>
-    {% else %}
-        {% if deletion_error %}
-            <div id="error_display">
-                {{deletion_error}}
-            </div>
-        {% endif %} 
-        {% if categories != [] %}   
-            {% block title %} Current Categories :{% endblock %}
-            {% block content %}
-            <ul>
-                {% for category in categories %}
-                <li>
-                    <a> {% if category.name == '' %} Unnamed Category {% else %} {{category.name}} {% endif %} 
-                        <a href="/edit_category/{{category.id}}">
-                          <button class="editButton">Edit</button>
-                        </a> 
-                        <a href="/remove_category/{{category.id}}">
-                            <button class="removeButton">Remove</button>
-                        </a>
-                    </a>
-                    <ol>
-                    {% for criterion in category.criteria %}
-                        <li>
-                            <a> {{criterion.name}} 
-                                <a href="/remove_criterion/{{criterion.id}}">
-                                    <button class="removeButton">Remove</button>
-                                </a> 
-                            </a>
-                        </li>
-                    {% endfor %}
-                    </ol>
-                </li>
-                {% endfor %}
-            </ul>
-            {% endblock %}
-        {% else %}
-            <h1>No categories were created yet<h1>
-        {% endif %}
-        <a href="/add_category/">
-          <button>Add Category</button>
-        </a>
-        <br/>
-        <br/>
-        <a href="/user_home/">
-          <button>Leave Configuration</button>
-        </a>
-        <br/>
-        <br/>
-        <a href="/finish_category_configuration/">
-          <button>Finish Editing Categories</button>
-        </a>
-        <br/>
+    {% if deletion_error %}
+      <div id="error_display" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ deletion_error }}</div>
     {% endif %}
-</body>
 
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Categories</h1>
+        <p class="text-slate-500 text-sm mt-0.5">Define what reviewers will evaluate</p>
+      </div>
+      <a href="/add_category/" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">+ Add Category</a>
+    </div>
 
-{% endautoescape %}
-</html>
+    {% if categories != [] %}
+      <div class="bg-white rounded-2xl shadow-lg divide-y divide-slate-100 mb-6">
+        {% for category in categories %}
+        <div class="px-5 py-4 hover:bg-indigo-50 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-semibold text-slate-800 text-sm">
+                {% if category.name == '' %}Unnamed Category{% else %}{{ category.name }}{% endif %}
+              </span>
+              {% if category.type in [1,2,3] %}
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                  {% if category.type == 1 %}yes/no{% endif %}
+                  {% if category.type == 2 %}one of{% endif %}
+                  {% if category.type == 3 %}numbers{% endif %}
+                </span>
+              {% endif %}
+              {% if category.has_tutorial %}<span class="text-xs text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full bg-slate-50">tutorial</span>{% endif %}
+              {% if category.has_trust %}<span class="text-xs text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full bg-slate-50">trust</span>{% endif %}
+              {% if category.has_NA %}<span class="text-xs text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full bg-slate-50">n/a</span>{% endif %}
+              {% if category.optional %}<span class="text-xs text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full bg-slate-50">optional</span>{% endif %}
+              {% if category.has_gold_standard %}<span class="text-xs text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full bg-amber-50">gold standard</span>{% endif %}
+              {% if category.has_malignancy %}<span class="text-xs text-rose-600 border border-rose-200 px-2 py-0.5 rounded-full bg-rose-50">malignancy</span>{% endif %}
+            </div>
+            <div class="flex gap-2 shrink-0 ml-2">
+              <a href="/edit_category/{{category.id}}" class="editButton text-xs bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700 font-medium transition-colors">Edit</a>
+              <a href="/remove_category/{{category.id}}" class="removeButton text-xs border border-red-200 text-danger px-3 py-1 rounded-lg hover:bg-red-50 font-medium transition-colors">Remove</a>
+            </div>
+          </div>
+          {% if category.criteria %}
+          <ol class="mt-2 ml-4 list-decimal list-inside text-xs text-slate-400 space-y-0.5">
+            {% for criterion in category.criteria %}
+              <li class="flex items-center justify-between">
+                <span>{{ criterion.name }}</span>
+                <a href="/remove_criterion/{{criterion.id}}" class="removeButton text-danger hover:underline text-xs ml-2">Remove</a>
+              </li>
+            {% endfor %}
+          </ol>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="bg-white rounded-2xl shadow p-10 text-center text-slate-400 text-sm mb-6">
+        <p class="text-2xl mb-2">🗂</p>
+        No categories created yet.
+      </div>
+    {% endif %}
+
+    <div class="flex gap-3">
+      <a href="/user_home/" class="border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Leave Configuration</a>
+      <a href="/finish_category_configuration/" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-green-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all">Finish Editing Categories</a>
+    </div>
+
+  {% endif %}
+</div>
+{% endblock %}

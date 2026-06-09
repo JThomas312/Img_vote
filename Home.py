@@ -34,6 +34,8 @@ from utilities.useful import sanitize
 from controller.UserController import user_for_home
 from controller.UserController import user_for_login
 from controller.UserController import modify_password
+from controller.UserController import study_has_gold_standard
+from controller.UserController import user_for_learning
 
 from controller.AdminController import create_user
 from controller.AdminController import delete_user
@@ -63,15 +65,23 @@ from controller.AdminController import remove_tutorial_images
 from controller.AdminController import remove_case_data
 from controller.AdminController import check_uploads_and_create_cases
 from controller.AdminController import upload_rollback
-from controller.AdminController import data_for_repartition
-from controller.AdminController import handle_repartition
-from controller.AdminController import repartition_rollback
+from controller.AdminController import data_for_distribution
+from controller.AdminController import handle_distribution
+from controller.AdminController import distribution_rollback
 from controller.AdminController import clear_data
 from controller.AdminController import get_data_for_export
+from controller.AdminController import get_data_to_download
+from controller.AdminController import get_result_file
+from controller.AdminController import remove_result_file
+from controller.AdminController import remove_all_result_files
+from controller.AdminController import get_remarks_for_export
+from controller.AdminController import clear_optional_answers
 
 from controller.CaseController import caseForDisplay
+from controller.CaseController import caseForLearning
 from controller.CaseController import safeguardProgress
 from controller.CaseController import safeguardDiagnosis
+from controller.CaseController import safeguardRemarks
 from controller.CaseController import criterion_for_tutorial
 from controller.CaseController import checkProgress
 
@@ -159,14 +169,18 @@ def user_home():
             total_users = user.total_users
             otherUsers = user.otherUsers
             display_others = len(otherUsers) > 0
-            return render_template('admin_home.html', remaining_days= remaining_days, username=user.name, studyname=study_name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
+            return render_template('admin_home.html', remaining_days=remaining_days, username=user.name, studyname=study_name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
         else:   
-            if status == 'ongoing':
+            if status == 'ongoing' or status == 'test':
                 items = user.items
                 remaining_items = user.remaing_items             
                 return render_template('user_home.html', username=user.name, studyname=study_name, remaining_items=remaining_items, remaining_days=remaining_days, items=items)
             else:
-                return render_template('study_ended.html', username=user.name)
+                if status == 'ended' and study_has_gold_standard():
+                    learnViewModel = user_for_learning(user.userId)
+                    return render_template('user_learning.html', username=user.name, studyname=study_name, correct_answers=learnViewModel.correct_answers, total_answers=learnViewModel.total_answers, items=learnViewModel.items)
+                else:
+                    return render_template('study_ended.html', username=user.name)
     else:
         return(redirect(url_for('login')))
 
@@ -468,8 +482,8 @@ def rollback_uploads():
     else:
         return(redirect(url_for('login')))
 
-@app.route('/manage_reviewer_repartition/', methods=['GET', 'POST'])
-def manage_reviewer_repartition():
+@app.route('/manage_reviewer_distribution/', methods=['GET', 'POST'])
+def manage_reviewer_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
@@ -477,22 +491,22 @@ def manage_reviewer_repartition():
                     status = fr.read().replace('\n', '')
                 if status == 'uploads_done':
                     if request.method == 'GET':
-                        viewModel = data_for_repartition()
-                        return render_template('manage_reviewer_repartition.html', VM=viewModel)
+                        viewModel = data_for_distribution()
+                        return render_template('manage_reviewer_distribution.html', VM=viewModel)
                     if request.method == 'POST':    
-                        repartition_method = request.form['repartition']
+                        distribution_method = request.form['distribution']
                         reviewer_per_case = request.form['reviewer_per_case']
                         cases_per_reviewer = request.form['cases_per_reviewer']
                         percentage = request.form['percentage']
-                        handle_repartition(repartition_method, reviewer_per_case, cases_per_reviewer, percentage)
+                        handle_distribution(distribution_method, reviewer_per_case, cases_per_reviewer, percentage)
                         with open(os.path.join(getcwd(), 'persistence/study_status.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('ready')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
 
-@app.route('/rollback_repartition/', methods=['GET'])
-def rollback_repartition():
+@app.route('/rollback_distribution/', methods=['GET'])
+def rollback_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
@@ -500,7 +514,7 @@ def rollback_repartition():
                     status = fr.read().replace('\n', '')
                 if status == 'ready':
                     if request.method == 'GET':
-                        repartition_rollback()
+                        distribution_rollback()
                         with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('uploads_done')
         return(redirect(url_for('user_home'))) 
@@ -518,18 +532,114 @@ def begin_study():
                 if request.method == 'GET':
                     if status != 'ready':
                         error = 'Study has already begun, current status is: ' + status 
-                    return render_template('study_begining.html', error=error)
+                    return render_template('study_begining.html', error=error, nameError=None, ansError=None, test=False)
                 if request.method == 'POST':
                     if status == 'ready':
-                        endDate = datetime.strptime(request.form['study_end'], '%Y-%m-%d')
+                        nameError = None
+                        dateError = None
+                        
+                        name = request.form['study_name']
+                        endresponse = request.form['study_end']
+                        
+                        if name == '':
+                            nameError = 'Your study needs a name\n'
+                        if endresponse == '':
+                            dateError = 'You study needs an endDate'
+                        
+                        if nameError != None or dateError != None:
+                            return render_template('study_begining.html', error=None, nameError=nameError, dateError=dateError, test=False)
+                        
+                        endDate = datetime.strptime(endresponse, '%Y-%m-%d')
+                        
                         with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
                             fw.write(endDate.strftime('%Y-%m-%d'))
                         
                         with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
-                            fw.write(request.form['study_name'])
+                            fw.write(name)
                             
                         with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                             fw.write('ongoing')
+                            
+        return(redirect(url_for('user_home'))) 
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/begin_testing/', methods=['GET', 'POST'])
+def begin_testing():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                error = None
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if request.method == 'GET':
+                    if status != 'ready':
+                        error = 'Study has already begun, current status is: ' + status 
+                    return render_template('study_begining.html', error=error, nameError=None, dateError=None, test=True)
+                if request.method == 'POST':
+                    if status == 'ready':
+                        nameError = None
+                        dateError = None
+                        
+                        name = request.form['study_name']
+                        endresponse = request.form['study_end']
+                        
+                        if name == '':
+                            nameError = 'Your study needs a name\n'
+                        if endresponse == '':
+                            dateError = 'You study needs an endDate'
+                        
+                        if nameError != None or dateError != None:
+                            return render_template('study_begining.html', error=None, nameError=nameError, dateError=dateError, test=True)
+                        
+                        endDate = datetime.strptime(endresponse, '%Y-%m-%d')
+                        
+                        with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write(endDate.strftime('%Y-%m-%d'))
+                        
+                        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write(name)
+                            
+                        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write('test')
+                            
+        return(redirect(url_for('user_home'))) 
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/test_rollback/<step>', methods=['GET'])
+def test_rollback(step):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status == 'test':
+                    if request.method == 'GET':
+                        with open(os.path.join(getcwd(), 'persistence', 'study_end.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write('')
+                        
+                        with open(os.path.join(getcwd(), 'persistence', 'study_name.txt'), 'w', encoding="utf-8") as fw:
+                            fw.write('')
+                        
+                        if step == 'distribution':
+                            distribution_rollback()
+                            with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
+                                fw.write('uploads_done')
+                        
+                        if step == 'uploads':
+                            distribution_rollback()
+                            upload_rollback()
+                            with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
+                                fw.write('categories_done')
+                        
+                        if step == 'categories':
+                            distribution_rollback()
+                            upload_rollback()
+                            categories_rollback()
+                            with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
+                                fw.write('stopped')
+                        
         return(redirect(url_for('user_home'))) 
     else:
         return(redirect(url_for('login')))
@@ -585,6 +695,7 @@ def end_study():
                 if status == 'paused':
                     with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'w', encoding="utf-8") as fw:
                         fw.write('ended')
+                        clear_optional_answers()
         return(redirect(url_for('user_home')))
     else:
         return(redirect(url_for('login')))
@@ -594,8 +705,72 @@ def export_data():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                (file_path, name) = get_data_for_export()
+                get_data_for_export()
+        return '', 204
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/manage_downloads/')
+def manage_downloads():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+                    status = fr.read().replace('\n', '')
+                if status in ['test', 'ongoing', 'paused', 'ended']:
+                    viewmodel = get_data_to_download(status)
+                    return render_template('manage_downloads.html', ViewModel=viewmodel)
+        return(redirect(url_for('user_home')))
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/download_result_data/<filename>')
+def download_result_data(filename):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                (file_path, name) = get_result_file(filename)
                 return send_file(file_path, download_name=name, as_attachment=True)
+        return '', 204
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_result_data/<filename>')
+def delete_result_data(filename):
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                remove_result_file(filename)
+        return '', 204
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_all_results/')
+def confirm_delete_all_result_files():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                return render_template('confirm_delete_result_files.html')
+        return redirect(url_for('user_home'))
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/delete_result_files/')
+def delete_all_result_files():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                remove_all_result_files()
+        return redirect(url_for('user_home'))
+    else:
+        return(redirect(url_for('login')))
+    
+@app.route('/export_remarks/')
+def export_remarks():
+    if 'userId' in session:
+        if 'admin' in session:
+            if session['admin']:
+                get_remarks_for_export()
         return '', 204
     else:
         return(redirect(url_for('login')))
@@ -713,12 +888,23 @@ def new_user_creation():
         return redirect(url_for('login'))
 
 
-
 @app.route('/case_display/<case>', methods=['GET'])
 def case_display(case):
     if 'userId' in session:
         caseVM = caseForDisplay(session['userId'], case)
         return render_template('case_display.html', ViewModel=caseVM)
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/case_learning/<case>', methods=['GET'])
+def case_learning(case):
+    if 'userId' in session:
+        with open(os.path.join(getcwd(), 'persistence', 'study_status.txt'), 'r', encoding="utf-8") as fr:
+            status = fr.read().replace('\n', '')
+        if status == 'ended':
+            caseVM = caseForLearning(session['userId'], case)
+            return render_template('case_learning.html', ViewModel=caseVM)
+        return redirect(url_for('user_home'))
     else:
         return redirect(url_for('login'))
  
@@ -815,8 +1001,8 @@ def edit_prerequisite():
                 pre_id = request.args.get('pre_id')
                 name = request.args.get('name')
                 action = request.args.get('action')
-                change_prerequisite(cat_id, pre_id, name, action)
-                return '', 204
+                new_id = change_prerequisite(cat_id, pre_id, name, action)
+                return jsonify(result=new_id)
             
         return(redirect(url_for('user_home')))
     else:
@@ -863,6 +1049,14 @@ def safeguard_diagnosis():
         category = request.args.get('category')
         safeguardDiagnosis(session['userId'], case_id, criterion_id, value, category)
         checkProgress(session['userId'], int(request.args.get('case_id')))
+        return '', 204
+
+@app.route('/safeguard_remarks/')    
+def safeguard_remarks():
+    if 'userId' in session:
+        case_id = request.args.get('case_id')
+        value = request.args.get('value')
+        safeguardRemarks(session['userId'], case_id, value)
         return '', 204
     
 def valid_login(username, password):

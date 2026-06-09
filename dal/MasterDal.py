@@ -89,6 +89,9 @@ def update_user_count(userId, done):
 def get_case_by_id(identifier):
     return CaseDal.get_case_by_id(identifier, engine)
 
+def get_case_with_gold_standard(identifier):
+    return CaseDal.get_case_with_gold_standard(identifier, engine)
+
 def get_all_cases():
     return CaseDal.get_all_cases(engine)
 
@@ -115,14 +118,29 @@ def clear_all_cases():
 def get_answer_by_id(identifier):
     return AnswerDal.get_answer_by_id(identifier, engine)
 
-def get_cases_and_answers(userId):
-    return AnswerDal.get_cases_and_answers(userId, engine)
-
 def get_answer_name(userId, caseId):
     return AnswerDal.get_answer_name(userId, caseId, engine)
 
 def get_case_by_answer_name(answerName, userId):
     return AnswerDal.get_case_by_answer_name(answerName, userId, engine)
+
+def get_cases_and_answers(userId):
+    return AnswerDal.get_cases_and_answers(userId, engine)
+
+def get_answer_remarks(userId, caseId):
+    return AnswerDal.get_answer_remarks(userId, caseId, engine)
+
+def get_all_remarks():
+    return AnswerDal.get_all_remarks(engine)
+
+def get_cases_and_learn(userId):
+    return AnswerDal.get_cases_and_learn(userId, engine)
+
+def get_answer_to_case(userId, caseId):
+    return AnswerDal.get_answer_to_case(userId, caseId, engine)
+
+def save_remarks(userId, caseId, value):
+    return AnswerDal.save_remarks(userId, caseId, value, engine)
 
 def update_answer_status(userId, caseId, done):
     return AnswerDal.update_answer_status(userId, caseId, done, engine)
@@ -132,6 +150,9 @@ def create_all_answers(rev_per_case):
     
 def create_user_answers(userId, case_per_rev):
     return AnswerDal.create_user_answers(userId, case_per_rev, engine)
+    
+def erase_optional_answers():
+    return AnswerDal.erase_optional_answers(engine)
     
 def clear_all_answers():
     return AnswerDal.clear_all_answers(engine)
@@ -143,6 +164,9 @@ def get_category_by_id(catId):
 
 def get_categories():
     return CategoryDal.get_categories(engine)
+
+def get_na_tutorial_categories():
+    return CategoryDal.get_na_tutorial_categories(engine)
 
 def categories_with_criteria():
     return CategoryDal.categories_with_criteria(engine)
@@ -183,6 +207,9 @@ def gold_standard_exists():
 def get_gold_standards():
     return CategoryDal.get_gold_standards(engine)
 
+def get_gold_standard():
+    return CategoryDal.get_gold_standard(engine)
+
 def gold_standard_in_wrong_category():
     return CategoryDal.gold_standard_in_wrong_category(engine)
 
@@ -208,6 +235,15 @@ def new_prerequisite(catId, name):
 
 def delete_prerequisite(catId, critId):
     return PrerequisiteDal.delete_prerequisite(catId, critId, engine)
+
+def delete_category_prerequisite(catId):
+    return PrerequisiteDal.delete_category_prerequisite(catId, engine)
+
+def delete_prerequisite_from_category_criteria(catId):
+    return PrerequisiteDal.delete_prerequisite_from_category_criteria(catId, engine)
+
+def delete_prerequisite_from_criterion(critId):
+    return PrerequisiteDal.delete_prerequisite_from_criterion(critId, engine)
 
 def clear_all_prerequisites():
     return PrerequisiteDal.clear_all_prerequisites(engine)
