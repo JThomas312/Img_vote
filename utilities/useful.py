@@ -6,11 +6,12 @@ Created on Wed Apr 29 16:34:34 2026
 """
 
 #general modules
-from re import split
 from re import sub
 from re import match
 from datetime import datetime
 from os import getcwd
+from os import listdir
+from natsort import natsorted
 import os.path
 import random
 import string
@@ -129,31 +130,9 @@ def update_distribution(method, case_per_r, percentage):
         with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'w', encoding="utf-8") as fw:
             fw.writelines([method, '\n', case_per_r, '\n', percentage])
   
-def natural_sort_key(item):                                              # ERG added
-    """
-    Robust key for natural sorting:
-    - extracts a name from tuple/list/dict/object/string,
-    - splits into text / number chunks and returns a tuple where numbers are ints.
-    """
-    # 1) get a string name from various possible item shapes
-    if isinstance(item, (list, tuple)):
-        # prefer the second element if present (id, name, status)
-        if len(item) > 1:
-            name = str(item[1])
-        else:
-            name = str(item[0])
-    elif isinstance(item, dict):
-        name = str(item.get('name') or item.get('label') or next(iter(item.values())))
-    else:
-        # object or plain string
-        name = str(getattr(item, 'name', None) or getattr(item, 'case_name', None) or item)
+def listdir_safe_and_sorted(path):
+    
+    files = [file for file in listdir(path) if not file.startswith('.')]
+    
+    return natsorted(files)
 
-    # 2) split on digit groups and build key: text parts as lowercase, digit parts as ints
-    parts = split(r'(\d+)', name)
-    key = []
-    for part in parts:
-        if part.isdigit():
-            key.append(int(part))
-        else:
-            key.append(part.lower())
-    return tuple(key)

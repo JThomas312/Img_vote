@@ -13,7 +13,6 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from os import getcwd
-from os import listdir
 import os.path
 
 from pyexcel import get_sheet
@@ -25,7 +24,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.utilities.useful import natural_sort_key, format_r_friendly
+from img_vote.utilities.useful import listdir_safe_and_sorted, format_r_friendly
 
 from img_vote.Models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
 from img_vote.Models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
@@ -264,7 +263,7 @@ def create_all_cases(engine):
          
         cwd = getcwd()
         path = os.path.join(cwd,'data', 'Img_data')
-        case_files = [file for file in listdir(path) if not file.startswith('.')]
+        case_files = listdir_safe_and_sorted(path)
          
         if gold_standard:
             wbfolderpath = os.path.join(cwd, 'data')
@@ -272,7 +271,6 @@ def create_all_cases(engine):
                 if filename.startswith('case_data'):
                     wbpath = os.path.join(wbfolderpath, filename)
          
-            case_files = sorted(list(case_files), key=natural_sort_key)
             sheet_obj = get_sheet(file_name=wbpath)
          
         counter = 1
@@ -287,18 +285,27 @@ def create_all_cases(engine):
                     session.rollback()
                     session.close()
          
-                    return ('file name discrepancy', filename, newname)
+                    return ('file name discrepancy', case_file, newname)
         
                 cell_value = sheet_obj[counter, 1]
                 gld_std_name = cell_value.removesuffix(' ')
         
                 try:
                     gld_std = criteriaDict[gld_std_name]
+                    
                 except KeyError:
                     return ('gold standard name discrepancy', gld_std_name)
+                
                 newcase = CasePOCO(newpath, newname, gld_std)
             else:
                 newname = str(counter)
+                
+                if newname != case_file:
+                    session.rollback()
+                    session.close()
+         
+                    return ('file name discrepancy', case_file, newname)
+                
                 newcase = CasePOCO(newpath, newname)
          
             counter += 1

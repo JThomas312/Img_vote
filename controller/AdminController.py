@@ -11,8 +11,9 @@ from bcrypt import gensalt, hashpw
 
 from pyexcel.sheet import Sheet
 from os import getcwd
-import os.path
 from os import remove
+import os.path
+from natsort import natsorted
 from math import ceil
 from zipfile import ZipFile
 from shutil import rmtree
@@ -33,10 +34,10 @@ sys.path.append(str(path_root))
 from img_vote.utilities.useful import generate_password
 from img_vote.utilities.useful import format_r_friendly
 from img_vote.utilities.useful import sanitize
-from img_vote.utilities.useful import natural_sort_key
 from img_vote.utilities.useful import get_study_name
 from img_vote.utilities.useful import get_distribution
 from img_vote.utilities.useful import update_distribution
+from img_vote.utilities.useful import listdir_safe_and_sorted
 
 from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
 from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
@@ -397,7 +398,7 @@ def remove_case_data():
     upload_path = os.path.join(getcwd(), 'uploads', 'case_data')
     if os.path.exists(upload_path):
         remove(upload_path)
-    for filename in os.listdir(os.path.join(getcwd(), 'data')):
+    for filename in listdir_safe_and_sorted(os.path.join(getcwd(), 'data')):
         if bool(match('case_data', filename)):
             remove(os.path.join(getcwd(), 'data', filename))
 
@@ -581,7 +582,7 @@ def get_data_for_export_async():
     for i in range(len(finalExtract)):
         column_increment = 0
         ws[i + 1, 0] = finalExtract[i].case
-        ws[i + 1, 1], = finalExtract[i].reviewer
+        ws[i + 1, 1] = finalExtract[i].reviewer
         column_increment +=2
         for current_category in finalExtract[i].categories:
             if current_category.catType == one_of_category:
@@ -624,13 +625,15 @@ def get_data_to_download(status):
     viewmodel = ManageDownloadsViewModel()
     
     show_remarks = status == 'test'
+
+    files = listdir_safe_and_sorted(os.path.join(getcwd(), 'results'))
     
-    for filename in os.listdir(os.path.join(getcwd(), 'results')):
-        if show_remarks or ('_study_data' in filename):
+    for filename in files:
+        if (show_remarks or ('_study_data' in filename)):
             viewmodel.files_to_show = True
             viewmodel.files.append(filename)
 
-    viewmodel.files = sorted(list(viewmodel.files), key=natural_sort_key)
+    viewmodel.files = natsorted(viewmodel.files)
     
     return viewmodel
     
@@ -653,7 +656,7 @@ def remove_result_file(filename):
 
 def remove_all_result_files():
     
-    for filename in os.listdir(os.path.join(getcwd(), 'results')):
+    for filename in listdir_safe_and_sorted(os.path.join(getcwd(), 'results')):
         remove(os.path.join(getcwd(), 'results', filename))    
 
 def clear_data():
@@ -666,12 +669,8 @@ def clear_data():
     clear_non_admin_users()
 
     remove_case_images()
-
-    if os.path.exists(os.path.join(getcwd(), 'uploads', 'tutorial_images.zip')):
-        remove_tutorial_images()
-    
-    if os.path.exists(os.path.join(getcwd(), 'uploads', 'case_data')):
-        remove_case_data()
+    remove_tutorial_images()
+    remove_case_data()
     
     remove_all_result_files()
 

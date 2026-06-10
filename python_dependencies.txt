@@ -10,3 +10,4 @@ pyexcel-xlsx
 pyexcel-ods3
 openpyxl
 pillow
+natsort

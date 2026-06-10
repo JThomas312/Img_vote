@@ -89,7 +89,7 @@ from controller.CaseController import criterion_for_tutorial
 from controller.CaseController import checkProgress
 
 UPLOAD_FOLDER = os.path.join(getcwd(), 'uploads')
-ALLOWED_EXTENSIONS = {'xls', 'xlsx', 'zip'}
+ALLOWED_EXTENSIONS = {'ods', 'xls', 'xlsx', 'zip'}
 
 app = Flask(__name__)
 pkfile = open(os.path.join(getcwd(), 'private_key.txt'), encoding="utf-8")

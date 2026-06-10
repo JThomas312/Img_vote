@@ -6,7 +6,6 @@ Created on Tue Apr  1 11:55:48 2025
 @author: jacques
 """
 
-from os import listdir
 import os.path
 
 from PIL import Image
@@ -20,7 +19,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.utilities.useful import sanitize_text, get_study_name, get_status
+from img_vote.utilities.useful import sanitize_text, get_study_name, get_status, listdir_safe_and_sorted
 from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
@@ -115,8 +114,7 @@ def caseForDisplay(userId, case):
 
     path = caseDM.path
     
-    img_files = listdir(path)
-    img_files.sort()
+    img_files = listdir_safe_and_sorted(path)
     
     caseVM.nb_imgs = 0
 
@@ -154,8 +152,7 @@ def caseForLearning(userId, case):
     
     path = caseDM.path
     
-    img_files = listdir(path)
-    img_files.sort()
+    img_files = listdir_safe_and_sorted(path)
     
     caseVM.nb_imgs = 0
 
