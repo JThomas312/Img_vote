@@ -17,7 +17,7 @@ RUN npm install jquery viewerjs tailwindcss @tailwindcss/cli
 EXPOSE 5000
 
 WORKDIR /usr/Documents/img_vote
-RUN python -c 'import secrets; fx = open('./secret_key.txt'), 'x'); fx.close(); fw = open('./secret_key.txt'), 'w'); fw.write(secrets.token_hex()); fw.close()'
+RUN python -c 'import secrets; fx = open('./private_key.txt', 'x'); fx.close(); fw = open('./private_key.txt', 'w'); fw.write(secrets.token_hex()); fw.close()'
 
 # Setup an app user so the container doesn't run as the root user
 RUN useradd -m test && chown -R test:test /usr/Documents/img_vote
