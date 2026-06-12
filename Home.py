@@ -28,11 +28,15 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
 from utilities.useful import sanitize
-from utilities.useful import get_status
-from utilities.useful import update_status
-from utilities.useful import get_remaining_days
-from utilities.useful import update_study_end
-from utilities.useful import update_study_name
+
+from controller.StudyController import get_status
+from controller.StudyController import get_study_name
+from controller.StudyController import update_status
+from controller.StudyController import get_remaining_review_days
+from controller.StudyController import get_remaining_learning_days
+from controller.StudyController import set_study_review_end
+from controller.StudyController import set_study_learning_end
+from controller.StudyController import set_study_name
 
 from controller.UserController import user_for_home
 from controller.UserController import user_for_login
@@ -88,6 +92,8 @@ from controller.CaseController import safeguardRemarks
 from controller.CaseController import criterion_for_tutorial
 from controller.CaseController import checkProgress
 
+from controller.StudyController import get_studies
+
 UPLOAD_FOLDER = os.path.join(getcwd(), 'uploads')
 ALLOWED_EXTENSIONS = {'ods', 'xls', 'xlsx', 'zip'}
 
@@ -109,7 +115,7 @@ app.config["SESSION_TYPE"] = "cachelib"
 SESSION_SERIALIZATION_FORMAT = 'json'
 SESSION_CACHELIB = FileSystemCache(threshold=500, cache_dir=os.path.join(getcwd(), "sessions"))
 app.config.from_object(__name__)
-# Initialize Flask-Session
+
 Session(app)
 
 @app.route("/")
@@ -128,8 +134,6 @@ def login():
             return log_the_user_in(request.form['username'])
         else:
             error = 'Invalid username/password'
-    # the code below is executed if the request method
-    # was GET or the credentials were invalid
     return render_template('login.html', error=error, logout=False)
 
 
@@ -144,38 +148,71 @@ def logout():
         else:
             error = 'Invalid username/password'
             logout = False
-    # the code below is executed if the request method
-    # was GET or the credentials were invalid
     session.clear()
     return render_template('login.html', error=error, logout=logout)
 
 @app.route('/user_home/', methods=['GET'])
 def user_home():    
     if 'username' in session:
-        (user, study_name) = user_for_home(session["username"])
-        status = get_status()
+        user = user_for_home(session["username"])
+        status = get_status(session['study'])
         
-        if (status != 'stopped') and status != 'ended':
-            remaining_days = get_remaining_days()
+        if status != 'stopped':
+            if status == 'ended':
+                remaining_days = get_remaining_learning_days(session['study'])
+            else:
+                remaining_days = get_remaining_review_days(session['study'])
         else:
             remaining_days = -1
         if user.admin:
-            remaing_users = user.remaing_users
-            total_users = user.total_users
-            otherUsers = user.otherUsers
-            display_others = len(otherUsers) > 0
-            return render_template('admin_home.html', remaining_days=remaining_days, username=user.name, studyname=study_name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
-        else:   
-            if status == 'ongoing' or status == 'test':
-                items = user.items
-                remaining_items = user.remaing_items             
-                return render_template('user_home.html', username=user.name, studyname=study_name, remaining_items=remaining_items, remaining_days=remaining_days, items=items)
+            if 'study' in session:
+                study_name = get_study_name(session['study'])
+                remaing_users = user.remaing_users
+                total_users = user.total_users
+                otherUsers = user.otherUsers
+                display_others = len(otherUsers) > 0
+                return render_template('admin_home.html', remaining_days=remaining_days, username=user.name, studyname=study_name, study_status=status, remaing_users=remaing_users, total_users=total_users, otherUsers=otherUsers, display_others=display_others)
             else:
-                if status == 'ended' and study_has_gold_standard():
-                    learnViewModel = user_for_learning(user.userId)
-                    return render_template('user_learning.html', username=user.name, studyname=study_name, correct_answers=learnViewModel.correct_answers, total_answers=learnViewModel.total_answers, items=learnViewModel.items)
+                return(redirect(url_for('study_selection')))
+        else:
+            session['study'] = user.study
+            if user.demographics_answered:
+                study_name = get_study_name(user.study)
+                if status == 'ongoing' or status == 'test':
+                    items = user.items
+                    remaining_items = user.remaing_items             
+                    return render_template('user_home.html', username=user.name, studyname=study_name, remaining_items=remaining_items, remaining_days=remaining_days, items=items)
                 else:
-                    return render_template('study_ended.html', username=user.name)
+                    if status == 'ended' and study_has_gold_standard():
+                        learnViewModel = user_for_learning(user.userId)
+                        return render_template('user_learning.html', username=user.name, studyname=study_name, correct_answers=learnViewModel.correct_answers, total_answers=learnViewModel.total_answers, items=learnViewModel.items)
+                    else:
+                        return render_template('study_ended.html', username=user.name)
+            else:
+                return render_template('demographics.html', user=user)
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/study_selection/')
+def study_selection():
+    if 'username' in session:
+        if 'admin' in session:
+            if session['admin']:
+                session.pop('study', default=None)
+                viewmodel = get_studies()
+                viewmodel.username = session['username']
+                return render_template('study_selection.html', ViewModel=viewmodel)
+        return(redirect(url_for('user_home')))  
+    else:
+        return(redirect(url_for('login')))
+
+@app.route('/select_study/<study_id>')
+def select_study(study_id):
+    if 'username' in session:
+        if 'admin' in session:
+            if session['admin']:
+                session['study'] = study_id
+        return(redirect(url_for('user_home')))  
     else:
         return(redirect(url_for('login')))
 
@@ -186,7 +223,7 @@ def category_configuration():
             if session['admin']:
                 status_error = None
                 deletion_error = None
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'stopped':
                     status_error = 'Categories are already locked, current status is: ' + status 
                 pending_categories = categories_for_editing()
@@ -200,7 +237,7 @@ def add_category():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'stopped':
                     return(redirect(url_for('category_configuration')))                
                 category_id = create_empty_category()
@@ -217,7 +254,7 @@ def edit_category(categoryId):
         if 'admin' in session:
             if session['admin']:
                 error = None
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'stopped':
                     return(redirect(url_for('category_configuration')))
                 optional_allowed = optional_category_allowed(categoryId)
@@ -243,7 +280,7 @@ def finish_category_configuration():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
 
                 if status != 'stopped':
                     return(redirect(url_for('category_configuration')))
@@ -252,7 +289,7 @@ def finish_category_configuration():
                 if len(errors) > 0 or len(incorrect_categories) > 0:
                     return render_template('category_errors.html', errors=errors, incorrect_categories=incorrect_categories, nb_incorrect_categories=len(incorrect_categories))                        
 
-                update_status('categories_done')
+                update_status(session['study'], 'categories_done')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -262,12 +299,12 @@ def rollback_categories():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
 
                 if status == 'categories_done':
                     if request.method == 'GET':
                         categories_rollback()
-                        update_status('stopped')
+                        update_status(session['study'], 'stopped')
 
         return(redirect(url_for('user_home')))    
     else:
@@ -278,7 +315,7 @@ def manage_uploads():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 if request.method == 'GET':
@@ -293,7 +330,7 @@ def upload_case_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 
@@ -326,7 +363,7 @@ def upload_tutorial_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 
@@ -359,7 +396,7 @@ def upload_case_data():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 
@@ -392,7 +429,7 @@ def delete_case_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 remove_case_images()
@@ -407,7 +444,7 @@ def delete_tutorial_images():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 remove_tutorial_images()
@@ -422,7 +459,7 @@ def delete_case_data():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status != 'categories_done':
                     return(redirect(url_for('user_home')))
                 remove_case_data()
@@ -437,13 +474,13 @@ def finish_uploading():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'categories_done':
                     errors = check_uploads_and_create_cases()
                     if errors != None:
                         uploadStatusVM = upload_status()
                         return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
-                    update_status('uploads_done')
+                    update_status(session['study'], 'uploads_done')
                 return redirect(url_for('user_home'))
 
         return(redirect(url_for('user_home')))    
@@ -455,10 +492,10 @@ def rollback_uploads():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'uploads_done':
                     upload_rollback()
-                    update_status('categories_done')
+                    update_status(session['study'], 'categories_done')
 
         return(redirect(url_for('user_home')))    
     else:
@@ -469,7 +506,7 @@ def manage_reviewer_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'uploads_done':
                     if request.method == 'GET':
                         viewModel = data_for_distribution()
@@ -480,7 +517,7 @@ def manage_reviewer_distribution():
                         cases_per_reviewer = request.form['cases_per_reviewer']
                         percentage = request.form['percentage']
                         handle_distribution(distribution_method, reviewer_per_case, cases_per_reviewer, percentage)
-                        update_status('ready')
+                        update_status(session['study'], 'ready')
                         
         return(redirect(url_for('user_home')))    
     else:
@@ -491,11 +528,11 @@ def rollback_distribution():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'ready':
                     if request.method == 'GET':
                         distribution_rollback()
-                        update_status('uploads_done')
+                        update_status(session['study'], 'uploads_done')
         return(redirect(url_for('user_home'))) 
     else:
         return(redirect(url_for('login')))
@@ -506,7 +543,7 @@ def begin_study():
         if 'admin' in session:
             if session['admin']:
                 error = None
-                status = get_status()
+                status = get_status(session['study'])
                 if request.method == 'GET':
                     if status != 'ready':
                         error = 'Study has already begun, current status is: ' + status 
@@ -517,7 +554,8 @@ def begin_study():
                         dateError = None
                         
                         name = request.form['study_name']
-                        endresponse = request.form['study_end']
+                        reviewendresponse = request.form['study_end']
+                        learningendresponse = request.form['study_end']
                         
                         if name == '':
                             nameError = 'Your study needs a name\n'
@@ -527,11 +565,11 @@ def begin_study():
                         if nameError != None or dateError != None:
                             return render_template('study_begining.html', error=None, nameError=nameError, dateError=dateError, test=False)
                         
-                        update_study_end(endresponse)
+                        set_study_review_end(session['study'], endresponse)
                         
-                        update_study_name(name)
+                        set_study_name(session['study'], name)
                             
-                        update_status('ongoing')
+                        update_status(session['study'], 'ongoing')
                             
         return(redirect(url_for('user_home'))) 
     else:
@@ -543,7 +581,7 @@ def begin_testing():
         if 'admin' in session:
             if session['admin']:
                 error = None
-                status = get_status()
+                status = get_status(session['study'])
                 if request.method == 'GET':
                     if status != 'ready':
                         error = 'Study has already begun, current status is: ' + status 
@@ -564,11 +602,11 @@ def begin_testing():
                         if nameError != None or dateError != None:
                             return render_template('study_begining.html', error=None, nameError=nameError, dateError=dateError, test=True)
                         
-                        update_study_end(endresponse)
+                        set_study_review_end(session['study'], endresponse)
                         
-                        update_study_name(name)
+                        set_study_name(session['study'], name)
                             
-                        update_status('test')
+                        update_status(session['study'], 'test')
                             
         return(redirect(url_for('user_home'))) 
     else:
@@ -579,27 +617,25 @@ def test_rollback(step):
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'test':
                     if request.method == 'GET':
-                        update_study_end('', False)
-                        
-                        update_study_name('')
+                        set_study_review_end(session['study'], '', False)
                         
                         if step == 'distribution':
                             distribution_rollback()
-                            update_status('uploads_done')
+                            update_status(session['study'], 'uploads_done')
                         
                         if step == 'uploads':
                             distribution_rollback()
                             upload_rollback()
-                            update_status('categories_done')
+                            update_status(session['study'], 'categories_done')
                         
                         if step == 'categories':
                             distribution_rollback()
                             upload_rollback()
                             categories_rollback()
-                            update_status('stopped')
+                            update_status(session['study'], 'stopped')
                         
         return(redirect(url_for('user_home'))) 
     else:
@@ -610,9 +646,9 @@ def pause_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'ongoing':
-                    update_status('paused')
+                    update_status(session['study'], 'paused')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -622,9 +658,9 @@ def resume_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'paused':
-                    update_status('ongoing')
+                    update_status(session['study'], 'ongoing')
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -634,7 +670,7 @@ def confirm_end():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'paused':
                     return render_template('confirm_end.html')
         return redirect(url_for('user_home'))
@@ -646,9 +682,9 @@ def end_study():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'paused':
-                    update_status('ended')
+                    update_status(session['study'], 'ended')
                     clear_optional_answers()
         return(redirect(url_for('user_home')))
     else:
@@ -669,7 +705,7 @@ def manage_downloads():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status in ['test', 'ongoing', 'paused', 'ended']:
                     viewmodel = get_data_to_download(status)
                     return render_template('manage_downloads.html', ViewModel=viewmodel)
@@ -743,10 +779,10 @@ def clear_users():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 if status == 'ended':
                     clear_data()
-                    update_status('stopped')
+                    update_status(session['study'], 'stopped')
         return redirect(url_for('user_home'))
     else:
         return(redirect(url_for('login')))    
@@ -818,7 +854,7 @@ def new_user_creation():
     if 'userId' in session:
         if 'admin' in session:
             if session['admin']:
-                status = get_status()
+                status = get_status(session['study'])
                 error = None
                 login = request.form['login']
                 fullname = request.form['fullname']
@@ -849,7 +885,7 @@ def case_display(case):
 @app.route('/case_learning/<case>', methods=['GET'])
 def case_learning(case):
     if 'userId' in session:
-        status = get_status()
+        status = get_status(session['study'])
         if status == 'ended':
             caseVM = caseForLearning(session['userId'], case)
             return render_template('case_learning.html', ViewModel=caseVM)
@@ -1013,9 +1049,12 @@ def valid_login(username, password):
         return False
     user = user_for_login(username)
     if user == None:
+        print('il est passé par ici')
         return False
     ePass = password.encode('utf-8')
     eHash = user.hashPass.encode('utf-8')
+    print(ePass)
+    print(eHash)
     return checkpw(ePass, eHash)
 
 def log_the_user_in(username):

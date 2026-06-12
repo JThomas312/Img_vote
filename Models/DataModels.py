@@ -6,19 +6,31 @@ Created on Wed Aug 27 18:29:44 2025
 @author: jacques
 """
 
+class StudyDataModel():
+    id: int
+    name: int
+    
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
 class UserDataModel():
     userId: int
+    study: int
     name: str
     login: str
     admin: bool
     remaining_cases: int
+    demographics_answered: bool
     
-    def __init__(self, userId, name, login, admin, remaining_cases):
+    def __init__(self, userId, study, name, login, admin, remaining_cases):#, demographics_answered):
         self.userId = userId
+        self.study = study
         self.name = name
         self.login = login
         self.admin = admin
         self.remaining_cases = remaining_cases
+        self.demographics_answered = False#demographics_answered
         
 class UserForLogDataModel():
     login: str

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Study Selection{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Study Selection</h1>
+        <p class="text-slate-500 text-sm mt-1">Select the study you wish to manage</p>
+    </div>
+
+    {% if ViewModel.errors %}
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-danger">{{ ViewModel.errors }}</div>
+    {% endif %}
+    <div class="bg-white rounded-2xl shadow-lg divide-y divide-slate-100 mb-6">
+        <div class="flex px-5 py-4">
+            <a href="/create_study/" class="text-xs bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-3 py-1.5 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all font-medium shadow-sm">New Study</a>
+        </div>
+        {% if ViewModel.studies_to_show %}
+            {% for study in ViewModel.studies %}
+                <div class="flex items-center justify-between px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div>
+                      <p class="font-semibold text-slate-800 text-sm">{{study.name}}</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-8 shrink-0 ml-2">
+                    <a href="/select_study/{{study.id}}" class="text-xs bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-3 py-1.5 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all font-medium shadow-sm">Select</a>
+                  </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="mb-6 px-4 py-2">
+                <p class="text-slate-700 text-sm mb-2">No study at the moment, you can always create one.</p>
+            </div>
+        {% endif %}
+    </div>
+
+
+  <div class="flex gap-3">
+    <a href="/user_home/" class="border border-slate-300 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Go Back</a>
+  </div>
+</div>
+
+{% endblock %}

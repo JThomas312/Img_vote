@@ -7,6 +7,7 @@ Created on Thu Aug 28 16:55:41 2025
 """
 
 #general imports
+from datetime import datetime
 from sqlalchemy import String
 from sqlalchemy import ForeignKey
 
@@ -18,9 +19,39 @@ from sqlalchemy.orm import DeclarativeBase
 class Base(DeclarativeBase):
     pass
 
+class StudyPOCO(Base):
+    __tablename__ = "study"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50))
+    status: Mapped[str] = mapped_column(String(20))
+    demographics_ready: Mapped[bool]
+    review_end_date: Mapped[datetime]
+    end_date: Mapped[datetime]
+    tutorial: Mapped[bool]
+    gold_standard: Mapped[bool]
+    malignancy: Mapped[bool]
+    repartition_method: Mapped[str] = mapped_column(String(15))
+    repartition_value: Mapped[int]
+    
+    def __repr__(self) -> str:
+        return f"Reviewer(id={self.id!r}, name={self.name!r}, status={self.status!r}, tutorial={self.tutorial!r}), gold_standard={self.gold_standard!r}, malignancy={self.malignancy!r}, repartition_type={self.repartition_type!r}, repartition_value={self.repartition_value!r})"
+    
+    def __init__(self, name, status, demographics_ready, review_end_date, end_date, tutorial, gold_standard, malignancy, repartition_method, repartition_value):
+        self.name = name
+        self.status = status
+        self.demographics_ready = demographics_ready
+        self.review_end_date = review_end_date
+        self.end_date = end_date
+        self.tutorial = tutorial
+        self.gold_standard = gold_standard
+        self.malignancy = malignancy
+        self.repartition_method = repartition_method
+        self.repartition_value = repartition_value
+
 class ReviewerPOCO(Base):
     __tablename__ = "reviewer"
     id: Mapped[int] = mapped_column(primary_key=True)
+    study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     name: Mapped[str] = mapped_column(String(50))
     login: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(30))
@@ -42,6 +73,7 @@ class ReviewerPOCO(Base):
 class CategoryPOCO(Base):
     __tablename__ = "category"
     id: Mapped[int] = mapped_column(primary_key=True)
+    study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     name: Mapped[str] = mapped_column(String(100))
     type: Mapped[int]
     has_tutorial: Mapped[bool]
@@ -99,6 +131,7 @@ class PrerequisitePOCO(Base):
 class CasePOCO(Base):
     __tablename__ = "study_case"
     id: Mapped[int] = mapped_column(primary_key=True)
+    study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     path: Mapped[str] = mapped_column(String(100))
     name: Mapped[str] = mapped_column(String(10))
     gold_standard: Mapped[int] = mapped_column(ForeignKey("criterion.id"))

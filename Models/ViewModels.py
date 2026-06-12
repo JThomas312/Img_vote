@@ -6,16 +6,35 @@ Created on Wed Aug 27 18:34:27 2025
 @author: jacques
 """
 
+class StudyViewModel():
+    id: int
+    name: str
+    
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
+class StudiesViewModel():
+    studies_to_show: bool
+    studies: list(StudyViewModel)
+    
+    def __init__(self):
+        self.studies_to_show = False
+        self.studies = []
+
 class UserHomeViewModel():
     userId: int
+    study: int
     name: str
     items: list((int, str, bool)) #id, name, completed
     remaing_items: int
     admin: bool
+    demographics_answered: bool
     def __init__(self):
         self.items = []
         self.remaing_items = 0
         self.admin = False
+        self.demographics_answered = True #edit once demographics are implemented
   
 class AdminHomeViewModel():
     userId: int

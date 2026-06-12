@@ -34,7 +34,7 @@ def get_reviewer_by_id(identifier, engine):
     try:
         revPOCO = session.query(ReviewerPOCO).filter(ReviewerPOCO.id == identifier).one_or_none()
         
-        rev = UserDataModel(revPOCO.id, revPOCO.name, revPOCO.login, revPOCO.admin, revPOCO.remaining_cases)
+        rev = UserDataModel(revPOCO.id, revPOCO.study, revPOCO.name, revPOCO.login, revPOCO.admin, revPOCO.remaining_cases)
     
     finally:    
         session.close()
@@ -53,7 +53,7 @@ def get_reviewer_by_login(login, engine):
         if revPOCO == None:
             return None
         
-        rev = UserDataModel(revPOCO.id, revPOCO.name, revPOCO.login, revPOCO.admin, revPOCO.remaining_cases)
+        rev = UserDataModel(revPOCO.id, revPOCO.study, revPOCO.name, revPOCO.login, revPOCO.admin, revPOCO.remaining_cases)
     
     finally:        
         session.close()
@@ -91,7 +91,7 @@ def get_users_for_admin(identifier, engine):
         userPOCO = session.execute(userQuery).all()
     
         for i in range(len(userPOCO)):
-            users.append(UserDataModel(userPOCO[i][0].id, userPOCO[i][0].name, userPOCO[i][0].login, userPOCO[i][0].admin, userPOCO[i][0].remaining_cases))
+            users.append(UserDataModel(userPOCO[i][0].id, userPOCO[i][0].study, userPOCO[i][0].name, userPOCO[i][0].login, userPOCO[i][0].admin, userPOCO[i][0].remaining_cases))
     
     finally:
         session.close()
@@ -109,7 +109,7 @@ def get_all_non_admin_reviewers(engine):
         userPOCO = session.execute(userQuery).all()
     
         for i in range(len(userPOCO)):
-            users.append(UserDataModel(userPOCO[i][0].id, userPOCO[i][0].name, userPOCO[i][0].login, userPOCO[i][0].admin, userPOCO[i][0].remaining_cases))
+            users.append(UserDataModel(userPOCO[i][0].id, userPOCO[i][0].study, userPOCO[i][0].name, userPOCO[i][0].login, userPOCO[i][0].admin, userPOCO[i][0].remaining_cases))
     
     finally:
         session.close()

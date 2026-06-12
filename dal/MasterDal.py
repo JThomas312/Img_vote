@@ -21,6 +21,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
+import img_vote.dal.StudyDal as StudyDal
 import img_vote.dal.UserDal as UserDal
 import img_vote.dal.CaseDal as CaseDal
 import img_vote.dal.AnswerDal as AnswerDal
@@ -30,7 +31,7 @@ import img_vote.dal.PrerequisiteDal as PrerequisiteDal
 
 metadata_obj = MetaData()
 
-database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials.txt'), encoding="utf-8")
+database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials_test.txt'), encoding="utf-8")
 orm_driver = database_credentials_file.readline().removesuffix('\n')
 usrname = database_credentials_file.readline().removesuffix('\n')
 passw = database_credentials_file.readline().removesuffix('\n')
@@ -51,6 +52,39 @@ url_object = URL.create(
 
 engine = create_engine(url_object, pool_size=40, max_overflow=60, pool_timeout=30, pool_recycle=1800, pool_pre_ping=True, client_encoding="utf8")
 
+#StudyDal
+def get_all_studies():
+    return StudyDal.get_all_studies(engine)
+
+def get_study_status(study_id):
+    return StudyDal.get_study_status(study_id, engine)
+
+def get_name_of_study(study_id):
+    return StudyDal.get_name_of_study(study_id, engine)
+
+def get_review_end(study_id):
+    return StudyDal.get_review_endDate(study_id, engine)
+
+def get_learning_end(study_id):
+    return StudyDal.get_endDate(study_id, engine)
+
+def get_study_distribution(study_id):
+    return StudyDal.get_study_distribution(study_id, engine)
+
+def update_study_status(study_id):
+    return StudyDal.update_study_status(study_id, engine)
+
+def update_study_name(study_id, newname):
+    return StudyDal.update_study_name(study_id, newname, engine)
+
+def update_study_review_end(study_id, end_date, keep):
+    return StudyDal.update_study_review_end(study_id, end_date, keep, engine)
+
+def update_study_learning_end(study_id, end_date, keep):
+    return StudyDal.update_study_learning_end(study_id, end_date, keep, engine)
+
+def update_study_distribution(study_id, method, value):
+    return StudyDal.update_study_distribution(study_id, method, value, engine)
 
 #UserDal
 def get_reviewer_by_id(identifier):

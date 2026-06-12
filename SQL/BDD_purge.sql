@@ -12,3 +12,5 @@ DROP TABLE criterion;;
 DROP TABLE category;;
 
 DROP TABLE reviewer;;
+
+DROP TABLE study;;

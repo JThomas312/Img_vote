@@ -18,7 +18,6 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.Models.ViewModels import UserHomeViewModel, AdminHomeViewModel, UserLearnViewModel
-from img_vote.utilities.useful import get_study_name
 
 #user related
 from img_vote.dal.MasterDal import get_reviewer_by_login
@@ -35,11 +34,6 @@ from img_vote.dal.MasterDal import get_cases_and_learn
 def user_for_home(username):
     
     user = get_reviewer_by_login(username)
-    
-    try:
-        study_name = get_study_name()
-    except FileNotFoundError:
-        study_name = ''
    
     if user.admin:
         usr = AdminHomeViewModel()
@@ -54,13 +48,14 @@ def user_for_home(username):
         usr.total_users = sum(1 for x in usr.otherUsers if not x[3])
         
         
-        return (usr, study_name)
+        return usr
     
     
     usr = UserHomeViewModel()
     
     usr.userId = user.userId
     usr.name = user.name
+    usr.study = user.study
    
     casesAns = get_cases_and_answers(usr.userId)
        
@@ -71,7 +66,7 @@ def user_for_home(username):
         
     usr.remaing_items = len(usr.items) - sum(1 for x in usr.items if x[2])
     
-    return (usr, study_name)
+    return usr
 
 def user_for_learning(userId):
     
