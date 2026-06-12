@@ -22,4 +22,6 @@ WORKDIR /usr/Documents/img_vote
 RUN useradd -m test && chown -R test:test /usr/Documents/img_vote
 USER test
 
+RUN python -c 'import secrets; fx = open("./private_key.txt", "x"); fx.close(); fw = open("./private_key.txt", "w"); fw.write(secrets.token_hex()); fw.close()'
+
 CMD ["flask", "--app", "Home", "run", "--host", "0.0.0.0"]
