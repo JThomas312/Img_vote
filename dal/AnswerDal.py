@@ -38,18 +38,18 @@ def get_answer_by_id(identifier, engine):
     
     return answerPOCO
 
-def get_all_answers(engine):
+def get_all_answers(study_id, engine):
     
     session = Session(engine)
     
     try:
         answers = []
         
-        answersQuery = select(AnswerPOCO)
-        answersPOCO = session.execute(answersQuery).all()
+        cases = session.query(CasePOCO.id).filter(CasePOCO.study == study_id).all()
+        caseIds = [x.id for x in cases]
         
-        for i in range(len(answersPOCO)):
-            answers.append(answersPOCO[i][0]) #no time to investigate all(), mayhap later
+        answersQuery = session.query(AnswerPOCO).filter(AnswerPOCO.study_case.in_(caseIds))
+        answers = answersQuery.all()
     
     finally:
         session.close()
@@ -138,17 +138,17 @@ def get_answer_remarks(userId, caseId, engine):
         
     finally:
         session.close()
-        
+    
     return answer
 
-def get_all_remarks(engine):
+def get_all_remarks(study_id, engine):
     
     session = Session(engine)
     
     answer = []
     
     try:
-        query = session.query(AnswerPOCO.remarks, ReviewerPOCO.name, CasePOCO.name).join(ReviewerPOCO, AnswerPOCO.reviewer == ReviewerPOCO.id).join(CasePOCO, AnswerPOCO.study_case == CasePOCO.id).order_by(AnswerPOCO.study_case, AnswerPOCO.reviewer)
+        query = session.query(AnswerPOCO.remarks, ReviewerPOCO.name, CasePOCO.name).join(ReviewerPOCO, AnswerPOCO.reviewer == ReviewerPOCO.id).join(CasePOCO, AnswerPOCO.study_case == CasePOCO.id).filter(ReviewerPOCO.study == study_id).order_by(AnswerPOCO.study_case, AnswerPOCO.reviewer)
         queriedAns = query.all()
         for ans in queriedAns:
             #0:Answer, 1: Reviewer, 2: Case
@@ -242,14 +242,14 @@ def update_answer_status(userId, caseId, done, engine):
     return databaseUpdated
 
 #one-time data manipulation
-def create_all_answers(rev_per_case, engine):
+def create_all_answers(study_id, rev_per_case, engine):
     
     session = Session(engine)
     
     try:
-        cases = session.query(CasePOCO.id).all()
+        cases = session.query(CasePOCO.id).filter(CasePOCO.study == study_id).all()
         nb_cases = len(cases)
-        full_reviewers = session.query(ReviewerPOCO.id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.full_review == True).all()
+        full_reviewers = session.query(ReviewerPOCO.id).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.full_review == True).all()
     
         
         for full_reviewer in full_reviewers:
@@ -257,7 +257,7 @@ def create_all_answers(rev_per_case, engine):
                 newAns = AnswerPOCO(case.id, full_reviewer.id)
                 session.add(newAns)
             
-        standard_reviewers = session.query(ReviewerPOCO.id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.full_review == False).all()
+        standard_reviewers = session.query(ReviewerPOCO.id).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.full_review == False).all()
     
         if len(standard_reviewers) > 0:    
     
@@ -303,19 +303,20 @@ def create_all_answers(rev_per_case, engine):
         session.commit()
     
     except Exception as e:
-        deletestmt = delete(AnswerPOCO)
+        caseIds = [x.id for x in cases]
+        deletestmt = delete(AnswerPOCO).where(AnswerPOCO.study_case.in_(caseIds))
         session.execute(deletestmt)
         raise e
     
     finally:
         session.close()
 
-def create_user_answers(userId, case_per_rev, engine):
+def create_user_answers(study_id, userId, case_per_rev, engine):
     
     session = Session(engine)
     
     try:    
-        cases = session.query(CasePOCO.id).all()
+        cases = session.query(CasePOCO.id).filter(CasePOCO.study == study_id).all()
         
         caseIds = [i.id for i in cases]
         
@@ -334,7 +335,7 @@ def create_user_answers(userId, case_per_rev, engine):
     finally:
         session.close()
 
-def erase_optional_answers(engine):
+def erase_optional_answers(study_id, engine):
     
     session = Session(engine)
     
@@ -343,7 +344,7 @@ def erase_optional_answers(engine):
     
     try:
         #get all optional categories
-        querycat = session.query(CategoryPOCO.id).filter(CategoryPOCO.optional == True)
+        querycat = session.query(CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.optional == True)
         cats = querycat.all()
         
         categories = []
@@ -354,7 +355,7 @@ def erase_optional_answers(engine):
             querycrit = session.query(CriterionPOCO.id).filter(CriterionPOCO.category == cat.id)
             criteria = querycrit.all()
             #0: category, 1: prerequisites, 2: criteria
-            #I don't actually need the category here it sipmly makes the data more human readable just incase
+            #I don't actually need the category here it simply makes the data more human readable just incase
             categories.append((cat, prerequisites, criteria))
         
         #get all answers with optional criterion answered
@@ -376,17 +377,21 @@ def erase_optional_answers(engine):
     finally:
         session.close()
 
-def clear_all_answers(engine):
+def clear_all_answers(study_id, engine):
     
     session = Session(engine)
     
     try:
-        deleteStmt = delete(AnswerCriterionPOCO)
+        ans = session.query(AnswerPOCO.id).join(ReviewerPOCO, AnswerPOCO.reviewer == ReviewerPOCO.id).filter(ReviewerPOCO.study == study_id).all()
+        
+        ans = [x.id for x in ans]
+        
+        deleteStmt = delete(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer.in_(ans))
         
         session.execute(deleteStmt)
         session.commit()
         
-        deleteStmt = delete(AnswerPOCO)
+        deleteStmt = delete(AnswerPOCO).where(AnswerPOCO.id.in_(ans))
         
         session.execute(deleteStmt)
         session.commit()

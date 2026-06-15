@@ -202,10 +202,12 @@ class CaseDisplayViewModel():
     remarks: str
     prevcase: int
     nextcase: int
-    def __init__(self, case_id, case_name, study_name, nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):
+    def __init__(self, case_id, case_name, study_name, show_remarks=False, remarks='', nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):
         self.case_id = case_id
         self.case_name = case_name
         self.study_name = study_name
+        self.show_remarks = show_remarks
+        self.remarks = remarks
         self.nb_categories = nb_categories
         self.nb_imgs = nb_imgs
         self.imgs = imgs

@@ -146,18 +146,18 @@ def get_diagnosis_for_case(userId, caseId, engine):
     
     return answer
 
-def get_all_criteria(engine):
+def get_all_criteria(study_id, engine):
     
     session = Session(engine)
 
     try:
         criteria = []
         
-        criteriaQuery = select(CriterionPOCO)
-        criteriaPOCO = session.execute(criteriaQuery).all()
+        categories = session.query(CategoryPOCO.id).filter(CategoryPOCO.study == study_id).all()
+        categoryIds = [x.id for x in categories]
         
-        for i in range(len(criteriaPOCO)):
-            criteria.append(criteriaPOCO[i][0]) #no time to investigate all(), mayhap later
+        criteriaQuery = session.query(CriterionPOCO).filter(CriterionPOCO.category.in_(categoryIds))
+        criteria = criteriaQuery.all()
 
     finally:
         session.close()
@@ -185,18 +185,36 @@ def get_all_criteria_no_diagnosis(engine):
     
     return critNoDiag
 
-def get_gold_standard_criteria(engine):
+def get_gold_standard_criteria(study_id, engine):
     
     session = Session(engine)
 
     try:
-        query = session.query(CriterionPOCO.id, CriterionPOCO.name).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.has_gold_standard == True)
+        query = session.query(CriterionPOCO.id, CriterionPOCO.name).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True)
         answer = query.all()
         
     finally:
         session.close()
     
     return answer
+
+def get_gold_standard_dict(study_id, engine):
+    
+    session = Session(engine)
+
+    try:
+        query = session.query(CriterionPOCO.id, CriterionPOCO.name).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True)
+        criteria = query.all()
+        
+        criteriaDict = dict()
+     
+        for criterion in criteria:
+            criteriaDict[criterion[1]] = criterion[0]
+        
+    finally:
+        session.close()
+    
+    return criteriaDict
 
 #CRUD
 def create_criterion(name, tutorial_path, category, is_trust, malignancy, engine):
@@ -246,12 +264,12 @@ def update_criterion_malignancy(crit_id, crit_malignancy, engine):
     finally:        
         session.close()
 
-def update_criteria_path(path, engine):
+def update_criteria_path(study_id, path, engine):
     
     session = Session(engine)
     
     try:    
-        no_tutorial = session.query(CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.has_tutorial == False).all()
+        no_tutorial = session.query(CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_tutorial == False).all()
         
         for no_tuto in no_tutorial:
         
@@ -259,7 +277,7 @@ def update_criteria_path(path, engine):
             
             session.execute(updatestmt)
         
-        has_tutorial = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.has_tutorial == True).all()
+        has_tutorial = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_tutorial == True).all()
         
         #0: Criterion, 1: Category
         
@@ -273,13 +291,13 @@ def update_criteria_path(path, engine):
     finally:
         session.close()
 
-def clear_malignant_criteria_in_non_malignant_category(engine):
+def clear_malignant_criteria_in_non_malignant_category(study_id, engine):
     
     session = Session(engine)
     
     try:
         
-        query = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CriterionPOCO.malignancy == True).filter(CategoryPOCO.has_malignancy == False)
+        query = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CriterionPOCO.malignancy == True).filter(CategoryPOCO.has_malignancy == False)
         queriedAnswer = query.all()
         
         #0: criterion, 1: category
@@ -400,12 +418,12 @@ def undo_all_but_one(userId, case, criterionId, value, category, engine):
     
     
 #one-time data creation
-def create_trust_criteria(engine):
+def create_trust_criteria(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_trust == True).order_by(CategoryPOCO.id)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_trust == True).filter(CategoryPOCO.study == study_id).order_by(CategoryPOCO.id)
         
         answer = query.all()
         
@@ -422,14 +440,14 @@ def create_trust_criteria(engine):
     finally:
         session.close()
 
-def create_na_criteria(engine):
+def create_na_criteria(study_id, engine):
     
     session = Session(engine)
     
     one_of_category = 2
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.type == one_of_category).order_by(CategoryPOCO.id)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type == one_of_category).order_by(CategoryPOCO.id)
         
         answer = query.all()
         
@@ -446,12 +464,14 @@ def create_na_criteria(engine):
     finally:
         session.close()
 
-def remove_trust_criteria(engine):
+def remove_trust_criteria(study_id, engine):
     
     session = Session(engine)
     
     try:
-        deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.is_trust == True)
+        relevant_categories = session.query(CategoryPOCO.id).filter(CategoryPOCO.study == study_id).all()
+        relevant_ids = [x.id for x in relevant_categories]
+        deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.category.in_(relevant_ids)).where(CriterionPOCO.is_trust == True)
         
         session.execute(deleteStmt)
         session.commit()
@@ -459,12 +479,14 @@ def remove_trust_criteria(engine):
     finally:
         session.close()
 
-def remove_na_criteria(engine):
+def remove_na_criteria(study_id, engine):
     
     session = Session(engine)
     
     try:
-        deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.name == 'na')
+        relevant_categories = session.query(CategoryPOCO.id).filter(CategoryPOCO.study == study_id).all()
+        relevant_ids = [x.id for x in relevant_categories]
+        deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.category.in_(relevant_ids)).where(CriterionPOCO.name == 'na')
         
         session.execute(deleteStmt)
         session.commit()
@@ -472,10 +494,10 @@ def remove_na_criteria(engine):
     finally:
         session.close()
 
-def create_all_answer_to_criterion(engine):
+def create_all_answer_to_criterion(study_id, engine):
         
-    answers = get_all_answers(engine)
-    criteria = get_all_criteria(engine)
+    answers = get_all_answers(study_id, engine)
+    criteria = get_all_criteria(study_id, engine)
     
     session = Session(engine)
     
@@ -490,10 +512,10 @@ def create_all_answer_to_criterion(engine):
     finally:
         session.close()
 
-def create_user_answer_to_criterion(userId, engine):
+def create_user_answer_to_criterion(study_id, userId, engine):
         
     answers = get_user_answers(userId, engine)
-    criteria = get_all_criteria(engine)
+    criteria = get_all_criteria(study_id, engine)
     
     session = Session(engine)
     
@@ -508,12 +530,16 @@ def create_user_answer_to_criterion(userId, engine):
     finally:        
         session.close()
 
-def clear_all_criteria(engine):
+def clear_all_criteria(study_id, engine):
     
     session = Session(engine)
     
     try:
-        deleteStmt = delete(CriterionPOCO)
+        
+        categories = session.query(CategoryPOCO.id).filter(CategoryPOCO.study == study_id)
+        categoryIds = [x.id for x in categories]
+        
+        deleteStmt = delete(CriterionPOCO).where(CriterionPOCO.category.in_(categoryIds))
         
         session.execute(deleteStmt)
         session.commit()

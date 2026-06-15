@@ -62,7 +62,8 @@ class ReviewerPOCO(Base):
     def __repr__(self) -> str:
         return f"Reviewer(id={self.id!r}, name={self.name!r}, login={self.login!r}, admin={self.admin!r})"
     
-    def __init__(self, name, login, password, admin, full_review):
+    def __init__(self, study, name, login, password, admin, full_review):
+        self.study = study
         self.name = name
         self.login = login
         self.password = password
@@ -86,7 +87,8 @@ class CategoryPOCO(Base):
     def __repr__(self) -> str:
         return f"Category(id={self.id!r}, name={self.name!r}, type={self.type!r}, has_tutorial={self.has_tutorial!r}, has_trust={self.has_trust!r}, has_na={self.has_na!r}, optional={self.optional!r}, has_gold_standard={self.has_gold_standard!r}, has_malignancy={self.has_malignancy!r})"
     
-    def __init__(self, name='', catType=0, has_tutorial=False, has_trust=False, has_na=False, optional=False, has_gold_standard=False, has_malignancy=False):
+    def __init__(self, study, name='', catType=0, has_tutorial=False, has_trust=False, has_na=False, optional=False, has_gold_standard=False, has_malignancy=False):
+        self.study = study
         self.name = name
         self.type = catType
         self.has_tutorial = has_tutorial
@@ -139,7 +141,8 @@ class CasePOCO(Base):
     def __repr__(self) -> str:
         return f"Case(id={self.id!r}, path={self.path!r}, name={self.name!r})"
     
-    def __init__(self, path, name, gld_std=None):
+    def __init__(self, study, path, name, gld_std=None):
+        self.study = study
         self.path = path
         self.name = name
         self.gold_standard = gld_std

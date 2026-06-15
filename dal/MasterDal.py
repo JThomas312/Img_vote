@@ -63,16 +63,28 @@ def get_name_of_study(study_id):
     return StudyDal.get_name_of_study(study_id, engine)
 
 def get_review_end(study_id):
-    return StudyDal.get_review_endDate(study_id, engine)
+    return StudyDal.get_review_end(study_id, engine)
 
 def get_learning_end(study_id):
-    return StudyDal.get_endDate(study_id, engine)
+    return StudyDal.get_learning_end(study_id, engine)
 
 def get_study_distribution(study_id):
     return StudyDal.get_study_distribution(study_id, engine)
 
-def update_study_status(study_id):
-    return StudyDal.update_study_status(study_id, engine)
+def has_tutorial(study_id):
+    return StudyDal.has_tutorial(study_id, engine)
+
+def has_gold_standard(study_id):
+    return StudyDal.has_gold_standard(study_id, engine)
+
+def has_malignancy(study_id):
+    return StudyDal.has_malignancy(study_id, engine)
+
+def new_study(study_name):
+    return StudyDal.new_study(study_name, engine)
+
+def update_study_status(study_id, new_status):
+    return StudyDal.update_study_status(study_id, new_status, engine)
 
 def update_study_name(study_id, newname):
     return StudyDal.update_study_name(study_id, newname, engine)
@@ -86,6 +98,18 @@ def update_study_learning_end(study_id, end_date, keep):
 def update_study_distribution(study_id, method, value):
     return StudyDal.update_study_distribution(study_id, method, value, engine)
 
+def update_study_gold_standard(study_id, value):
+    return StudyDal.update_study_gold_standard(study_id, value, engine)
+
+def update_study_malignancy(study_id, value):
+    return StudyDal.update_study_malignancy(study_id, value, engine)
+
+def update_study_tutorial(study_id, value):
+    return StudyDal.update_study_tutorial(study_id, value, engine)
+
+def erase_study(study_id):
+    return StudyDal.erase_study(study_id, engine)
+
 #UserDal
 def get_reviewer_by_id(identifier):
     return UserDal.get_reviewer_by_id(identifier, engine)
@@ -96,14 +120,14 @@ def get_reviewer_by_login(login):
 def get_reviewer_for_login(login):
     return UserDal.get_reviewer_for_login(login, engine)
 
-def get_users_for_admin(identifier):
-    return UserDal.get_users_for_admin(identifier, engine)
+def get_users_for_admin(identifier, study_id):
+    return UserDal.get_users_for_admin(identifier, study_id, engine)
 
-def count_all_reviewers(full):
-    return UserDal.count_all_reviewers(full, engine)
+def count_all_reviewers(study_id, full):
+    return UserDal.count_all_reviewers(study_id, full, engine)
 
-def create_reviewer(name, login, password, admin, full_review):
-    return UserDal.create_reviewer(name, login, password, admin, full_review, engine)
+def create_reviewer(study_id, name, login, password, admin, full_review):
+    return UserDal.create_reviewer(study_id, name, login, password, admin, full_review, engine)
 
 def delete_reviewer_by_id(identifier):
     return UserDal.delete_reviewer_by_id(identifier, engine)
@@ -111,8 +135,8 @@ def delete_reviewer_by_id(identifier):
 def delete_reviewer_by_login(login):
     return UserDal.delete_reviewer_by_login(login, engine)
 
-def clear_non_admin_users():
-    return UserDal.clear_non_admin_users(engine)
+def clear_non_admin_users(study_id):
+    return UserDal.clear_non_admin_users(study_id, engine)
 
 def update_password(userId, newPassword):
     return UserDal.update_password(userId, newPassword, engine)
@@ -131,8 +155,8 @@ def get_case_with_gold_standard(identifier):
 def get_all_cases():
     return CaseDal.get_all_cases(engine)
 
-def count_all_cases():
-    return CaseDal.count_all_cases(engine)
+def count_all_cases(study_id):
+    return CaseDal.count_all_cases(study_id, engine)
 
 def exists_case_by_id(identifier):
     return CaseDal.exists_case_by_id(identifier, engine)
@@ -140,14 +164,14 @@ def exists_case_by_id(identifier):
 def create_case(path, name, gld_std):
     return CaseDal.create_case(path, name, gld_std, engine)
 
-def extract_all_data():
-    return CaseDal.extract_all_data(engine)
+def extract_all_data(study_id):
+    return CaseDal.extract_all_data(study_id, engine)
 
-def create_all_cases():
-    return CaseDal.create_all_cases(engine)
+def create_all_cases(study_id, gold_standard_dict):
+    return CaseDal.create_all_cases(study_id, gold_standard_dict, engine)
 
-def clear_all_cases():
-    return CaseDal.clear_all_cases(engine)
+def clear_all_cases(study_id):
+    return CaseDal.clear_all_cases(study_id, engine)
 
 
 #AnswerDal
@@ -166,8 +190,8 @@ def get_cases_and_answers(userId):
 def get_answer_remarks(userId, caseId):
     return AnswerDal.get_answer_remarks(userId, caseId, engine)
 
-def get_all_remarks():
-    return AnswerDal.get_all_remarks(engine)
+def get_all_remarks(study_id):
+    return AnswerDal.get_all_remarks(study_id, engine)
 
 def get_cases_and_learn(userId):
     return AnswerDal.get_cases_and_learn(userId, engine)
@@ -181,17 +205,17 @@ def save_remarks(userId, caseId, value):
 def update_answer_status(userId, caseId, done):
     return AnswerDal.update_answer_status(userId, caseId, done, engine)
 
-def create_all_answers(rev_per_case):
-    return AnswerDal.create_all_answers(rev_per_case, engine)
+def create_all_answers(study_id, rev_per_case):
+    return AnswerDal.create_all_answers(study_id, rev_per_case, engine)
     
-def create_user_answers(userId, case_per_rev):
-    return AnswerDal.create_user_answers(userId, case_per_rev, engine)
+def create_user_answers(study_id, userId, case_per_rev):
+    return AnswerDal.create_user_answers(study_id, userId, case_per_rev, engine)
     
-def erase_optional_answers():
-    return AnswerDal.erase_optional_answers(engine)
+def erase_optional_answers(study_id):
+    return AnswerDal.erase_optional_answers(study_id, engine)
     
-def clear_all_answers():
-    return AnswerDal.clear_all_answers(engine)
+def clear_all_answers(study_id):
+    return AnswerDal.clear_all_answers(study_id, engine)
 
 
 #CategoryDal
@@ -201,56 +225,59 @@ def get_category_by_id(catId):
 def get_categories():
     return CategoryDal.get_categories(engine)
 
-def get_na_tutorial_categories():
-    return CategoryDal.get_na_tutorial_categories(engine)
+def get_na_tutorial_one_of_categories(study_id):
+    return CategoryDal.get_na_tutorial_one_of_categories(study_id, engine)
 
-def categories_with_criteria():
-    return CategoryDal.categories_with_criteria(engine)
+def categories_with_criteria(study_id):
+    return CategoryDal.categories_with_criteria(study_id, engine)
 
 def category_with_criteria_and_prerequisites(catId):
     return CategoryDal.category_with_criteria_and_prerequisites(catId, engine)
 
-def at_least_one_other_mandatory_category(catId):
-    return CategoryDal.at_least_one_other_mandatory_category(catId, engine)
+def at_least_one_other_mandatory_category(study_id, catId):
+    return CategoryDal.at_least_one_other_mandatory_category(study_id, catId, engine)
 
-def at_least_one_mandatory_category():
-    return CategoryDal.at_least_one_mandatory_category(engine)
+def at_least_one_mandatory_category(study_id):
+    return CategoryDal.at_least_one_mandatory_category(study_id, engine)
 
-def tutorial_category_exists():
-    return CategoryDal.tutorial_category_exists(engine)
+def tutorial_category_exists(study_id):
+    return CategoryDal.tutorial_category_exists(study_id, engine)
 
-def categories_without_name():
-    return CategoryDal.categories_without_name(engine)
+def categories_without_name(study_id):
+    return CategoryDal.categories_without_name(study_id, engine)
 
-def mandatory_categories_with_prerequisites():
-    return CategoryDal.mandatory_categories_with_prerequisites(engine)
+def mandatory_categories_with_prerequisites(study_id):
+    return CategoryDal.mandatory_categories_with_prerequisites(study_id, engine)
 
-def optional_categories_without_prerequisites():
-    return CategoryDal.optional_categories_without_prerequisites(engine)
+def optional_categories_without_prerequisites(study_id):
+    return CategoryDal.optional_categories_without_prerequisites(study_id, engine)
 
-def categories_without_criteria():
-    return CategoryDal.categories_without_criteria(engine)
+def categories_without_criteria(study_id):
+    return CategoryDal.categories_without_criteria(study_id, engine)
 
-def malignant_categories_without_gold_standard():
-    return CategoryDal.malignant_categories_without_gold_standard(engine)
+def malignant_categories_without_gold_standard(study_id):
+    return CategoryDal.malignant_categories_without_gold_standard(study_id, engine)
 
-def other_gold_standard_exists(cat_id):
-    return CategoryDal.other_gold_standard_exists(cat_id, engine)
+def other_gold_standard_exists(study_id, cat_id):
+    return CategoryDal.other_gold_standard_exists(study_id, cat_id, engine)
 
-def gold_standard_exists():
-    return CategoryDal.gold_standard_exists(engine)
+def gold_standard_exists(study_id):
+    return CategoryDal.gold_standard_exists(study_id, engine)
 
-def get_gold_standards():
-    return CategoryDal.get_gold_standards(engine)
+def get_gold_standards(study_id):
+    return CategoryDal.get_gold_standards(study_id, engine)
 
-def get_gold_standard():
-    return CategoryDal.get_gold_standard(engine)
+def get_gold_standard(study_id):
+    return CategoryDal.get_gold_standard(study_id, engine)
 
-def gold_standard_in_wrong_category():
-    return CategoryDal.gold_standard_in_wrong_category(engine)
+def gold_standard_in_wrong_category(study_id):
+    return CategoryDal.gold_standard_in_wrong_category(study_id, engine)
 
-def new_empty_category():
-    return CategoryDal.new_empty_category(engine)
+def malignancy_exists(study_id):
+    return CategoryDal.malignancy_exists(study_id, engine)
+
+def new_empty_category(study_id):
+    return CategoryDal.new_empty_category(study_id, engine)
 
 def update_category_value(cat_id, value, parameter):
     return CategoryDal.update_category_value(cat_id, value, parameter, engine)
@@ -258,8 +285,8 @@ def update_category_value(cat_id, value, parameter):
 def erase_category(catId):
     return CategoryDal.erase_category(catId, engine)
 
-def clear_all_categories():
-    return CategoryDal.clear_all_categories(engine)
+def clear_all_categories(study_id):
+    return CategoryDal.clear_all_categories(study_id, engine)
 
 
 #PrerequisiteDal
@@ -281,8 +308,8 @@ def delete_prerequisite_from_category_criteria(catId):
 def delete_prerequisite_from_criterion(critId):
     return PrerequisiteDal.delete_prerequisite_from_criterion(critId, engine)
 
-def clear_all_prerequisites():
-    return PrerequisiteDal.clear_all_prerequisites(engine)
+def clear_all_prerequisites(study_id):
+    return PrerequisiteDal.clear_all_prerequisites(study_id, engine)
 
 
 #CriterionDal
@@ -304,6 +331,9 @@ def get_all_criteria_no_diagnosis():
 def get_all_diagnosis():
     return CriterionDal.get_all_diagnosis()
 
+def get_gold_standard_dict(study_id):
+    return CriterionDal.get_gold_standard_dict(study_id, engine)
+
 def create_criterion(name, tutorial_path, category, is_trust, malignancy):
     return CriterionDal.create_criterion(name, tutorial_path, category, is_trust, malignancy, engine)
 
@@ -313,11 +343,11 @@ def update_criterion(crit_id, name, malignancy):
 def update_criterion_malignancy(crit_id, malignancy):
     return CriterionDal.update_criterion_malignancy(crit_id, malignancy, engine)
 
-def update_criteria_path(path):
-    return CriterionDal.update_criteria_path(path, engine)
+def update_criteria_path(study_id, path):
+    return CriterionDal.update_criteria_path(study_id, path, engine)
 
-def clear_malignant_criteria_in_non_malignant_category():
-    return CriterionDal.clear_malignant_criteria_in_non_malignant_category(engine)
+def clear_malignant_criteria_in_non_malignant_category(study_id):
+    return CriterionDal.clear_malignant_criteria_in_non_malignant_category(study_id, engine)
 
 def erase_criterion(critId):
     return CriterionDal.erase_criterion(critId, engine)
@@ -325,26 +355,26 @@ def erase_criterion(critId):
 def erase_category_criteria(catId):
     return CriterionDal.erase_category_criteria(catId, engine)
 
-def create_na_criteria():
-    return CriterionDal.create_na_criteria(engine)
+def create_na_criteria(study_id):
+    return CriterionDal.create_na_criteria(study_id, engine)
 
-def create_trust_criteria():
-    return CriterionDal.create_trust_criteria(engine)
+def create_trust_criteria(study_id):
+    return CriterionDal.create_trust_criteria(study_id, engine)
 
-def remove_na_criteria():
-    return CriterionDal.remove_na_criteria(engine)
+def remove_na_criteria(study_id):
+    return CriterionDal.remove_na_criteria(study_id, engine)
 
-def remove_trust_criteria():
-    return CriterionDal.remove_trust_criteria(engine)
+def remove_trust_criteria(study_id):
+    return CriterionDal.remove_trust_criteria(study_id, engine)
     
-def create_all_answer_to_criterion():
-    return CriterionDal.create_all_answer_to_criterion(engine)
+def create_all_answer_to_criterion(study_id):
+    return CriterionDal.create_all_answer_to_criterion(study_id, engine)
     
-def create_user_answer_to_criterion(userId):
-    return CriterionDal.create_user_answer_to_criterion(userId, engine)
+def create_user_answer_to_criterion(study_id, userId):
+    return CriterionDal.create_user_answer_to_criterion(study_id, userId, engine)
 
-def clear_all_criteria():
-    return CriterionDal.clear_all_criteria(engine)
+def clear_all_criteria(study_id):
+    return CriterionDal.clear_all_criteria(study_id, engine)
 
 def safeguard_Criterion(user, case, critId, newValue):
     return CriterionDal.safeguard_Criterion(user, case, critId, newValue, engine)    

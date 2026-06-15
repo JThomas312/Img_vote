@@ -19,7 +19,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.utilities.useful import sanitize_text, get_study_name, get_status, listdir_safe_and_sorted
+from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted
 from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
@@ -51,7 +51,7 @@ from img_vote.dal.MasterDal import undo_all_but_one
 from img_vote.dal.MasterDal import is_answer_done
 
 
-def caseForDisplay(userId, case):
+def caseForDisplay(userId, case, studyName, studyStatus):
     
     trueValue = 1
     naValue = 3
@@ -93,18 +93,14 @@ def caseForDisplay(userId, case):
             
         categoriesVM.append(newCatVM)
     
-    study_name = get_study_name()
-    
-    study_status = get_status()
-    
-    caseVM = CaseDisplayViewModel(caseDM.caseId, name, study_name, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
+    caseVM = CaseDisplayViewModel(caseDM.caseId, name, studyName, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
     
     caseVM.categories = categoriesVM
 
     caseVM.criteria = criteriaVM
 
     
-    if study_status == 'test':
+    if studyStatus == 'test':
         remarks = get_answer_remarks(userId, case)
         caseVM.remarks = remarks
         caseVM.show_remarks = True
@@ -140,15 +136,13 @@ def caseForDisplay(userId, case):
     return caseVM
 
 
-def caseForLearning(userId, case):
+def caseForLearning(userId, case, studyName):
 
     caseDM = get_case_with_gold_standard(case)
     name = get_answer_name(userId, case)
     answer = get_answer_to_case(userId, case)
         
-    study_name = get_study_name()
-    
-    caseVM = CaseLearningViewModel(caseDM.caseId, name, study_name, answer, caseDM.goldStandard, nb_imgs=0, imgs=[], imgs_sizes=[])
+    caseVM = CaseLearningViewModel(caseDM.caseId, name, studyName, answer, caseDM.goldStandard, nb_imgs=0, imgs=[], imgs_sizes=[])
     
     path = caseDM.path
     
@@ -176,6 +170,7 @@ def caseForLearning(userId, case):
 
 
 def criterion_for_tutorial(idCriterion):
+    
     tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
     
     img_data, w, h = get_image(tutorial_slide_path, True)

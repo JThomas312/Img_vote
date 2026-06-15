@@ -59,7 +59,7 @@ def get_categories(engine):
 
     return categoriesDM
 
-def get_na_tutorial_categories(engine):
+def get_na_tutorial_one_of_categories(study_id, engine):
     
     session = Session(engine)
     
@@ -68,7 +68,7 @@ def get_na_tutorial_categories(engine):
     categoriesDM = []
     
     try:
-        categories = session.query(CategoryPOCO).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.has_tutorial == True).filter(CategoryPOCO.type == one_of_type).order_by(CategoryPOCO.id).all()
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.has_tutorial == True).filter(CategoryPOCO.type == one_of_type).order_by(CategoryPOCO.id).all()
         
         for category in categories:
             cDM = CategoryDataModel(category.id, category.name, category.type, category.has_tutorial, category.has_trust, category.has_na, category.optional, [])
@@ -79,12 +79,12 @@ def get_na_tutorial_categories(engine):
 
     return categoriesDM
 
-def categories_with_criteria(engine):
+def categories_with_criteria(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).order_by(CategoryPOCO.id, CriterionPOCO.id)
+        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.study == study_id).order_by(CategoryPOCO.id, CriterionPOCO.id)
         
         #0: category, 1:criterion
         queriedAnswer = query.all()
@@ -140,12 +140,12 @@ def category_with_criteria_and_prerequisites(catId, engine):
         
     return categoryDataModel
 
-def at_least_one_other_mandatory_category(identifier, engine):
+def at_least_one_other_mandatory_category(study_id, identifier, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.optional == False).filter(CategoryPOCO.id != identifier)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.optional == False).filter(CategoryPOCO.id != identifier)
         
         ans = session.query(query.exists()).scalar()
         
@@ -154,12 +154,12 @@ def at_least_one_other_mandatory_category(identifier, engine):
         
     return ans
 
-def at_least_one_mandatory_category(engine):
+def at_least_one_mandatory_category(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.optional == False)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.optional == False)
         
         ans = session.query(query.exists()).scalar()
         
@@ -168,12 +168,12 @@ def at_least_one_mandatory_category(engine):
         
     return ans
 
-def tutorial_category_exists(engine):
+def tutorial_category_exists(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_tutorial == True)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_tutorial == True)
         
         ans = session.query(query.exists()).scalar()
         
@@ -182,12 +182,12 @@ def tutorial_category_exists(engine):
         
     return ans
 
-def mandatory_categories_with_prerequisites(engine):
+def mandatory_categories_with_prerequisites(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO.id, CategoryPOCO.name).join(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == False)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).join(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.optional == False)
         
         ans = query.all()
         
@@ -196,12 +196,12 @@ def mandatory_categories_with_prerequisites(engine):
         
     return ans
 
-def optional_categories_without_prerequisites(engine):
+def optional_categories_without_prerequisites(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO, PrerequisitePOCO).outerjoin(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.optional == True)
+        query = session.query(CategoryPOCO, PrerequisitePOCO).outerjoin(PrerequisitePOCO, CategoryPOCO.id == PrerequisitePOCO.category).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.optional == True)
         
         queriedAnswer = query.all()
         
@@ -216,12 +216,12 @@ def optional_categories_without_prerequisites(engine):
     
     return answer
 
-def categories_without_criteria(engine):
+def categories_without_criteria(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category)
+        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.study == study_id)
         
         queriedAnswer = query.all()
         
@@ -236,12 +236,12 @@ def categories_without_criteria(engine):
     
     return answer
 
-def malignant_categories_without_gold_standard(engine):
+def malignant_categories_without_gold_standard(study_id, engine):
 
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_malignancy == True).filter(CategoryPOCO.has_gold_standard == False)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_malignancy == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == False)
         
         ans = query.all()
         
@@ -250,12 +250,12 @@ def malignant_categories_without_gold_standard(engine):
         
     return ans
 
-def other_gold_standard_exists(cat_id, engine):
+def other_gold_standard_exists(study_id, cat_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.id != cat_id)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.id != cat_id)
         
         ans = session.query(query.exists()).scalar()
         
@@ -264,12 +264,26 @@ def other_gold_standard_exists(cat_id, engine):
         
     return ans
 
-def gold_standard_exists(engine):
+def gold_standard_exists(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True)
+        
+        ans = session.query(query.exists()).scalar()
+        
+    finally:
+        session.close()
+        
+    return ans
+
+def malignancy_exists(study_id, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_malignancy == True)
         
         ans = session.query(query.exists()).scalar()
         
@@ -278,14 +292,14 @@ def gold_standard_exists(engine):
         
     return ans
  
-def get_gold_standards(engine):
+def get_gold_standards(study_id, engine):
     
     session = Session(engine)
 
     answer = []
     
     try:
-        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True)
         
         answer = query.all()
         
@@ -294,14 +308,14 @@ def get_gold_standards(engine):
         
     return answer
  
-def get_gold_standard(engine):
+def get_gold_standard(study_id, engine):
     
     session = Session(engine)
 
     answer = []
     
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True)
         
         ans = query.one_or_none()
         
@@ -323,7 +337,7 @@ def get_gold_standard(engine):
         
     return answer
  
-def gold_standard_in_wrong_category(engine):
+def gold_standard_in_wrong_category(study_id, engine):
     
     session = Session(engine)
 
@@ -331,7 +345,7 @@ def gold_standard_in_wrong_category(engine):
     answer = []
     
     try:
-        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.type != one_of_type)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type != one_of_type)
         
         answer = query.all()
             
@@ -340,12 +354,12 @@ def gold_standard_in_wrong_category(engine):
         
     return answer
  
-def categories_without_name(engine):
+def categories_without_name(study_id, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.name.regexp_match('^[ ]*$'))
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.name.regexp_match('^[ ]*$'))
         answer = query.all()
         
     finally:
@@ -354,12 +368,12 @@ def categories_without_name(engine):
     return answer
 
 #CRUD
-def new_empty_category(engine):
+def new_empty_category(study_id, engine):
     
     session = Session(engine)
     
     try:
-        newCat = CategoryPOCO()
+        newCat = CategoryPOCO(study_id)
         session.add(newCat)
         
         session.commit()
@@ -419,12 +433,12 @@ def erase_category(identifier, engine):
         session.close()
 
 #one-time data creation
-def clear_all_categories(engine):
+def clear_all_categories(study_id, engine):
     
     session = Session(engine)
     
     try:
-        deleteStmt = delete(CategoryPOCO)
+        deleteStmt = delete(CategoryPOCO).where(CategoryPOCO.study == study_id)
         
         session.execute(deleteStmt)
         session.commit()

@@ -80,32 +80,38 @@ def get_reviewer_for_login(login, engine):
     
     return rev
 
-def get_users_for_admin(identifier, engine):
+def get_users_for_admin(identifier, study_id, engine):
     
     session = Session(engine)
 
     try:
         users = []
     
-        userQuery = select(ReviewerPOCO).where(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.admin, ReviewerPOCO.remaining_cases, ReviewerPOCO.id)
-        userPOCO = session.execute(userQuery).all()
+        reviewerQuery = select(ReviewerPOCO).where(ReviewerPOCO.study == study_id).where(ReviewerPOCO.admin == False).where(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.remaining_cases, ReviewerPOCO.id)
+        reviewerPOCO = session.execute(reviewerQuery).all()
     
-        for i in range(len(userPOCO)):
-            users.append(UserDataModel(userPOCO[i][0].id, userPOCO[i][0].study, userPOCO[i][0].name, userPOCO[i][0].login, userPOCO[i][0].admin, userPOCO[i][0].remaining_cases))
+        for i in range(len(reviewerPOCO)):
+            users.append(UserDataModel(reviewerPOCO[i][0].id, reviewerPOCO[i][0].study, reviewerPOCO[i][0].name, reviewerPOCO[i][0].login, reviewerPOCO[i][0].admin, reviewerPOCO[i][0].remaining_cases))
+    
+        adminQuery = select(ReviewerPOCO).where(ReviewerPOCO.admin == True).where(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.id)
+        adminPOCO = session.execute(adminQuery).all()
+    
+        for i in range(len(adminPOCO)):
+            users.append(UserDataModel(adminPOCO[i][0].id, adminPOCO[i][0].study, adminPOCO[i][0].name, adminPOCO[i][0].login, adminPOCO[i][0].admin, adminPOCO[i][0].remaining_cases))
     
     finally:
         session.close()
 
     return users
 
-def get_all_non_admin_reviewers(engine):
+def get_all_non_admin_reviewers(study_id, engine):
     
     session = Session(engine)
 
     try:
         users = []
     
-        userQuery = select(ReviewerPOCO).where(ReviewerPOCO.admin != True)
+        userQuery = select(ReviewerPOCO).where(ReviewerPOCO.study == study_id).where(ReviewerPOCO.admin != True)
         userPOCO = session.execute(userQuery).all()
     
         for i in range(len(userPOCO)):
@@ -116,12 +122,12 @@ def get_all_non_admin_reviewers(engine):
 
     return users
  
-def count_all_reviewers(full, engine):
+def count_all_reviewers(study_id, full, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(ReviewerPOCO).filter(ReviewerPOCO.full_review == full).filter(ReviewerPOCO.admin == False)
+        query = session.query(ReviewerPOCO).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.full_review == full).filter(ReviewerPOCO.admin == False)
             
         answer = query.count()
     
@@ -155,12 +161,12 @@ def update_user_count(userId, done, engine):
     finally:
         session.close()
 
-def create_reviewer(name, login, password, admin, full_review, engine):
+def create_reviewer(study_id, name, login, password, admin, full_review, engine):
     
     session = Session(engine)
     
     try:
-        newReviewer = ReviewerPOCO(name, login, password, admin, full_review)
+        newReviewer = ReviewerPOCO(study_id, name, login, password, admin, full_review)
         # if newReviewer.admin == None:
         session.add(newReviewer)
         session.commit()
@@ -234,12 +240,12 @@ def delete_reviewer_by_login(login, engine):
     finally:        
         session.close()
     
-def clear_non_admin_users(engine):
+def clear_non_admin_users(study_id, engine):
     
     session = Session(engine)
     
     try:
-        revs = session.query(ReviewerPOCO).filter(ReviewerPOCO.admin == False).all()
+        revs = session.query(ReviewerPOCO).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.admin == False).all()
         
         for rev in revs:
             ans = session.query(AnswerPOCO.id).filter(AnswerPOCO.reviewer == rev.id).all()
@@ -255,7 +261,8 @@ def clear_non_admin_users(engine):
             session.execute(deleteAnsstmt)
             
             session.delete(rev)
-            session.commit()
     
+        session.commit()
+
     finally:
         session.close()

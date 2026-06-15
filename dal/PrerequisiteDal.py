@@ -17,7 +17,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.POCO import CriterionPOCO, PrerequisitePOCO
+from img_vote.Models.POCO import CriterionPOCO, PrerequisitePOCO, CategoryPOCO
 
 
 #read-only 
@@ -123,8 +123,7 @@ def delete_prerequisite_from_criterion(critId, engine):
     
     try:
         deleteStmt = delete(PrerequisitePOCO).where(PrerequisitePOCO.criterion == critId)
-        print(critId)
-        print(deleteStmt)
+
         session.execute(deleteStmt)
 
         session.commit()
@@ -133,12 +132,16 @@ def delete_prerequisite_from_criterion(critId, engine):
         session.close()
 
 #one-time data creation
-def clear_all_prerequisites(engine):
+def clear_all_prerequisites(study_id, engine):
     
     session = Session(engine)
     
     try:
-        deleteStmt = delete(PrerequisitePOCO)
+        
+        categories = session.query(CategoryPOCO.id).filter(CategoryPOCO.study == study_id).all()
+        categoryIds = [x.id for x in categories]
+        
+        deleteStmt = delete(PrerequisitePOCO).where(PrerequisitePOCO.category.in_(categoryIds))
         
         session.execute(deleteStmt)
         session.commit()

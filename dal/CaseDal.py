@@ -83,12 +83,12 @@ def get_all_cases(engine):
     
     return cases
 
-def count_all_cases(engine):
+def count_all_cases(study_id, engine):
     
     session = Session(engine)
 
     try:
-        query = session.query(CasePOCO)
+        query = session.query(CasePOCO).where(CasePOCO.study == study_id)
         answer = query.count()
     
     finally:
@@ -128,24 +128,24 @@ def create_case(path, name, gld_std, engine):
     return caseId
     
 #final data extraction
-def extract_all_data(engine):
+def extract_all_data(study_id, engine):
     
     session = Session(engine)
     
     one_of_category = 2
     trueValue = 1
     
-    reviewers = get_all_non_admin_reviewers(engine)
+    reviewers = get_all_non_admin_reviewers(study_id, engine)
     
     try:
-        gold_standard_category = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == True).one_or_none()
+        gold_standard_category = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True).one_or_none()
         if gold_standard_category != None:
-            casesQuery = session.query(CasePOCO, CriterionPOCO).join(CriterionPOCO, CasePOCO.gold_standard == CriterionPOCO.id).order_by(CasePOCO.id)
+            casesQuery = session.query(CasePOCO, CriterionPOCO).join(CriterionPOCO, CasePOCO.gold_standard == CriterionPOCO.id).filter(CasePOCO.study == study_id).order_by(CasePOCO.id)
         else:
-            casesQuery = session.query(CasePOCO).order_by(CasePOCO.id)
+            casesQuery = session.query(CasePOCO).filter(CasePOCO.study == study_id).order_by(CasePOCO.id)
             
         cases = session.execute(casesQuery).all()
-        categories = session.query(CategoryPOCO).filter(CategoryPOCO.has_gold_standard == False).order_by(CategoryPOCO.id).all()
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == False).order_by(CategoryPOCO.id).all()
         
         extracts = []
         
@@ -247,26 +247,19 @@ def extract_all_data(engine):
     return extracts
 
 #One-time data creation
-def create_all_cases(engine):
+def create_all_cases(study_id, gold_standard_dict, engine):
     
     session = Session(engine)
     
     try:
-        criteria = get_gold_standard_criteria(engine)
-        gold_standard = len(criteria) > 0
-     
-        if gold_standard:
-            criteriaDict = dict()
-         
-            for criterion in criteria:
-                criteriaDict[criterion[1]] = criterion[0]
+        gold_standard = len(gold_standard_dict) > 0
          
         cwd = getcwd()
-        path = os.path.join(cwd,'data', 'Img_data')
+        path = os.path.join(cwd,'data', str(study_id), 'Img_data')
         case_files = listdir_safe_and_sorted(path)
          
         if gold_standard:
-            wbfolderpath = os.path.join(cwd, 'data')
+            wbfolderpath = os.path.join(cwd, 'data', str(study_id))
             for filename in os.listdir(wbfolderpath):
                 if filename.startswith('case_data'):
                     wbpath = os.path.join(wbfolderpath, filename)
@@ -291,12 +284,12 @@ def create_all_cases(engine):
                 gld_std_name = cell_value.removesuffix(' ')
         
                 try:
-                    gld_std = criteriaDict[gld_std_name]
+                    gld_std = gold_standard_dict[gld_std_name]
                     
                 except KeyError:
                     return ('gold standard name discrepancy', gld_std_name)
                 
-                newcase = CasePOCO(newpath, newname, gld_std)
+                newcase = CasePOCO(study_id, newpath, newname, gld_std)
             else:
                 newname = str(counter)
                 
@@ -306,7 +299,7 @@ def create_all_cases(engine):
          
                     return ('file name discrepancy', case_file, newname)
                 
-                newcase = CasePOCO(newpath, newname)
+                newcase = CasePOCO(study_id, newpath, newname)
          
             counter += 1
          
@@ -319,12 +312,12 @@ def create_all_cases(engine):
      
     return None
    
-def clear_all_cases(engine):
+def clear_all_cases(study_id, engine):
     
     session = Session(engine)
     
     try:    
-        deleteStmt = delete(CasePOCO)
+        deleteStmt = delete(CasePOCO).where(CasePOCO.study == study_id)
         
         session.execute(deleteStmt)
         session.commit()
