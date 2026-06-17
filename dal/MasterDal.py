@@ -126,8 +126,11 @@ def get_users_for_admin(identifier, study_id):
 def count_all_reviewers(study_id, full):
     return UserDal.count_all_reviewers(study_id, full, engine)
 
-def create_reviewer(study_id, name, login, password, admin, full_review):
-    return UserDal.create_reviewer(study_id, name, login, password, admin, full_review, engine)
+def create_reviewer(name, login, password, study_id, full_review):
+    return UserDal.create_reviewer(name, login, password, full_review, study_id, engine)
+
+def create_admin(name, login, password):
+    return UserDal.create_admin(name, login, password, engine)
 
 def delete_reviewer_by_id(identifier):
     return UserDal.delete_reviewer_by_id(identifier, engine)
@@ -222,8 +225,8 @@ def clear_all_answers(study_id):
 def get_category_by_id(catId):
     return CategoryDal.get_category_by_id(catId, engine)
 
-def get_categories():
-    return CategoryDal.get_categories(engine)
+def get_categories(study_id):
+    return CategoryDal.get_categories(study_id, engine)
 
 def get_na_tutorial_one_of_categories(study_id):
     return CategoryDal.get_na_tutorial_one_of_categories(study_id, engine)
@@ -293,8 +296,8 @@ def clear_all_categories(study_id):
 def get_category_prerequisites(catId):
     return PrerequisiteDal.get_category_prerequisites(catId, engine)
 
-def new_prerequisite(catId, name):
-    return PrerequisiteDal.new_prerequisite(catId, name, engine)
+def new_prerequisite(study_id, cat_id, name):
+    return PrerequisiteDal.new_prerequisite(study_id, cat_id, name, engine)
 
 def delete_prerequisite(catId, critId):
     return PrerequisiteDal.delete_prerequisite(catId, critId, engine)
@@ -382,5 +385,5 @@ def safeguard_Criterion(user, case, critId, newValue):
 def undo_all_but_one(userId, case, criterionId, value, category):
     return CriterionDal.undo_all_but_one(userId, case, criterionId, value, category, engine)    
 
-def is_answer_done(userId, caseId):
-    return CriterionDal.is_answer_done(userId, caseId, engine)
+def is_answer_done(study_id, userId, caseId):
+    return CriterionDal.is_answer_done(study_id, userId, caseId, engine)

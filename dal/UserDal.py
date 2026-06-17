@@ -137,12 +137,12 @@ def count_all_reviewers(study_id, full, engine):
     return answer
    
 #CRUD    
-def update_user_count(userId, done, engine):
+def update_user_count(user_id, done, engine):
     
     session = Session(engine)
     
     try:
-        ans = session.query(ReviewerPOCO).filter(ReviewerPOCO.id == userId).one_or_none()
+        ans = session.query(ReviewerPOCO).filter(ReviewerPOCO.id == user_id).one_or_none()
         
         increment = 0
         
@@ -152,7 +152,7 @@ def update_user_count(userId, done, engine):
             increment = 1
         
         if ans != None:
-            updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == userId).values(remaining_cases=ans.remaining_cases + increment)
+            updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == user_id).values(remaining_cases=ans.remaining_cases + increment)
         
             session.execute(updatestmt)
     
@@ -161,29 +161,44 @@ def update_user_count(userId, done, engine):
     finally:
         session.close()
 
-def create_reviewer(study_id, name, login, password, admin, full_review, engine):
+def create_reviewer(name, login, password, study_id, full_review, engine):
     
     session = Session(engine)
     
     try:
-        newReviewer = ReviewerPOCO(study_id, name, login, password, admin, full_review)
-        # if newReviewer.admin == None:
+        newReviewer = ReviewerPOCO(name, login, password, study=study_id, full_review=full_review)
         session.add(newReviewer)
         session.commit()
         
-        revId = newReviewer.id
+        rev_id = newReviewer.id
     
     finally:        
         session.close()
     
-    return revId
-    
-def update_password(userId, newPassword, engine):
+    return rev_id
+
+def create_admin(name, login, password, engine):
     
     session = Session(engine)
     
     try:
-        updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == userId).values(password=newPassword)
+        newReviewer = ReviewerPOCO(name, login, password, admin=True)
+        session.add(newReviewer)
+        session.commit()
+        
+        rev_id = newReviewer.id
+    
+    finally:        
+        session.close()
+    
+    return rev_id
+    
+def update_password(user_id, newPassword, engine):
+    
+    session = Session(engine)
+    
+    try:
+        updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == user_id).values(password=newPassword)
        
         session.execute(updatestmt)
     
@@ -201,9 +216,9 @@ def delete_reviewer_by_id(identifier, engine):
         
         ans = session.query(AnswerPOCO.id).filter(AnswerPOCO.reviewer == identifier).all()
         
-        ansId = [a[0] for a in ans]
+        ans_ids = [a[0] for a in ans]
         
-        deleteACstmt = delete(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer.in_(ansId))
+        deleteACstmt = delete(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer.in_(ans_ids))
         deleteAnsstmt = delete(AnswerPOCO).where(AnswerPOCO.reviewer == identifier)
         
         session.execute(deleteACstmt)
@@ -226,9 +241,9 @@ def delete_reviewer_by_login(login, engine):
         
         ans = session.query(AnswerPOCO.id).filter(AnswerPOCO.reviewer == identifier).all()
         
-        ansId = [a[0] for a in ans]
+        ans_ids = [a[0] for a in ans]
         
-        deleteACstmt = delete(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer.in_(ansId))
+        deleteACstmt = delete(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer.in_(ans_ids))
         deleteAnsstmt = delete(AnswerPOCO).where(AnswerPOCO.reviewer == identifier)
         
         session.execute(deleteACstmt)
@@ -250,10 +265,10 @@ def clear_non_admin_users(study_id, engine):
         for rev in revs:
             ans = session.query(AnswerPOCO.id).filter(AnswerPOCO.reviewer == rev.id).all()
             
-            ansId = [a[0] for a in ans]
+            ans_ids = [a[0] for a in ans]
             
             
-            deleteACstmt = delete(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer.in_(ansId))
+            deleteACstmt = delete(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer.in_(ans_ids))
             deleteAnsstmt = delete(AnswerPOCO).where(AnswerPOCO.reviewer == rev.id)
             
             session.execute(deleteACstmt)

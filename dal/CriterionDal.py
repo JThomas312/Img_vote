@@ -43,7 +43,7 @@ def get_criterion_by_id(identifier, engine):
     
     return criterion
 
-def is_answer_done(userId, caseId, engine):
+def is_answer_done(study_id, userId, caseId, engine):
     
     session = Session(engine)
     
@@ -58,9 +58,9 @@ def is_answer_done(userId, caseId, engine):
     try:
         # prefiltered query with all necessary joins
         query0 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO, CategoryPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId)
-        
-        categories = session.query(CategoryPOCO).all()
         #0: case, 1:answer, 2: criterion, 3:answercriterion, 4: category
+        
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).all()
         for category in categories:
             
             mandatory = True
@@ -68,7 +68,7 @@ def is_answer_done(userId, caseId, engine):
             if category.optional:
                 mandatory = False
                 prerequisites = session.query(PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == category.id).all()
-                #check if all prerequisites are checked
+                #check if any prerequisite is checked
                 for prerequisite in prerequisites:
                     prerequisitesQuery = query0.filter(CriterionPOCO.id == prerequisite.criterion).filter(AnswerCriterionPOCO.value == true_value)
                     if session.query(prerequisitesQuery.exists()).scalar():

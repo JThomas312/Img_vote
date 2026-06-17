@@ -62,7 +62,7 @@ class ReviewerPOCO(Base):
     def __repr__(self) -> str:
         return f"Reviewer(id={self.id!r}, name={self.name!r}, login={self.login!r}, admin={self.admin!r})"
     
-    def __init__(self, study, name, login, password, admin, full_review):
+    def __init__(self, name, login, password, study=None, full_review=False, admin=False):
         self.study = study
         self.name = name
         self.login = login

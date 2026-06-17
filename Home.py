@@ -191,7 +191,7 @@ def user_home():
                 else:
                     if status == 'ended' and study_has_gold_standard(session['study']):
                         learnViewModel = user_for_learning(user.userId)
-                        return render_template('user_learning.html', username=user.name, studyname=study_name, correct_answers=learnViewModel.correct_answers, total_answers=learnViewModel.total_answers, items=learnViewModel.items)
+                        return render_template('user_learning.html', username=user.name, studyname=study_name, correct_answers=learnViewModel.correct_answers, total_answers=learnViewModel.total_answers, remaining_days=remaining_days, items=learnViewModel.items)
                     else:
                         return render_template('study_ended.html', username=user.name)
             else:
@@ -202,12 +202,11 @@ def user_home():
 @app.route('/study_selection/')
 def study_selection():
     if 'username' in session:
-        if 'admin' in session:
-            if session['admin']:
-                session.pop('study', default=None)
-                viewmodel = get_studies()
-                viewmodel.username = session['username']
-                return render_template('study_selection.html', ViewModel=viewmodel)
+        if 'admin' in session and session['admin']:
+            session.pop('study', default=None)
+            viewmodel = get_studies()
+            viewmodel.username = session['username']
+            return render_template('study_selection.html', ViewModel=viewmodel)
         return(redirect(url_for('user_home')))  
     else:
         return(redirect(url_for('login')))
@@ -215,9 +214,9 @@ def study_selection():
 @app.route('/select_study/<study_id>')
 def select_study(study_id):
     if 'username' in session:
-        if 'admin' in session:
-            if session['admin']:
-                session['study'] = study_id
+        if 'admin' in session and session['admin']:
+            session['study'] = study_id
+            session['studyname'] = get_study_name(study_id)
         return(redirect(url_for('user_home')))  
     else:
         return(redirect(url_for('login')))
@@ -225,18 +224,17 @@ def select_study(study_id):
 @app.route('/create_study/', methods=['GET', 'POST'])
 def create_study():
     if 'username' in session:
-        if 'admin' in session:
-            if session['admin']:
-                if request.method == 'GET':
-                    return render_template('new_study.html', error=None)
-                elif request.method == 'POST':
-                    name = request.form['study_name']
-                    if name == '':
-                        return render_template('new_study.html', error='Your study needs a name')
-                    (newStudyId, error) = create_new_study(name)
-                    if error != None:
-                        return render_template('new_study.html', error=error)
-                    session['study'] = newStudyId
+        if 'admin' in session and session['admin']:
+            if request.method == 'GET':
+                return render_template('new_study.html', error=None)
+            elif request.method == 'POST':
+                name = request.form['study_name']
+                if name == '':
+                    return render_template('new_study.html', error='Your study needs a name')
+                (newStudyId, error) = create_new_study(name)
+                if error != None:
+                    return render_template('new_study.html', error=error)
+                session['study'] = newStudyId
         return(redirect(url_for('user_home')))  
     else:
         return(redirect(url_for('login')))
@@ -641,23 +639,23 @@ def test_rollback(step):
         if ('admin' in session) and session['admin'] and ('study' in session):
             status = get_status(session['study'])
             if status == 'test':
-                if request.method == 'GET':
-                    set_study_review_end(session['study'], '', False)
-                    
-                    if step == 'distribution':
-                        distribution_rollback(session['study'])
-                        update_status(session['study'], 'uploads_done')
-                    
-                    if step == 'uploads':
-                        distribution_rollback(session['study'])
-                        upload_rollback(session['study'])
-                        update_status(session['study'], 'categories_done')
-                    
-                    if step == 'categories':
-                        distribution_rollback(session['study'])
-                        upload_rollback(session['study'])
-                        categories_rollback(session['study'])
-                        update_status(session['study'], 'stopped')
+                set_study_review_end(session['study'], '', False)
+                remove_all_result_files(session['study'])
+                
+                if step == 'distribution':
+                    distribution_rollback(session['study'])
+                    update_status(session['study'], 'uploads_done')
+                
+                if step == 'uploads':
+                    distribution_rollback(session['study'])
+                    upload_rollback(session['study'])
+                    update_status(session['study'], 'categories_done')
+                
+                if step == 'categories':
+                    distribution_rollback(session['study'])
+                    upload_rollback(session['study'])
+                    categories_rollback(session['study'])
+                    update_status(session['study'], 'stopped')
                         
         return(redirect(url_for('user_home'))) 
     else:
@@ -890,7 +888,7 @@ def case_display(case):
     if ('userId' in session) and ('study' in session):
         studyName = get_study_name(session['study'])
         studyStatus = get_status(session['study'])
-        caseVM = caseForDisplay(session['userId'], case, studyName, studyStatus)
+        caseVM = caseForDisplay(session['study'], session['userId'], case, studyName, studyStatus)
         return render_template('case_display.html', ViewModel=caseVM)
     else:
         return redirect(url_for('login'))
@@ -979,7 +977,7 @@ def safeguard_prerequisite():
         if ('admin' in session) and session['admin'] and ('study' in session):
             cat_id = int(request.args.get('cat_id'))
             name = request.args.get('name')
-            crit_id = save_prerequisite(cat_id, name)
+            crit_id = save_prerequisite(session['study'], cat_id, name)
             return jsonify(result=crit_id)
             
         return(redirect(url_for('user_home')))
@@ -1021,15 +1019,15 @@ def remove_criterion(crit_id):
     else:
         return(redirect(url_for('login')))    
  
-@app.route('/safeguard_model/')    
-def safeguard_model():
-    if 'userId' in session:
-        case_id = request.args.get('case_id')
-        criterion_id = request.args.get('criterion_id')
-        value = request.args.get('value')
-        safeguardProgress(session['userId'], case_id, criterion_id, value)
-        checkProgress(session['userId'], int(request.args.get('case_id')))
-        return '', 204
+# @app.route('/safeguard_model/')    
+# def safeguard_model():
+#     if 'userId' in session:
+#         case_id = request.args.get('case_id')
+#         criterion_id = request.args.get('criterion_id')
+#         value = request.args.get('value')
+#         safeguardProgress(session['userId'], case_id, criterion_id, value)
+#         checkProgress(session['userId'], int(request.args.get('case_id')))
+#         return '', 204
 
 @app.route('/safeguard_diagnosis/')    
 def safeguard_diagnosis():
@@ -1039,7 +1037,7 @@ def safeguard_diagnosis():
         value = request.args.get('value')
         category = request.args.get('category')
         safeguardDiagnosis(session['userId'], case_id, criterion_id, value, category)
-        checkProgress(session['userId'], int(request.args.get('case_id')))
+        checkProgress(session['study'], session['userId'], int(request.args.get('case_id')))
         return '', 204
 
 @app.route('/safeguard_remarks/')    
@@ -1067,6 +1065,7 @@ def log_the_user_in(username):
     session['admin'] = user.admin
     if not user.admin:
         session['study'] = user.study
+        session['studyname'] = get_study_name(user.study)
     return (redirect(url_for('user_home')))
 
 def allowed_file(filename):

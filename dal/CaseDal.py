@@ -28,7 +28,6 @@ from img_vote.utilities.useful import listdir_safe_and_sorted, format_r_friendly
 
 from img_vote.Models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
 from img_vote.Models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
-from img_vote.dal.CriterionDal import get_gold_standard_criteria
 from img_vote.dal.UserDal import get_all_non_admin_reviewers
 
 
@@ -120,12 +119,12 @@ def create_case(path, name, gld_std, engine):
         session.add(newCase)
         session.commit()
         
-        caseId = newCase.id
+        case_id = newCase.id
 
     finally:        
         session.close()
     
-    return caseId
+    return case_id
     
 #final data extraction
 def extract_all_data(study_id, engine):

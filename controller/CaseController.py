@@ -51,7 +51,7 @@ from img_vote.dal.MasterDal import undo_all_but_one
 from img_vote.dal.MasterDal import is_answer_done
 
 
-def caseForDisplay(userId, case, studyName, studyStatus):
+def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     
     trueValue = 1
     naValue = 3
@@ -65,7 +65,7 @@ def caseForDisplay(userId, case, studyName, studyStatus):
     caseDM = get_case_by_id(case)
     name = get_answer_name(userId, case)
 
-    categories = get_categories()
+    categories = get_categories(studyId)
     
     categoriesVM = []
     
@@ -172,7 +172,6 @@ def caseForLearning(userId, case, studyName):
 def criterion_for_tutorial(idCriterion):
     
     tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
-    
     img_data, w, h = get_image(tutorial_slide_path, True)
     
     return img_data
@@ -198,9 +197,9 @@ def safeguardRemarks(userId, case, value):
     if sanitize_text(value):
         save_remarks(userId, case, value)
     
-def checkProgress(userId, case):
+def checkProgress(studyId, userId, case):
     
-    done = is_answer_done(userId, case)
+    done = is_answer_done(studyId, userId, case)
     
     if update_answer_status(userId, case, done):
         update_user_count(userId, done)

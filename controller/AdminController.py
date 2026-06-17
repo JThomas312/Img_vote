@@ -47,7 +47,7 @@ from img_vote.Models.ViewModels import ReviewerDistributionViewmodel, ManageDown
 from img_vote.dal.MasterDal import erase_study
 
 #user related
-from img_vote.dal.MasterDal import get_reviewer_by_id, get_reviewer_by_login, count_all_reviewers, create_reviewer 
+from img_vote.dal.MasterDal import get_reviewer_by_id, get_reviewer_by_login, count_all_reviewers, create_reviewer, create_admin
 from img_vote.dal.MasterDal import delete_reviewer_by_id, update_password, clear_non_admin_users
 
 #case related
@@ -103,12 +103,15 @@ def create_user(studyId, login, name, admin, status, full_review, distribution=N
         password = generate_password()
         s = gensalt()
         hashPass = hashpw(password.encode('utf-8'), s).decode('utf-8')
-        revId = create_reviewer(studyId, name, login, hashPass, admin, full)
+        if admin:
+            revId = create_admin(name, login, hashPass)
+        else:
+            revId = create_reviewer(studyId, name, login, hashPass, full)
     
-        if not admin and status in ['ready', 'test', 'ongoing', 'paused']:
-            case_per_rev = compute_case_per_rev(studyId, full, distribution, case_per_r, percentage)
-            create_user_answers(studyId, revId, case_per_rev)
-            create_user_answer_to_criterion(studyId, revId)
+            if status in ['ready', 'test', 'ongoing', 'paused']:
+                case_per_rev = compute_case_per_rev(studyId, full, distribution, case_per_r, percentage)
+                create_user_answers(studyId, revId, case_per_rev)
+                create_user_answer_to_criterion(studyId, revId)
     
     return password
 
@@ -200,12 +203,12 @@ def save_criterion_malignancy(crit_id, malignancy):
     mal = malignancy == 'true'
     update_criterion_malignancy(crit_id, mal)
 
-def save_prerequisite(cat_id, name):
+def save_prerequisite(studyId, catId, name):
     if not sanitize(name) or name == '':
         return
-    crit_id = new_prerequisite(cat_id, name)
+    critId = new_prerequisite(studyId, catId, name)
     
-    return crit_id
+    return critId
 
 def change_prerequisite(cat_id, crit_id, name, action):
     if not sanitize(name) or name == '':
@@ -328,7 +331,7 @@ def check_categories(studyId):
     
     create_na_criteria(studyId)
 
-    update_criteria_path(studyId, os.path.join(getcwd(), 'data', 'tutorial_data'))
+    update_criteria_path(studyId, os.path.join(getcwd(), 'data', str(studyId), 'tutorial_data'))
     
     create_trust_criteria(studyId)
 
@@ -681,6 +684,12 @@ def remove_all_result_files(studyId):
     
     safe_remove_folder(folder_path)
 
+def clear_data_folder(studyId):
+    
+    folder_path = os.path.join(getcwd(), 'data', str(studyId))
+
+    safe_remove_folder(folder_path)
+
 def clear_data(studyId):
 
     clear_all_answers(studyId)
@@ -695,7 +704,8 @@ def clear_data(studyId):
     remove_case_data(studyId)
     
     remove_all_result_files(studyId)
-    
+    clear_data_folder(studyId)
+        
     erase_study(studyId)
 
 def delete_user(userId):

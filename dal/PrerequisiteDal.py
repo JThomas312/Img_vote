@@ -43,16 +43,16 @@ def get_category_prerequisites(catId, engine):
     return answer
 
 #CRUD
-def new_prerequisite(catId, name, engine):
+def new_prerequisite(study_id, cat_id, name, engine):
     
     session = Session(engine)
     
     try:
-        query = session.query(CriterionPOCO).filter(CriterionPOCO.name == name).filter(CriterionPOCO.category != catId)
+        query = session.query(CriterionPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CriterionPOCO.name == name).filter(CriterionPOCO.category != cat_id)
         crit = query.one_or_none()
         if crit != None:
             
-            newPrerequisite = PrerequisitePOCO(catId, crit.id)
+            newPrerequisite = PrerequisitePOCO(cat_id, crit.id)
             
             session.add(newPrerequisite)
             

@@ -37,14 +37,14 @@ def get_category_by_id(identifier, engine):
     
     return category
 
-def get_categories(engine):
+def get_categories(study_id, engine):
     
     session = Session(engine)
     
     categoriesDM = []
     
     try:
-        categories = session.query(CategoryPOCO).order_by(CategoryPOCO.id).all()
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).order_by(CategoryPOCO.id).all()
         
         for category in categories:
             cDM = CategoryDataModel(category.id, category.name, category.type, category.has_tutorial, category.has_trust, category.has_na, category.optional, [])
