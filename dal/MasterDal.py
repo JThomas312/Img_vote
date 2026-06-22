@@ -31,7 +31,7 @@ import img_vote.dal.PrerequisiteDal as PrerequisiteDal
 
 metadata_obj = MetaData()
 
-database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials_test.txt'), encoding="utf-8")
+database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials.txt'), encoding="utf-8")
 orm_driver = database_credentials_file.readline().removesuffix('\n')
 usrname = database_credentials_file.readline().removesuffix('\n')
 passw = database_credentials_file.readline().removesuffix('\n')
