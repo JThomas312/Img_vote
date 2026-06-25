@@ -6,7 +6,6 @@ Created on Wed Jun 10 17:12:36 2026
 """
 
 #general imports
-from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
 

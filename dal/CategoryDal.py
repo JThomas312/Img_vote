@@ -18,6 +18,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
+from img_vote.Models.Enums import CategoryType
 from img_vote.Models.DataModels import CategoryDataModel, CategoryCreationDataModel, CategoryWithCriteriaDataModel, CategoryWithCriteriaAndPrerequisitesDataModel
 from img_vote.Models.POCO import CategoryPOCO, CriterionPOCO, PrerequisitePOCO
 
@@ -63,12 +64,10 @@ def get_na_tutorial_one_of_categories(study_id, engine):
     
     session = Session(engine)
     
-    one_of_type = 2
-    
     categoriesDM = []
     
     try:
-        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.has_tutorial == True).filter(CategoryPOCO.type == one_of_type).order_by(CategoryPOCO.id).all()
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.has_tutorial == True).filter(CategoryPOCO.type == CategoryType.one_of).order_by(CategoryPOCO.id).all()
         
         for category in categories:
             cDM = CategoryDataModel(category.id, category.name, category.type, category.has_tutorial, category.has_trust, category.has_na, category.optional, [])
@@ -341,11 +340,10 @@ def gold_standard_in_wrong_category(study_id, engine):
     
     session = Session(engine)
 
-    one_of_type = 2
     answer = []
     
     try:
-        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type != one_of_type)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type != CategoryType.one_of)
         
         answer = query.all()
             

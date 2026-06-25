@@ -322,14 +322,8 @@ def get_criterion_by_id(critId):
 def get_criteria_for_case(userId, caseId, catId):
     return CriterionDal.get_criteria_for_case(userId, caseId, catId, engine)
 
-def get_diagnosis_for_case(userId, caseId):
-    return CriterionDal.get_diagnosis_for_case(userId, caseId, engine)
-
 def get_all_criteria():
     return CriterionDal.get_all_criteria(engine)
-
-def get_all_criteria_no_diagnosis():
-    return CriterionDal.get_all_criteria_no_diagnosis(engine)
 
 def get_all_diagnosis():
     return CriterionDal.get_all_diagnosis()

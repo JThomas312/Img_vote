@@ -9,7 +9,6 @@ Created on Thu Aug 28 16:15:24 2025
 #general imports
 import os.path
 
-from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
 
@@ -22,7 +21,8 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.DataModels import CriterionDataModel, CriterionForCaseDataModel, DiagnosisDataModel
+from img_vote.Models.Enums import CriterionValue, CategoryType
+from img_vote.Models.DataModels import CriterionDataModel, CriterionForCaseDataModel
 from img_vote.Models.POCO import CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO, CategoryPOCO, PrerequisitePOCO
 from img_vote.dal.AnswerDal import get_all_answers
 from img_vote.dal.AnswerDal import get_user_answers
@@ -47,14 +47,6 @@ def is_answer_done(study_id, userId, caseId, engine):
     
     session = Session(engine)
     
-    #criterion category 2 is one of
-    yes_no_category = 1
-    one_of_category = 2
-    numerical_value_category = 3
-    unanswered_value = -1
-    unanswered_trust_value = 0
-    true_value = 1
-    
     try:
         # prefiltered query with all necessary joins
         query0 = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO, CategoryPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId)
@@ -70,27 +62,27 @@ def is_answer_done(study_id, userId, caseId, engine):
                 prerequisites = session.query(PrerequisitePOCO.criterion).filter(PrerequisitePOCO.category == category.id).all()
                 #check if any prerequisite is checked
                 for prerequisite in prerequisites:
-                    prerequisitesQuery = query0.filter(CriterionPOCO.id == prerequisite.criterion).filter(AnswerCriterionPOCO.value == true_value)
+                    prerequisitesQuery = query0.filter(CriterionPOCO.id == prerequisite.criterion).filter(AnswerCriterionPOCO.value == CriterionValue.true)
                     if session.query(prerequisitesQuery.exists()).scalar():
                         mandatory = True
                         
             if mandatory:
-                if category.type == yes_no_category or category.type == numerical_value_category:
+                if category.type == CategoryType.yes_no or category.type == CategoryType.numerical_value:
                     #check if any criterion is still unanswered
-                    unanswered_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_value).filter(CriterionPOCO.is_trust == False)
+                    unanswered_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered).filter(CriterionPOCO.is_trust == False)
                     if session.query(unanswered_query.exists()).scalar():
                         return False
                 
-                if category.type == one_of_category:
+                if category.type == CategoryType.one_of:
                     #check if any criterion has been chosen
-                    answered_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == true_value).filter(CriterionPOCO.is_trust == False)
+                    answered_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.true).filter(CriterionPOCO.is_trust == False)
                     if not session.query(answered_query.exists()).scalar():
                         return False
                 
                 if category.has_trust:
                     #check if trust criterion was left unanswered
-                    trust_query1 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_trust_value).filter(CriterionPOCO.is_trust == True)
-                    trust_query2 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == unanswered_value).filter(CriterionPOCO.is_trust == True)
+                    trust_query1 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered_trust).filter(CriterionPOCO.is_trust == True)
+                    trust_query2 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered).filter(CriterionPOCO.is_trust == True)
                     exists1 = session.query(trust_query1.exists()).scalar()
                     exists2 = session.query(trust_query2.exists()).scalar()
                     if exists1 or exists2:
@@ -122,30 +114,6 @@ def get_criteria_for_case(userId, caseId, catId, engine):
 
     return answer
 
-
-def get_diagnosis_for_case(userId, caseId, engine):
-    
-    session = Session(engine)
-    #criterion type 2 is diagnosis
-    diagnosis_type = 2    
-    
-    try:
-        query = session.query(CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO).join(AnswerPOCO, CasePOCO.id == AnswerPOCO.study_case).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CasePOCO.id == caseId).filter(AnswerPOCO.reviewer == userId).filter(CriterionPOCO.type == diagnosis_type).order_by(CriterionPOCO.id)
-    
-        queriedAnswer = query.all()
-        
-        #0: Case, 1: Answer, 2: Criterion, 3: AnswerCriterion   
-        
-        answer = CriterionForCaseDataModel(queriedAnswer[0][0].path)
-        
-        for i in range(len(queriedAnswer)):
-            answer.criteria.append((queriedAnswer[i][2].type, queriedAnswer[i][2].name, queriedAnswer[i][3].value, queriedAnswer[i][2].tutorial_path, queriedAnswer[i][2].id))
-    
-    finally:
-        session.close()
-    
-    return answer
-
 def get_all_criteria(study_id, engine):
     
     session = Session(engine)
@@ -163,27 +131,6 @@ def get_all_criteria(study_id, engine):
         session.close()
 
     return criteria
-
-def get_all_criteria_no_diagnosis(engine):
-    
-    session = Session(engine)
-    
-    try:
-        diagnosis_type = 0
-        trust_category = 3
-        
-        query = session.query(CriterionPOCO).filter(CriterionPOCO.type != diagnosis_type).filter(CriterionPOCO.category != trust_category)
-        ans = query.all()
-        
-        critNoDiag = []
-        
-        for i in range(len(ans)):
-            critNoDiag.append(DiagnosisDataModel(ans[i].id, ans[i].name))
-    
-    finally:
-        session.close()
-    
-    return critNoDiag
 
 def get_gold_standard_criteria(study_id, engine):
     
@@ -394,8 +341,6 @@ def undo_all_but_one(userId, case, criterionId, value, category, engine):
     session = Session(engine)
     
     try:
-        false_value = 0
-        
         query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.category == category).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == case).filter(CriterionPOCO.id != criterionId).filter(CriterionPOCO.is_trust == False)
         ansCrit = query.all()
     
@@ -404,7 +349,7 @@ def undo_all_but_one(userId, case, criterionId, value, category, engine):
         
         for ans in ansCrit:
             
-            updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion == ans[2].id).values(value=false_value)
+            updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion == ans[2].id).values(value=CriterionValue.false)
             session.execute(updatestmt)
         
         
@@ -444,10 +389,8 @@ def create_na_criteria(study_id, engine):
     
     session = Session(engine)
     
-    one_of_category = 2
-    
     try:
-        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type == one_of_category).order_by(CategoryPOCO.id)
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type == CategoryType.one_of).order_by(CategoryPOCO.id)
         
         answer = query.all()
         

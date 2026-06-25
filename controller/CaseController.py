@@ -20,6 +20,7 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted
+from img_vote.Models.Enums import CriterionValue, CategoryType
 from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
@@ -53,10 +54,6 @@ from img_vote.dal.MasterDal import is_answer_done
 
 def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     
-    trueValue = 1
-    naValue = 3
-    one_of_type = 2
-    
     #maximum value acceptable for database
     max_int_db = 1000000000
     #numerical value MUST be positive
@@ -88,7 +85,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
         
         newCatVM.criteria = criteriaVM
         
-        if category.catId == one_of_type and bool(list(filter(lambda x: x.value == trueValue or x.value == naValue, newCatVM.criteria))):
+        if category.catId == CategoryType.one_of and bool(list(filter(lambda x: x.value == CriterionValue.true or x.value == CriterionValue.na, newCatVM.criteria))):
             newCatVM.unanswered = False
             
         categoriesVM.append(newCatVM)
@@ -181,12 +178,10 @@ def safeguardProgress(userId, case, criterionId, value):
     
 def safeguardDiagnosis(userId, case, criterionId, value, category):
     
-    one_of_type = 2
-    
     full_category = get_category_by_id(category)
     criterion = get_criterion_by_id(criterionId)
     
-    if full_category.catType == one_of_type and not criterion.isTrust:
+    if full_category.catType == CategoryType.one_of and not criterion.isTrust:
         undo_all_but_one(userId, case, criterionId, value, category)
         
     else:

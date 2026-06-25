@@ -22,6 +22,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
+from img_vote.Models.Enums import CriterionValue
 from img_vote.Models.DataModels import CaseAnsDataModel, CaseLearnDataModel, RemarksDataModel
 from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO, PrerequisitePOCO
         
@@ -163,8 +164,6 @@ def get_cases_and_learn(userId, engine):
     
     session = Session(engine)
     
-    trueValue = 1
-    
     casesAns = []
     
     try:    
@@ -175,7 +174,7 @@ def get_cases_and_learn(userId, engine):
         
         for i in range(len(queriedAns)):
             if queriedAns[i][0].gold_standard == queriedAns[i][2].criterion:
-                casesAns.append(CaseLearnDataModel(queriedAns[i][0].id, queriedAns[i][1].name, queriedAns[i][2].value == trueValue))
+                casesAns.append(CaseLearnDataModel(queriedAns[i][0].id, queriedAns[i][1].name, queriedAns[i][2].value == CriterionValue.true))
     
     finally:
         session.close()
@@ -186,12 +185,10 @@ def get_answer_to_case(userId, caseId, engine):
     
     session = Session(engine)
     
-    trueValue = 1
-    
     answer = ''
     
     try:
-        query = session.query(AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).filter(CategoryPOCO.has_gold_standard).filter(AnswerCriterionPOCO.value == trueValue)
+        query = session.query(AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId).filter(CategoryPOCO.has_gold_standard).filter(AnswerCriterionPOCO.value == CriterionValue.true)
         ans = query.one_or_none()
         
         #0: answer, 1: answerCriterion, 2: criterion, 3: category
@@ -339,9 +336,6 @@ def erase_optional_answers(study_id, engine):
     
     session = Session(engine)
     
-    unansweredValue = -1
-    trueValue = 1
-    
     try:
         #get all optional categories
         querycat = session.query(CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.optional == True)
@@ -359,17 +353,17 @@ def erase_optional_answers(study_id, engine):
             categories.append((cat, prerequisites, criteria))
         
         #get all answers with optional criterion answered
-        queryans = session.query(AnswerPOCO.id).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.optional == True).filter(AnswerCriterionPOCO.value != unansweredValue).group_by(AnswerPOCO.id)
+        queryans = session.query(AnswerPOCO.id).join(AnswerCriterionPOCO, AnswerPOCO.id == AnswerCriterionPOCO.answer).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.optional == True).filter(AnswerCriterionPOCO.value != CriterionValue.unanswered).group_by(AnswerPOCO.id)
         answers = queryans.all()
         
         for answer in answers:
             for category in categories:
                 prerequistes = [x.id for x in category[1]]
                 criteria = [y.id for y in category[2]]
-                prerequery = session.query(AnswerCriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).filter(AnswerCriterionPOCO.answer == answer.id).filter(AnswerCriterionPOCO.value == trueValue).filter(AnswerCriterionPOCO.criterion.in_(prerequistes))
+                prerequery = session.query(AnswerCriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).filter(AnswerCriterionPOCO.answer == answer.id).filter(AnswerCriterionPOCO.value == CriterionValue.true).filter(AnswerCriterionPOCO.criterion.in_(prerequistes))
                 ok_prerequisites = session.query(prerequery.exists()).scalar()
                 if not ok_prerequisites:
-                    updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == answer.id).where(AnswerCriterionPOCO.criterion.in_(criteria)).values(value=unansweredValue)
+                    updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == answer.id).where(AnswerCriterionPOCO.criterion.in_(criteria)).values(value=CriterionValue.unanswered)
                     session.execute(updatestmt)
         
         session.commit()

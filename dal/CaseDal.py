@@ -26,8 +26,10 @@ sys.path.append(str(path_root))
 #local imports
 from img_vote.utilities.useful import listdir_safe_and_sorted, format_r_friendly
 
+from img_vote.Models.Enums import CriterionValue, CategoryType
 from img_vote.Models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
 from img_vote.Models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
+
 from img_vote.dal.UserDal import get_all_non_admin_reviewers
 
 
@@ -131,9 +133,6 @@ def extract_all_data(study_id, engine):
     
     session = Session(engine)
     
-    one_of_category = 2
-    trueValue = 1
-    
     reviewers = get_all_non_admin_reviewers(study_id, engine)
     
     try:
@@ -166,7 +165,7 @@ def extract_all_data(study_id, engine):
                     newExtract.categories = []
                     
                     if gold_standard_category != None:
-                        gold_standard_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(AnswerCriterionPOCO.value == trueValue).where(CriterionPOCO.is_trust == False)
+                        gold_standard_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(AnswerCriterionPOCO.value == CriterionValue.true).where(CriterionPOCO.is_trust == False)
                         gold_standard_answer = gold_standard_query.one_or_none()
                         
                         rev_diag = 'unanswered'
@@ -215,7 +214,7 @@ def extract_all_data(study_id, engine):
                         
                         newCategoryDM.criteria = []
                         
-                        if category.type != one_of_category:
+                        if category.type != CategoryType.one_of:
                             queryCriteria = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(CriterionPOCO.is_trust == False).order_by(CriterionPOCO.id)
                             ansCriteria = queryCriteria.all()
                             
@@ -223,7 +222,7 @@ def extract_all_data(study_id, engine):
                                 newCategoryDM.criteria.append(CriterionExtractdataModel(ansCriterion[1].name, ansCriterion[0].value))
                         
                         else:
-                            queryDiagnosis = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(AnswerCriterionPOCO.value == trueValue).where(CriterionPOCO.is_trust == False)
+                            queryDiagnosis = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(AnswerCriterionPOCO.value == CriterionValue.true).where(CriterionPOCO.is_trust == False)
                             ansDiagnosis = queryDiagnosis.one_or_none()
                             if ansDiagnosis != None:
                                 newCategoryDM.diagnosis = ansDiagnosis[1].name

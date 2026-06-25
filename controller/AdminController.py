@@ -16,7 +16,6 @@ import os.path
 from natsort import natsorted
 from math import ceil
 from zipfile import ZipFile
-from shutil import rmtree
 from shutil import copyfile
 from re import match
 from datetime import datetime
