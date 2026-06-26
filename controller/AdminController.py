@@ -64,22 +64,33 @@ from img_vote.dal.MasterDal import create_user_answer_to_criterion, clear_all_cr
 
 
 def find_name_and_login(userId):
+    
     usr = get_reviewer_by_id(userId)
     usrName = usr.name
     usrLogin = usr.login
+    
     return (usrName, usrLogin)
 
 
 def create_user(login, name, admin, status, full_review):
+    
     existing = get_reviewer_by_login(login)
-    full = full_review and not admin
-    with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'r', encoding="utf-8") as fr:
-        distribution = fr.readline().removesuffix('\n')
-        case_per_r = fr.readline().removesuffix('\n')
-        percentage = fr.readline().removesuffix('\n')
+    
+    answer_creation_statuses = ['ready', 'test', 'ongoing', 'paused']
+    
+    distribution = ''
+    case_per_r = ''
+    percentage = ''
+    
+    if status in answer_creation_statuses:
+        with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'r', encoding="utf-8") as fr:
+            distribution = fr.readline().removesuffix('\n')
+            case_per_r = fr.readline().removesuffix('\n')
+            percentage = fr.readline().removesuffix('\n')
+    
     if ((not admin) and (status == 'ended')):
         raise Exception('While the study is ended only administrator users can be created')
-    elif not full and distribution == 'n per case' and status in ['ready', 'ongoing', 'paused']:
+    elif not full_review and not admin and status in answer_creation_statuses and distribution == 'n per case':
         raise Exception('You can now only create full reviewers with your chosen distribution')
     elif existing != None:
         raise Exception('User already exists with login ' + login)
@@ -87,24 +98,29 @@ def create_user(login, name, admin, status, full_review):
         password = generate_password()
         s = gensalt()
         hashPass = hashpw(password.encode('utf-8'), s).decode('utf-8')
-        revId = create_reviewer(name, login, hashPass, admin, full)
-        if not admin and status in ['ready', 'ongoing', 'paused']:
-            case_per_rev = compute_case_per_rev(full, distribution, case_per_r, percentage)
+        revId = create_reviewer(name, login, hashPass, admin, full_review)
+        if not admin and status in answer_creation_statuses:
+            case_per_rev = compute_case_per_rev(full_review, distribution, case_per_r, percentage)
             create_user_answers(revId, case_per_rev)
             create_user_answer_to_criterion(revId)
     return password
 
 def categories_for_editing():
+    
     categoriesDMs = categories_with_criteria()
     categoriesVMs = []
+    
     for categoryDM in categoriesDMs:
         currentCategoryVM = CategoryConfigurationViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
+        
         for crit in categoryDM.criteria:
             currentCategoryVM.criteria.append(CriterionEditingViewModel(crit[0], crit[1]))
         categoriesVMs.append(currentCategoryVM)
+        
     return categoriesVMs   
 
 def category_for_editing(catId):
+    
     categoryDM = category_with_criteria_and_prerequisites(catId)
     categoryVM = CategoryEditingViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
     
@@ -117,10 +133,13 @@ def category_for_editing(catId):
     return categoryVM 
 
 def create_empty_category():
+    
     newId = new_empty_category()
+    
     return newId
 
 def update_category(cat_id, value, parameter):
+    
     val = value
     param = parameter
     #this way if either the DAL of front changes parameter, only this needs to be updated --> no dependency between front and DAL
@@ -149,6 +168,7 @@ def update_category(cat_id, value, parameter):
         val = False
         
     update_category_value(cat_id, val, param)
+    
     return
 
 def save_criterion(cat_id, name, malignancy):
@@ -164,9 +184,10 @@ def save_criterion(cat_id, name, malignancy):
     return crit_id
 
 def change_criterion(cat_id, crit_id, name, malignancy, action):
+    
     if action == 'remove':
         delete_prerequisite_from_criterion(crit_id)
-        erase_criterion(crit_id)    
+        erase_criterion(crit_id)
     if not sanitize(name) or name == '':
         return
     if action == 'edit':
@@ -444,6 +465,7 @@ def compute_rev_per_case(method, r_per_case, case_per_r, percentage):
     return rev_per_case
  
 def compute_case_per_rev(full, method, case_per_r, percentage):
+    
     nb_cases = count_all_cases()
     nb_standard_reviewers = count_all_reviewers(False)
     

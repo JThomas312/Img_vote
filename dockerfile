@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r python_dependencies.txt
 
 # Copy in the source code
 COPY . .
-WORKDIR img_vote/static
+WORKDIR static
 RUN npm install jquery viewerjs tailwindcss @tailwindcss/cli
 
 EXPOSE 5000

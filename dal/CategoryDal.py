@@ -307,15 +307,14 @@ def get_gold_standard(engine):
         
         if ans != None:
             answer = CategoryCreationDataModel()
-            
-            answer.name = ans[0].name
-            answer.catType = ans[0].type
-            answer.hasTutorial = ans[0].has_tutorial
-            answer.hasTrust = ans[0].has_trust
-            answer.hasNA = ans[0].has_na
-            answer.optional = ans[0].optional
+            answer.name = ans.name
+            answer.catType = ans.type
+            answer.hasTutorial = ans.has_tutorial
+            answer.hasTrust = ans.has_trust
+            answer.hasNA = ans.has_na
+            answer.optional = ans.optional
             answer.hasGoldStandard = True
-            answer.hasMalignancy = ans[0].has_malignancy
+            answer.hasMalignancy = ans.has_malignancy
         else:
             answer = None
             

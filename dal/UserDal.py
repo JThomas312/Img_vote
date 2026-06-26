@@ -67,7 +67,6 @@ def get_reviewer_for_login(login, engine):
     
     try:
         query = session.query(ReviewerPOCO).filter(ReviewerPOCO.login == login)
-    
         revPOCO = query.one_or_none()
     
         if revPOCO == None:
@@ -161,7 +160,7 @@ def create_reviewer(name, login, password, admin, full_review, engine):
     
     try:
         newReviewer = ReviewerPOCO(name, login, password, admin, full_review)
-        # if newReviewer.admin == None:
+
         session.add(newReviewer)
         session.commit()
         
