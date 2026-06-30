@@ -85,8 +85,8 @@ def create_user(login, name, admin, status, full_review):
     if status in answer_creation_statuses:
         with open(os.path.join(getcwd(), 'persistence', 'distribution.txt'), 'r', encoding="utf-8") as fr:
             distribution = fr.readline().removesuffix('\n')
-            case_per_r = fr.readline().removesuffix('\n')
-            percentage = fr.readline().removesuffix('\n')
+            case_per_r = int(fr.readline().removesuffix('\n'))
+            percentage = int(fr.readline().removesuffix('\n'))
     
     if ((not admin) and (status == 'ended')):
         raise Exception('While the study is ended only administrator users can be created')
@@ -476,7 +476,7 @@ def compute_case_per_rev(full, method, case_per_r, percentage):
         case_per_rev = case_per_r
     
     if method == 'percent per reviewer':
-        case_per_rev = ceil( float( nb_cases * int( percentage ) ) / float(100) )
+        case_per_rev = ceil( float( nb_cases * percentage ) / float(100) )
     
     return case_per_rev
 
