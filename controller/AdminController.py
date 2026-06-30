@@ -77,9 +77,11 @@ from img_vote.dal.MasterDal import create_user_answer_to_criterion, clear_all_cr
 
 
 def find_name_and_login(userId):
+    
     usr = get_reviewer_by_id(userId)
     usrName = usr.name
     usrLogin = usr.login
+    
     return (usrName, usrLogin)
 
 
@@ -88,11 +90,13 @@ def create_user(studyId, login, name, admin, status, full_review, distribution=N
     existing = get_reviewer_by_login(login)
     
     full = full_review and not admin
+
+    answer_creation_statuses = ['ready', 'test', 'ongoing', 'paused']
+    
     
     if ((not admin) and (status == 'ended')):
         raise Exception('While the study is ended only administrator users can be created')
-    
-    elif not full and distribution == 'n per case' and status in ['ready', 'test', 'ongoing', 'paused']:
+    elif not full_review and not admin and distribution == 'n per case' and status in answer_creation_statuses:
         raise Exception('You can now only create full reviewers with your chosen distribution')
     
     elif existing != None:
@@ -107,7 +111,7 @@ def create_user(studyId, login, name, admin, status, full_review, distribution=N
         else:
             revId = create_reviewer(studyId, name, login, hashPass, full)
     
-            if status in ['ready', 'test', 'ongoing', 'paused']:
+            if status in answer_creation_statuses:
                 case_per_rev = compute_case_per_rev(studyId, full, distribution, case_per_r, percentage)
                 create_user_answers(studyId, revId, case_per_rev)
                 create_user_answer_to_criterion(studyId, revId)
@@ -128,6 +132,7 @@ def categories_for_editing(studyId):
     return categoriesVMs   
 
 def category_for_editing(catId):
+    
     categoryDM = category_with_criteria_and_prerequisites(catId)
     categoryVM = CategoryEditingViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
     
@@ -146,6 +151,7 @@ def create_empty_category(studyId):
     return newId
 
 def update_category(cat_id, value, parameter):
+    
     val = value
     param = parameter
     #this way if either the DAL of front changes parameter, only this needs to be updated --> no dependency between front and DAL
@@ -174,6 +180,7 @@ def update_category(cat_id, value, parameter):
         val = False
         
     update_category_value(cat_id, val, param)
+    
     return
 
 def save_criterion(studyId, cat_id, name, malignancy):
@@ -189,9 +196,10 @@ def save_criterion(studyId, cat_id, name, malignancy):
     return crit_id
 
 def change_criterion(cat_id, crit_id, name, malignancy, action):
+    
     if action == 'remove':
         delete_prerequisite_from_criterion(crit_id)
-        erase_criterion(crit_id)    
+        erase_criterion(crit_id)
     if not sanitize(name) or name == '':
         return
     if action == 'edit':
@@ -499,7 +507,7 @@ def compute_case_per_rev(studyId, full, method, case_per_r, percentage):
         case_per_rev = case_per_r
     
     if method == 'percent per reviewer':
-        case_per_rev = ceil( float( nb_cases * int( percentage ) ) / float(100) )
+        case_per_rev = ceil( float( nb_cases * percentage ) / float(100) )
     
     return case_per_rev
 

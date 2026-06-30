@@ -93,7 +93,6 @@ from controller.AdminController import clear_optional_answers
 
 from controller.CaseController import caseForDisplay
 from controller.CaseController import caseForLearning
-from controller.CaseController import safeguardProgress
 from controller.CaseController import safeguardDiagnosis
 from controller.CaseController import safeguardRemarks
 from controller.CaseController import criterion_for_tutorial
@@ -236,8 +235,7 @@ def create_study():
                     return render_template('new_study.html', error=error)
                 session['study'] = newStudyId
         return(redirect(url_for('user_home')))  
-    else:
-        return(redirect(url_for('login')))
+
 
 @app.route('/category_configuration/', methods=['GET'])
 def category_configuration():
@@ -1018,16 +1016,6 @@ def remove_criterion(crit_id):
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))    
- 
-# @app.route('/safeguard_model/')    
-# def safeguard_model():
-#     if 'userId' in session:
-#         case_id = request.args.get('case_id')
-#         criterion_id = request.args.get('criterion_id')
-#         value = request.args.get('value')
-#         safeguardProgress(session['userId'], case_id, criterion_id, value)
-#         checkProgress(session['userId'], int(request.args.get('case_id')))
-#         return '', 204
 
 @app.route('/safeguard_diagnosis/')    
 def safeguard_diagnosis():
