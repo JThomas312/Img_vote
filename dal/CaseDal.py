@@ -204,10 +204,10 @@ def extract_all_data(study_id, engine):
                             else:
                                 newExtract.gold_standard_confidence = -1
                             
-                            gld_std_name = format_r_friendly(case[1].name)
-                            newExtract.reviewer_gold_standard_answer = rev_diag
-                            newExtract.gold_standard_answer = gld_std_name
-                            newExtract.gold_standard_comparison = rev_diag == gld_std_name
+                        gld_std_name = format_r_friendly(case[1].name)
+                        newExtract.reviewer_gold_standard_answer = rev_diag
+                        newExtract.gold_standard_answer = gld_std_name
+                        newExtract.gold_standard_comparison = rev_diag == gld_std_name
                         
                     for category in categories:
                         

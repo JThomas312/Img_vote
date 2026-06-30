@@ -80,7 +80,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
         for criterion in criteriaForCase:
             
             newCritVM = CriterionViewModel(criterion.critId, criterion.name, criterion.value, criterion.isTrust)
-                
+
             if newCritVM.isTrust:
                 newCatVM.trust_criterion = newCritVM
             else:
@@ -175,9 +175,6 @@ def criterion_for_tutorial(idCriterion):
     img_data, w, h = get_image(tutorial_slide_path, True)
     
     return img_data
-    
-def safeguardProgress(userId, case, criterionId, value):
-    safeguard_Criterion(userId, case, criterionId, value)
     
 def safeguardDiagnosis(userId, case, criterionId, value, category):
     

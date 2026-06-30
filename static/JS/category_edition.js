@@ -339,7 +339,8 @@ function updateGoldStandard(category, show){
             gold_standard_div.style.display='none';
             gold_standard_yes.checked = false;
             gold_standard_no.checked = true;
-            safeguard_gold_standard(category, show)
+            safeguard_gold_standard(category, show);
+            updateMalignancy(show);
         }
     }
 }
