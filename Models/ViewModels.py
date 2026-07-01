@@ -7,6 +7,7 @@ Created on Wed Aug 27 18:34:27 2025
 """
 
 class StudyViewModel():
+    
     id: int
     name: str
     
@@ -15,6 +16,7 @@ class StudyViewModel():
         self.name = name
 
 class StudiesViewModel():
+    
     studies_to_show: bool
     studies: list(StudyViewModel)
     
@@ -22,55 +24,92 @@ class StudiesViewModel():
         self.studies_to_show = False
         self.studies = []
 
-class UserHomeViewModel():
+class HomeViewModel():
+    
     userId: int
-    study: int
-    name: str
-    items: list((int, str, bool)) #id, name, completed
-    remaing_items: int
+    userName: str
     admin: bool
-    demographics_answered: bool
+    studyName: str
+    remainingDays: int
+
+class UserHomeViewModel(HomeViewModel):
+    
+    items: list((int, str, bool)) #id, name, completed
+    remainingItems: int
+    demographicsAnswered: bool
+    
     def __init__(self):
         self.items = []
-        self.remaing_items = 0
+        self.remainingItems = 0
         self.admin = False
-        self.demographics_answered = True #edit once demographics are implemented
+        self.demographicsAnswered = True #edit once demographics are implemented
   
-class AdminHomeViewModel():
-    userId: int
-    name: str
+class AdminHomeViewModel(HomeViewModel):
+    
     otherUsers: list((int, str, str, bool, int)) #id, login, name, admin, remaining cases
-    remaing_users: int
-    total_users: int
-    admin: bool
+    remaingUsers: int
+    totalUsers: int
+    displayOthers: bool
+    showDeadLineAndGlobalAdvancement: bool
+    showIndividualAdvancement: bool
+    manageCategories: bool
+    manageUploadsAndRollbackCategories: bool
+    manageDistributionAndRollbackUploads: bool
+    beginAndRollbackDistribution: bool
+    targetedRollback: bool
+    exportRemarks: bool
+    pause: bool
+    resumeAndEnd: bool
+    exportData: bool
+    manageDownloads: bool
+    clearUserAndData: bool
+    allowUserDeletion: bool
+    
     def __init__(self):
         self.otherUsers = []
         self.remaing_users = 0
         self.admin = True
+        self.showDeadLineAndGlobalAdvancement = False
+        self.showIndividualAdvancement = False
+        self.manageCategories = False
+        self.manageUploadsAndRollbackCategories = False
+        self.manageDistributionAndRollbackUploads = False
+        self.beginAndRollbackDistribution = False
+        self.targetedRollback = False
+        self.exportRemarks = False
+        self.pause = False
+        self.resumeAndEnd = False
+        self.exportData = False
+        self.manageDownloads = False
+        self.clearUserAndData = False
+        self.allowUserDeletion = False
 
-class UserLearnViewModel():
-    userId: int
-    name: str
+class UserLearnViewModel(HomeViewModel):
+    
     items: list((int, str, bool)) #id, name, correct
-    correct_answers: int
-    total_answers: int
+    correctAnswers: int
+    totalAnswers: int
+    
     def __init__(self):
         self.items = []
-        self.correct_answers = 0
-        self.total_answers = 0
+        self.correctAnswers = 0
+        self.totalAnswers = 0
         self.admin = False
 
 # ViewModels for admins before study
 class CriterionEditingViewModel():
+    
     id: int
     name: str
     malignancy: bool
+    
     def __init__(self, crit_id, name, malignancy=False):
         self.id = crit_id
         self.name = name
         self.malignancy = malignancy
     
 class CategoryConfigurationViewModel():
+    
     id: int
     name: str
     type: int
@@ -81,6 +120,7 @@ class CategoryConfigurationViewModel():
     has_gold_standard: bool
     has_malignancy: bool
     criteria: list(CriterionEditingViewModel)
+    
     def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
         self.id = cat_id
         self.name = name
@@ -94,13 +134,16 @@ class CategoryConfigurationViewModel():
         self.criteria = []
   
 class PrerequisiteEditingViewModel():
+    
     id: int #id of the criterion
     name:str
+    
     def __init__(self, pre_id, name):
         self.id = pre_id
         self.name = name
   
 class CategoryEditingViewModel():
+    
     id: int
     name: str
     type: int
@@ -112,6 +155,7 @@ class CategoryEditingViewModel():
     has_malignancy: bool
     criteria: list(CriterionEditingViewModel)
     prerequisites: list(PrerequisiteEditingViewModel)
+    
     def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
         self.id= cat_id
         self.name = name
@@ -126,6 +170,7 @@ class CategoryEditingViewModel():
         self.prerequisites = []
 
 class UploadStatusViewModel():
+    
     case_images_uploaded: bool
     tutorial_images_needed: bool
     tutorial_images_uploaded: bool
@@ -133,19 +178,23 @@ class UploadStatusViewModel():
     case_data_uploaded: bool
 
 class ReviewerDistributionViewmodel():
+    
     nb_cases: int
     nb_reviewers: int
     nb_full_reviewers: int
+    
     def __init__(self, nb_cases=0, nb_reviewers=0, nb_full_reviewers=0):
         self.nb_cases = nb_cases
         self.nb_reviewers = nb_reviewers
         self.nb_full_reviewers = nb_full_reviewers
         
 class CriterionViewModel():
+    
     id: int
     name: str
     value: int
     isTrust: bool
+    
     def __init__(self, critId, name, value, isTrust):
         self.id = critId
         self.name = name
@@ -154,9 +203,11 @@ class CriterionViewModel():
 
 # ViewModels for admins during study
 class ManageDownloadsViewModel():
+    
     errors: str
     files_to_show: bool
     files: list(str)
+    
     def __init__(self):
         self.errors = ''
         self.files_to_show = False
@@ -164,6 +215,7 @@ class ManageDownloadsViewModel():
 
 # ViewModels for user pages during study
 class CategoryViewModel():
+    
     cat_id: int
     name: str
     type: int
@@ -175,6 +227,7 @@ class CategoryViewModel():
     criteria: list(CriterionViewModel)
     trust_criterion: CriterionViewModel
     unanswered: bool
+    
     def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites=[], criteria=[], trust_criterion=None, unanswered=True):
         self.cat_id = cat_id
         self.name = name
@@ -189,6 +242,7 @@ class CategoryViewModel():
         self.unanswered = unanswered
     
 class CaseDisplayViewModel():
+    
     case_id: int
     case_name: str
     study_name: str
@@ -202,6 +256,7 @@ class CaseDisplayViewModel():
     remarks: str
     prevcase: int
     nextcase: int
+    
     def __init__(self, case_id, case_name, study_name, show_remarks=False, remarks='', nb_categories=0, nb_imgs=0, imgs=[], imgs_sizes=[]):
         self.case_id = case_id
         self.case_name = case_name
@@ -215,6 +270,7 @@ class CaseDisplayViewModel():
         self.categories = []
     
 class CaseLearningViewModel():
+    
     case_id: int
     case_name: str
     study_name: str
@@ -225,6 +281,7 @@ class CaseLearningViewModel():
     correct_answer: str
     prevcase: int
     nextcase: int
+    
     def __init__(self, case_id, case_name, study_name, answer, correct_answer, nb_imgs=0, imgs=[], imgs_sizes=[]):
         self.case_id = case_id
         self.case_name = case_name

@@ -67,7 +67,7 @@ def get_na_tutorial_one_of_categories(study_id, engine):
     categoriesDM = []
     
     try:
-        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.has_tutorial == True).filter(CategoryPOCO.type == CategoryType.one_of).order_by(CategoryPOCO.id).all()
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_na == True).filter(CategoryPOCO.has_tutorial == True).filter(CategoryPOCO.type == CategoryType.one_of.value).order_by(CategoryPOCO.id).all()
         
         for category in categories:
             cDM = CategoryDataModel(category.id, category.name, category.type, category.has_tutorial, category.has_trust, category.has_na, category.optional, [])
@@ -343,7 +343,7 @@ def gold_standard_in_wrong_category(study_id, engine):
     answer = []
     
     try:
-        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type != CategoryType.one_of)
+        query = session.query(CategoryPOCO.id, CategoryPOCO.name).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type != CategoryType.one_of.value)
         
         answer = query.all()
             

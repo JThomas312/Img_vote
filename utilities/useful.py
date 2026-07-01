@@ -33,8 +33,7 @@ def sanitize(userinput):
     return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))
 
 def sanitize_text(userinput):
-    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\s]*$', userinput))
-
+    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\'\"\s]*$', userinput))
 
 def get_distribution():
     

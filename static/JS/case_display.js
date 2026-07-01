@@ -151,10 +151,12 @@ window.addEventListener('load', function() {
 
     // Auto-save for category name
     var remarksInput = document.getElementById('remarks');
-    var debouncedSaveRemarks = debounce(function() {
-        $.getJSON('/safeguard_remarks?case_id=' + caseId + '&value=' + encodeURIComponent(remarksInput.value));
-    }, 800);
-    remarksInput.addEventListener('input', debouncedSaveRemarks);
+    if (remarksInput != null){
+        var debouncedSaveRemarks = debounce(function() {
+            $.getJSON('/safeguard_remarks?case_id=' + caseId + '&value=' + encodeURIComponent(remarksInput.value));
+        }, 800);
+        remarksInput.addEventListener('input', debouncedSaveRemarks);
+    }
 });
 
 //prevent subbmitting the form with enter key

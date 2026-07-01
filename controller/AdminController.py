@@ -37,6 +37,7 @@ from img_vote.utilities.useful import listdir_safe_and_sorted
 from img_vote.utilities.useful import safe_worksheet_save
 from img_vote.utilities.useful import safe_remove_file
 from img_vote.utilities.useful import safe_remove_folder
+from img_vote.Models.Enums import Action, StudyStatus
 
 from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
 from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
@@ -91,10 +92,10 @@ def create_user(studyId, login, name, admin, status, full_review, distribution=N
     
     full = full_review and not admin
 
-    answer_creation_statuses = ['ready', 'test', 'ongoing', 'paused']
+    answer_creation_statuses = [StudyStatus.ready.value, StudyStatus.test.value, StudyStatus.ongoing.value, StudyStatus.paused.value]
     
     
-    if ((not admin) and (status == 'ended')):
+    if ((not admin) and (status == StudyStatus.ended.value)):
         raise Exception('While the study is ended only administrator users can be created')
     elif not full_review and not admin and distribution == 'n per case' and status in answer_creation_statuses:
         raise Exception('You can now only create full reviewers with your chosen distribution')
@@ -197,43 +198,54 @@ def save_criterion(studyId, cat_id, name, malignancy):
 
 def change_criterion(cat_id, crit_id, name, malignancy, action):
     
-    if action == 'remove':
+    if action == Action.remove.value:
         delete_prerequisite_from_criterion(crit_id)
         erase_criterion(crit_id)
+        
     if not sanitize(name) or name == '':
         return
-    if action == 'edit':
+    
+    if action == Action.edit.value:
         mal = malignancy == 'true'
         update_criterion(crit_id, name, mal)
 
 def save_criterion_malignancy(crit_id, malignancy):
+    
     mal = malignancy == 'true'
     update_criterion_malignancy(crit_id, mal)
 
 def save_prerequisite(studyId, catId, name):
+    
     if not sanitize(name) or name == '':
         return
+    
     critId = new_prerequisite(studyId, catId, name)
     
     return critId
 
 def change_prerequisite(cat_id, crit_id, name, action):
+    
     if not sanitize(name) or name == '':
         return
-    if action == 'remove':
-        delete_prerequisite(cat_id, crit_id)    
-    if action == 'edit':
-        delete_prerequisite(cat_id, crit_id) 
+    
+    if action == Action.remove.value:
+        delete_prerequisite(cat_id, crit_id)
+        
+    if action == Action.edit.value:
+        delete_prerequisite(cat_id, crit_id)
+        
         return new_prerequisite(cat_id, name)
         
 
 def delete_category(cat_id):
+    
     delete_category_prerequisite(cat_id)
     delete_prerequisite_from_category_criteria(cat_id)
     erase_category_criteria(cat_id)
     erase_category(cat_id)
 
 def delete_criterion(crit_id):
+    
     delete_prerequisite_from_criterion(crit_id)
     erase_criterion(crit_id)
 
@@ -250,6 +262,7 @@ def check_category(cat_id, form_answers):
     update_category(cat_id, form_answers['type'], 'type')
     
     prerequisites_ok = True
+    
     if 'optional' in form_answers and form_answers['optional'] == '1':
         prerequisites_ok = False
     
@@ -348,9 +361,7 @@ def categories_rollback(studyId):
     
     remove_na_criteria(studyId)
     remove_trust_criteria(studyId)
-    remove_case_images(studyId)
-    remove_tutorial_images(studyId)
-    remove_case_data(studyId)
+    clear_uploads(studyId)
 
 def optional_category_allowed(studyId, categoryId):
     
@@ -371,7 +382,10 @@ def upload_status(studyId, has_tutorial, has_gold_standard):
     VM.tutorial_images_needed = has_tutorial
     VM.tutorial_images_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', str(studyId), 'tutorial_images.zip'))
     VM.case_data_needed = has_gold_standard
-    VM.case_data_uploaded = os.path.exists(os.path.join(getcwd(), 'uploads', str(studyId), 'case_data'))
+    VM.case_data_uploaded = False
+    for file in listdir_safe_and_sorted(os.path.join(getcwd(), 'uploads', str(studyId))):
+        if file.startswith('case_data'):
+            VM.case_data_uploaded = True
     
     return VM
 
@@ -421,13 +435,19 @@ def remove_tutorial_images(studyId):
 
 def remove_case_data(studyId):
     
-    upload_path = os.path.join(getcwd(), 'uploads', str(studyId), 'case_data')
+    for filename in listdir_safe_and_sorted(os.path.join(getcwd(), 'uploads', str(studyId))):
+        if filename.startswith('case_data'):
+            remove(os.path.join(getcwd(), 'uploads', str(studyId), filename))
     
-    safe_remove_file(upload_path)
-        
     for filename in listdir_safe_and_sorted(os.path.join(getcwd(), 'data', str(studyId))):
         if filename.startswith('case_data'):
             remove(os.path.join(getcwd(), 'data', str(studyId), filename))
+
+def clear_uploads(studyId):
+    
+    folder_path = os.path.join(getcwd(), 'uploads', str(studyId))
+    
+    safe_remove_folder(folder_path)
 
 def check_uploads_and_create_cases(studyId, has_gold_standard):
     
@@ -607,7 +627,7 @@ def get_data_for_export_async(studyId, studyName):
             column_increment +=1
             ws[0, column_increment] = 'gold_standard_malignancy'
             column_increment +=1
-            ws[1, column_increment] = 'gold_standard_malignancy_comparison'
+            ws[0, column_increment] = 'gold_standard_malignancy_comparison'
             column_increment +=1
     
     for i in range(len(finalExtract)):
@@ -655,7 +675,7 @@ def get_data_to_download(studyId, status):
     
     viewmodel = ManageDownloadsViewModel()
     
-    show_remarks = status == 'test'
+    show_remarks = status == StudyStatus.test.value
     
     files = listdir_safe_and_sorted(os.path.join(getcwd(), 'results', str(studyId)))
     
@@ -712,6 +732,7 @@ def clear_data(studyId):
     
     remove_all_result_files(studyId)
     clear_data_folder(studyId)
+    clear_uploads(studyId)
         
     erase_study(studyId)
 

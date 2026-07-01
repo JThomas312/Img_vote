@@ -20,7 +20,7 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted
-from img_vote.Models.Enums import CriterionValue, CategoryType
+from img_vote.Models.Enums import CriterionValue, CategoryType, StudyStatus
 from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
@@ -85,7 +85,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
         
         newCatVM.criteria = criteriaVM
         
-        if category.catId == CategoryType.one_of and bool(list(filter(lambda x: x.value == CriterionValue.true or x.value == CriterionValue.na, newCatVM.criteria))):
+        if category.catId == CategoryType.one_of.value and bool(list(filter(lambda x: x.value == CriterionValue.true.value or x.value == CriterionValue.na.value, newCatVM.criteria))):
             newCatVM.unanswered = False
             
         categoriesVM.append(newCatVM)
@@ -97,7 +97,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     caseVM.criteria = criteriaVM
 
     
-    if studyStatus == 'test':
+    if studyStatus == StudyStatus.test.value:
         remarks = get_answer_remarks(userId, case)
         caseVM.remarks = remarks
         caseVM.show_remarks = True
@@ -178,7 +178,7 @@ def safeguardDiagnosis(userId, case, criterionId, value, category):
     full_category = get_category_by_id(category)
     criterion = get_criterion_by_id(criterionId)
     
-    if full_category.catType == CategoryType.one_of and not criterion.isTrust:
+    if full_category.catType == CategoryType.one_of.value and not criterion.isTrust:
         undo_all_but_one(userId, case, criterionId, value, category)
         
     else:
