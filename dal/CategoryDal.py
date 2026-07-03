@@ -18,9 +18,9 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.Enums import CategoryType
-from img_vote.Models.DataModels import CategoryDataModel, CategoryCreationDataModel, CategoryWithCriteriaDataModel, CategoryWithCriteriaAndPrerequisitesDataModel
-from img_vote.Models.POCO import CategoryPOCO, CriterionPOCO, PrerequisitePOCO
+from img_vote.models.Enums import CategoryType
+from img_vote.models.DataModels import CategoryDataModel, CategoryCreationDataModel, CategoryWithCriteriaDataModel, CategoryWithCriteriaAndPrerequisitesDataModel
+from img_vote.models.POCO import CategoryPOCO, CriterionPOCO, PrerequisitePOCO
 
 
 #read-only 

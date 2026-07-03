@@ -16,8 +16,8 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted, get_image
-from img_vote.Models.Enums import CriterionValue, CategoryType, StudyStatus
-from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
+from img_vote.models.Enums import CriterionValue, CategoryType, StudyStatus
+from img_vote.models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
 #user related
 from img_vote.dal.MasterDal import update_user_count

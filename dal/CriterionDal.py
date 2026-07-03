@@ -21,9 +21,9 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.Enums import CriterionValue, CategoryType
-from img_vote.Models.DataModels import CriterionDataModel, CriterionForCaseDataModel
-from img_vote.Models.POCO import CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO, CategoryPOCO, PrerequisitePOCO
+from img_vote.models.Enums import CriterionValue, CategoryType
+from img_vote.models.DataModels import CriterionDataModel, CriterionForCaseDataModel
+from img_vote.models.POCO import CasePOCO, AnswerPOCO, CriterionPOCO, AnswerCriterionPOCO, CategoryPOCO, PrerequisitePOCO
 from img_vote.dal.AnswerDal import get_all_answers
 from img_vote.dal.AnswerDal import get_user_answers
 

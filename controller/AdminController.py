@@ -37,11 +37,11 @@ from img_vote.utilities.useful import listdir_safe_and_sorted
 from img_vote.utilities.useful import safe_worksheet_save
 from img_vote.utilities.useful import safe_remove_file
 from img_vote.utilities.useful import safe_remove_folder
-from img_vote.Models.Enums import Action, StudyStatus, CategoryType
+from img_vote.models.Enums import Action, StudyStatus, CategoryType
 
-from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel, CategoriesForConfigurationViewModel
-from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
-from img_vote.Models.ViewModels import ReviewerDistributionViewmodel, ManageDownloadsViewModel
+from img_vote.models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel, CategoriesForConfigurationViewModel
+from img_vote.models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
+from img_vote.models.ViewModels import ReviewerDistributionViewmodel, ManageDownloadsViewModel
 
 #study related
 from img_vote.dal.MasterDal import erase_study

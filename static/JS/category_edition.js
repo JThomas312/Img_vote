@@ -299,15 +299,20 @@ function safeguard_criterion(event, nameElement, malignancyYesElement, malignanc
     return false;
 }
 
-function edit_criterion(event, crit_id, element, malignancyElement, cat_id, action){
+function edit_criterion(event, crit_id, element, malignancyElementId, cat_id, action){
     event.preventDefault();
     var name = element.value;
     if (name == undefined){
         name = document.getElementById(element).value;
     }
-    var malignancy = malignancyElement.checked;
-    if (malignancy == undefined){
-        malignancy = document.getElementById(malignancyElement).checked;
+    var gold_standard_allowed = document.getElementById('gold_standard_allowed').value;
+    if (gold_standard_allowed == 'True')
+    {
+        var malignancy = document.getElementById(malignancyElementId).checked;
+    }
+    else
+    {
+        var malignancy = false;
     }
     url = '/edit_criterion?cat_id=' + cat_id + '&crit_id=' + crit_id + '&name=' + name + '&malignancy=' + malignancy + '&action=' + action;
     $.getJSON(url, function(data){});
@@ -398,8 +403,16 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   newButton.setAttribute('onclick', 'removeParent(event)');
 
   newcriterionWrapper.appendChild(newButton);
-
-  var display = document.getElementById('malignancy_yes').checked
+  
+  var gold_standard_allowed = document.getElementById('gold_standard_allowed').value;
+  if (gold_standard_allowed == 'True')
+  {
+      var display = document.getElementById('malignancy_yes').checked;
+  }
+  else
+  {
+      var display = false;
+  }
 
   var newDiv = document.createElement('div');
   newDiv.className = 'criterionMalignancy';
@@ -414,38 +427,44 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   var newInnerDiv = document.createElement('div');
   newInnerDiv.className = 'flex gap-2 text-xs mt-1';
 
-  var newRadioYes = document.createElement('input');
-  newRadioYes.type = 'radio';
-  newRadioYes.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_yes';
-  newRadioYes.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
-  newRadioYes.value = 1;
-  newRadioYes.className = 'accent-rose-600';
-
-  var newLabelYes = document.createElement('label');
-  newLabelYes.htmlFor = newRadioYes.id;
-  newLabelYes.className = 'flex items-center gap-1 cursor-pointer';
-  newLabelYes.appendChild(newRadioYes);
-  newLabelYes.appendChild(document.createTextNode(' Malignant'));
-
-  var newRadioNo = document.createElement('input');
-  newRadioNo.type = 'radio';
-  newRadioNo.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_no';
-  newRadioNo.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
-  newRadioNo.value = 0;
-  newRadioNo.className = 'accent-green-600';
-
-  var newLabelNo = document.createElement('label');
-  newLabelNo.htmlFor = newRadioNo.id;
-  newLabelNo.className = 'flex items-center gap-1 cursor-pointer';
-  newLabelNo.appendChild(newRadioNo);
-  newLabelNo.appendChild(document.createTextNode(' Benign'));
+  if (gold_standard_allowed == 'True')
+  {
+      var newRadioYes = document.createElement('input');
+      newRadioYes.type = 'radio';
+      newRadioYes.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_yes';
+      newRadioYes.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
+      newRadioYes.value = 1;
+      newRadioYes.className = 'accent-rose-600';
+    
+      var newLabelYes = document.createElement('label');
+      newLabelYes.htmlFor = newRadioYes.id;
+      newLabelYes.className = 'flex items-center gap-1 cursor-pointer';
+      newLabelYes.appendChild(newRadioYes);
+      newLabelYes.appendChild(document.createTextNode(' Malignant'));
+    
+      var newRadioNo = document.createElement('input');
+      newRadioNo.type = 'radio';
+      newRadioNo.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_no';
+      newRadioNo.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
+      newRadioNo.value = 0;
+      newRadioNo.className = 'accent-green-600';
+    
+      var newLabelNo = document.createElement('label');
+      newLabelNo.htmlFor = newRadioNo.id;
+      newLabelNo.className = 'flex items-center gap-1 cursor-pointer';
+      newLabelNo.appendChild(newRadioNo);
+      newLabelNo.appendChild(document.createTextNode(' Benign'));
+  }
 
   var category_id = document.getElementById('category_id').value;
 
   newcriterionWrapper.appendChild(newDiv);
   newDiv.appendChild(newInnerDiv);
-  newInnerDiv.appendChild(newLabelYes);
-  newInnerDiv.appendChild(newLabelNo);
+  if (gold_standard_allowed == 'True')
+  {
+      newInnerDiv.appendChild(newLabelYes);
+      newInnerDiv.appendChild(newLabelNo);
+  }
 
   criteriaContainer.appendChild(newcriterionWrapper);
 

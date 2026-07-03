@@ -17,7 +17,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.POCO import CriterionPOCO, PrerequisitePOCO, CategoryPOCO
+from img_vote.models.POCO import CriterionPOCO, PrerequisitePOCO, CategoryPOCO
 
 
 #read-only 

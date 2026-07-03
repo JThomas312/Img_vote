@@ -26,9 +26,9 @@ sys.path.append(str(path_root))
 #local imports
 from img_vote.utilities.useful import listdir_safe_and_sorted, format_r_friendly
 
-from img_vote.Models.Enums import CriterionValue, CategoryType
-from img_vote.Models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
-from img_vote.Models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
+from img_vote.models.Enums import CriterionValue, CategoryType
+from img_vote.models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
+from img_vote.models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
 
 from img_vote.dal.UserDal import get_all_non_admin_reviewers
 

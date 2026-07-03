@@ -20,9 +20,9 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.DataModels import UserDataModel
-from img_vote.Models.DataModels import UserForLogDataModel
-from img_vote.Models.POCO import ReviewerPOCO, AnswerPOCO, AnswerCriterionPOCO
+from img_vote.models.DataModels import UserDataModel
+from img_vote.models.DataModels import UserForLogDataModel
+from img_vote.models.POCO import ReviewerPOCO, AnswerPOCO, AnswerCriterionPOCO
 
 
 

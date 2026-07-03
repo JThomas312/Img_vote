@@ -17,7 +17,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.ViewModels import StudiesViewModel, StudyViewModel
+from img_vote.models.ViewModels import StudiesViewModel, StudyViewModel
 # from img_vote.utilities.useful import 
 
 #study related

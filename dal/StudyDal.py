@@ -18,8 +18,8 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.DataModels import StudyDataModel
-from img_vote.Models.POCO import StudyPOCO
+from img_vote.models.DataModels import StudyDataModel
+from img_vote.models.POCO import StudyPOCO
 
 
 

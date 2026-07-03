@@ -31,7 +31,7 @@ from utilities.useful import sanitize
 from utilities.useful import safe_save
 from utilities.useful import move
 from utilities.useful import is_after
-from Models.Enums import StudyStatus
+from models.Enums import StudyStatus
 
 from controller.StudyController import get_status
 from controller.StudyController import get_study_name
@@ -71,8 +71,6 @@ from controller.AdminController import save_criterion_malignancy
 from controller.AdminController import change_criterion
 from controller.AdminController import save_prerequisite
 from controller.AdminController import change_prerequisite
-from controller.AdminController import optional_category_allowed
-from controller.AdminController import gold_standard_category_allowed
 from controller.AdminController import upload_status
 from controller.AdminController import unzip_and_move
 from controller.AdminController import remove_case_images

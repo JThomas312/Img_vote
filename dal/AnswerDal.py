@@ -22,9 +22,9 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local imports
-from img_vote.Models.Enums import CriterionValue
-from img_vote.Models.DataModels import CaseAnsDataModel, CaseLearnDataModel, RemarksDataModel
-from img_vote.Models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO, PrerequisitePOCO
+from img_vote.models.Enums import CriterionValue
+from img_vote.models.DataModels import CaseAnsDataModel, CaseLearnDataModel, RemarksDataModel
+from img_vote.models.POCO import ReviewerPOCO, CasePOCO, AnswerPOCO, AnswerCriterionPOCO, CriterionPOCO, CategoryPOCO, PrerequisitePOCO
         
 #read-only
 def get_answer_by_id(identifier, engine):

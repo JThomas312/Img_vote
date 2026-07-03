@@ -17,15 +17,14 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.Models.ViewModels import UserHomeViewModel, AdminHomeViewModel, UserLearnViewModel
-from img_vote.Models.Enums import StudyStatus
+from img_vote.models.ViewModels import UserHomeViewModel, AdminHomeViewModel, UserLearnViewModel
+from img_vote.models.Enums import StudyStatus
 
 #user related
 from img_vote.dal.MasterDal import get_reviewer_by_login
 from img_vote.dal.MasterDal import get_reviewer_for_login
 from img_vote.dal.MasterDal import get_users_for_admin
 from img_vote.dal.MasterDal import update_password
-from img_vote.dal.MasterDal import gold_standard_exists
 
 #answer related
 from img_vote.dal.MasterDal import get_cases_and_answers

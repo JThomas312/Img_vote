@@ -153,17 +153,19 @@
             {% for criterion in ViewModel.criteria %}
               <div class="criterionWrapper flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2 shadow-sm">
                 <input class="saved flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-slate-50" type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}" data-crit-id="{{criterion.id}}" data-cat-id="{{ViewModel.id}}">
-                <button class="removeCriterionButton text-danger text-xs px-2.5 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, criterionMalignancy{{ns.j}}_yes, {{ViewModel.id}}, 'remove')">✕</button>
-                <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
-                  <div class="flex gap-2 text-xs mt-1">
-                    <label class="flex items-center gap-1 cursor-pointer">
-                      <input class="accent-rose-600" type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value="true" {% if criterion.malignancy %} checked {% endif %}> Malignant
-                    </label>
-                    <label class="flex items-center gap-1 cursor-pointer">
-                      <input class="accent-green-600" type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value="false" {% if not criterion.malignancy %} checked {% endif %}> Benign
-                    </label>
-                  </div>
-                </div>
+                <button class="removeCriterionButton text-danger text-xs px-2.5 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, 'criterionMalignancy{{ns.j}}_yes', {{ViewModel.id}}, 'remove')">✕</button>
+                {% if ViewModel.gold_standard_allowed %}
+                    <div class="criterionMalignancy" id="criterionMalignancy{{ns.j}}">
+                      <div class="flex gap-2 text-xs mt-1">
+                        <label class="flex items-center gap-1 cursor-pointer">
+                          <input class="accent-rose-600" type="radio" id="criterionMalignancy{{ns.j}}_yes" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, true)" value="true" {% if criterion.malignancy %} checked {% endif %}> Malignant
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                          <input class="accent-green-600" type="radio" id="criterionMalignancy{{ns.j}}_no" name="criterionMalignancy{{ns.j}}" onclick="safeguard_criterion_malignancy({{criterion.id}}, false)" value="false" {% if not criterion.malignancy %} checked {% endif %}> Benign
+                        </label>
+                      </div>
+                    </div>
+                {% endif %}
               </div>
               {% set ns.j = ns.j + 1 %}
             {% endfor %}
