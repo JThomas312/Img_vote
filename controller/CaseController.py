@@ -8,10 +8,6 @@ Created on Tue Apr  1 11:55:48 2025
 
 import os.path
 
-from PIL import Image
-import base64
-import io
-
 #enable imports from local modules
 from pathlib import Path
 import sys
@@ -19,7 +15,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted
+from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted, get_image
 from img_vote.Models.Enums import CriterionValue, CategoryType, StudyStatus
 from img_vote.Models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
@@ -57,7 +53,9 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     #maximum value acceptable for database
     max_int_db = 1000000000
     #numerical value MUST be positive
-    min_int_db = 0
+    min_int = 0
+    #max size for remarks in characters
+    remarks_max_length = 2000
     
     caseDM = get_case_by_id(case)
     name = get_answer_name(userId, case)
@@ -92,6 +90,14 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     
     caseVM = CaseDisplayViewModel(caseDM.caseId, name, studyName, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
     
+    caseVM.categoryYesNo = CategoryType.yes_no.value
+    caseVM.categoryOneOf = CategoryType.one_of.value
+    caseVM.categoryNumbers = CategoryType.numerical_value.value
+    caseVM.criterionTrue = CriterionValue.true.value
+    caseVM.criterionFalse = CriterionValue.false.value
+    caseVM.criterionNA = CriterionValue.na.value
+    caseVM.criterionUnanswered = CriterionValue.unanswered.value
+
     caseVM.categories = categoriesVM
 
     caseVM.criteria = criteriaVM
@@ -104,6 +110,8 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     else:
         caseVM.remarks = ''
         caseVM.show_remarks = False
+    
+    caseVM.remarks_max_length = remarks_max_length
 
     path = caseDM.path
     
@@ -128,7 +136,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     caseVM.nextcase = nextcase
     
     caseVM.max_int = max_int_db
-    caseVM.min_int = min_int_db
+    caseVM.min_int = min_int
     
     return caseVM
 
@@ -195,29 +203,3 @@ def checkProgress(studyId, userId, case):
     
     if update_answer_status(userId, case, done):
         update_user_count(userId, done)
-
-
-def get_image(img_path, try_extensions=False):
-    
-    definitive_path = img_path
-    
-    if try_extensions:
-        possible_extensions = ['.png', '.PNG', '.jpg', '.JPG', '.JPEG']
-    
-        for extension in possible_extensions:
-            if os.path.exists(img_path + extension):
-                definitive_path = img_path + extension
-    
-    try:
-        im = Image.open(definitive_path)
-        data = io.BytesIO()
-        im.save(data, im.format)
-        encoded_img_data = base64.b64encode(data.getvalue())
-        img_data = encoded_img_data.decode('utf-8')
-        w, h = im.size
-    except:
-        img_data = bytearray()
-        w, h = 0, 0
-        
-    return (img_data, w, h)
-

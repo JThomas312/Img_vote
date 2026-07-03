@@ -109,7 +109,7 @@ class CriterionEditingViewModel():
         self.malignancy = malignancy
     
 class CategoryConfigurationViewModel():
-    
+
     id: int
     name: str
     type: int
@@ -120,7 +120,7 @@ class CategoryConfigurationViewModel():
     has_gold_standard: bool
     has_malignancy: bool
     criteria: list(CriterionEditingViewModel)
-    
+
     def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
         self.id = cat_id
         self.name = name
@@ -132,6 +132,18 @@ class CategoryConfigurationViewModel():
         self.has_malignancy = has_malignancy
         self.optional = optional
         self.criteria = []
+
+class CategoriesForConfigurationViewModel():
+    
+    status_error: str
+    deletion_error: str
+    typeYesNo: int
+    typeOneOf: int
+    typeNumbers: int
+    categories: list(CategoryConfigurationViewModel)
+    
+    def __init__(self):
+        self.categories = []
   
 class PrerequisiteEditingViewModel():
     
@@ -153,6 +165,13 @@ class CategoryEditingViewModel():
     optional: bool
     has_gold_standard: bool
     has_malignancy: bool
+    status_error: str
+    formError: str
+    optional_allowed: bool
+    gold_standard_allowed: bool
+    typeYesNo: int
+    typeOneOf: int
+    typeNumbers: int
     criteria: list(CriterionEditingViewModel)
     prerequisites: list(PrerequisiteEditingViewModel)
     
@@ -254,6 +273,14 @@ class CaseDisplayViewModel():
     min_int: int
     show_remarks : int
     remarks: str
+    remarks_max_length: int
+    categoryYesNo: int
+    categoryOneOf: int
+    categoryNumbers: int
+    criterionTrue: int
+    criterionFalse: int
+    criterionNA: int
+    criterionUnanswered: int
     prevcase: int
     nextcase: int
     

@@ -19,6 +19,9 @@ from datetime import datetime
 import os.path
 import random
 import string
+from PIL import Image
+import base64
+import io
 
 def generate_password():
     length = random.randint(8, 32)
@@ -101,4 +104,26 @@ def is_after(firstDate, secondDate):
     
     return first > second
     
-
+def get_image(img_path, try_extensions=False):
+    
+    definitive_path = img_path
+    
+    if try_extensions:
+        possible_extensions = ['.png', '.PNG', '.jpg', '.JPG', '.JPEG']
+    
+        for extension in possible_extensions:
+            if os.path.exists(img_path + extension):
+                definitive_path = img_path + extension
+    
+    try:
+        im = Image.open(definitive_path)
+        data = io.BytesIO()
+        im.save(data, im.format)
+        encoded_img_data = base64.b64encode(data.getvalue())
+        img_data = encoded_img_data.decode('utf-8')
+        w, h = im.size
+    except:
+        img_data = bytearray()
+        w, h = 0, 0
+        
+    return (img_data, w, h)

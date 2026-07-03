@@ -162,7 +162,7 @@ class CategoryWithCriteriaDataModel():
      optional: bool
      hasGoldStandard: bool
      hasMalignancy: bool
-     criteria: list(int, str) #ids and names of criterions from the category
+     criteria: list(int, str, bool) #ids, names and malignancy of criterions from the category
      
      def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional, hasGoldStandard, hasMalignancy):
          self.catId = catId

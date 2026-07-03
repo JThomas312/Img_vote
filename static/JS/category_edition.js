@@ -143,18 +143,30 @@ function updateOptional(show){
 }
 
 function initMalignancy(){
-     var display = document.getElementById('gold_standard_yes').checked
-     updateMalignancy(display);
+    var gold_standard_allowed = document.getElementById('gold_standard_allowed').value;
+    if (gold_standard_allowed == 'True')
+    {
+        var display = document.getElementById('gold_standard_yes').checked
+        updateMalignancy(display);
+    }
 }
 
 function initMalignancyVisibility(){
-     var display = document.getElementById('malignancy_yes').checked
-     updateMalignancyVisibility(display);
+    var gold_standard_allowed = document.getElementById('gold_standard_allowed').value;
+    if (gold_standard_allowed == 'True')
+    {
+        var display = document.getElementById('malignancy_yes').checked
+        updateMalignancyVisibility(display);
+    }
 }
 
 function initOptional(){
-     var display = document.getElementById('optional_yes').checked
-     updateOptional(display);
+    var optional_allowed = document.getElementById('optional_allowed').value
+    if (optional_allowed == 'True')
+    {
+        var display = document.getElementById('optional_yes').checked
+        updateOptional(display);
+    }
 }
 
 window.addEventListener('load', initMalignancy);
@@ -441,30 +453,34 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   attachCriterionAutoSave(newInput, function() { return newInput.dataset.critId || null; }, category_id);
 });
 
-document.getElementById('addPrerequisiteButton').addEventListener('click', function(event) {
-  event.preventDefault();
+var optional_allowed = document.getElementById('optional_allowed').value
 
-  var prerequisiteContainer = document.getElementById('prerequisiteContainer');
-  var newprerequisiteWrapper = document.createElement('div');
-  newprerequisiteWrapper.className = 'prerequisiteWrapper flex items-center gap-2 bg-indigo-50 rounded-xl px-3 py-2';
-
-  var newInput = document.createElement('input');
-  newInput.type = 'text';
-  newInput.id = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
-  newInput.name = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
-  newInput.className = 'flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white';
-  newprerequisiteWrapper.appendChild(newInput);
-
-  var newButton = document.createElement('button');
-  newButton.textContent = 'Remove';
-  newButton.className = 'removePrerequisiteButton text-danger text-xs px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium';
-  newButton.id = 'removePrerequisiteButton' + (prerequisiteContainer.children.length + 1);
-  newButton.setAttribute('onclick', 'removeParent(event)');
-  newprerequisiteWrapper.appendChild(newButton);
-
-  prerequisiteContainer.appendChild(newprerequisiteWrapper);
-
-  var category_id = document.getElementById('category_id').value;
-  attachPrerequisiteAutoSave(newInput, function() { return newInput.dataset.preId || null; }, category_id);
-});
+if (optional_allowed == 'True'){
+    document.getElementById('addPrerequisiteButton').addEventListener('click', function(event) {
+      event.preventDefault();
+    
+      var prerequisiteContainer = document.getElementById('prerequisiteContainer');
+      var newprerequisiteWrapper = document.createElement('div');
+      newprerequisiteWrapper.className = 'prerequisiteWrapper flex items-center gap-2 bg-indigo-50 rounded-xl px-3 py-2';
+    
+      var newInput = document.createElement('input');
+      newInput.type = 'text';
+      newInput.id = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
+      newInput.name = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
+      newInput.className = 'flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white';
+      newprerequisiteWrapper.appendChild(newInput);
+    
+      var newButton = document.createElement('button');
+      newButton.textContent = 'Remove';
+      newButton.className = 'removePrerequisiteButton text-danger text-xs px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium';
+      newButton.id = 'removePrerequisiteButton' + (prerequisiteContainer.children.length + 1);
+      newButton.setAttribute('onclick', 'removeParent(event)');
+      newprerequisiteWrapper.appendChild(newButton);
+    
+      prerequisiteContainer.appendChild(newprerequisiteWrapper);
+    
+      var category_id = document.getElementById('category_id').value;
+      attachPrerequisiteAutoSave(newInput, function() { return newInput.dataset.preId || null; }, category_id);
+    });
+}
 

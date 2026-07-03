@@ -31,6 +31,7 @@ from utilities.useful import sanitize
 from utilities.useful import safe_save
 from utilities.useful import move
 from utilities.useful import is_after
+from Models.Enums import StudyStatus
 
 from controller.StudyController import get_status
 from controller.StudyController import get_study_name
@@ -51,7 +52,6 @@ from controller.UserController import user_for_home
 from controller.UserController import user_for_login
 from controller.UserController import modify_password
 from controller.UserController import user_for_learning
-from img_vote.Models.Enums import StudyStatus
 
 from controller.AdminController import create_user
 from controller.AdminController import delete_user
@@ -245,8 +245,10 @@ def category_configuration():
             status = get_status(session['study'])
             if status != StudyStatus.stopped.value:
                 status_error = 'Categories are already locked, current status is: ' + status 
-            pending_categories = categories_for_editing(session['study'])
-            return render_template('category_configuration.html', status_error=status_error, deletion_error=deletion_error, categories=pending_categories)                        
+            viewModel = categories_for_editing(session['study'])
+            viewModel.status_error = status_error
+            viewModel.deletion_error = deletion_error
+            return render_template('category_configuration.html', ViewModel=viewModel)
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -256,10 +258,12 @@ def add_category():
     if 'userId' in session:
         if 'admin' in session and session['admin'] and ('study' in session):
             status = get_status(session['study'])
+
             if status != StudyStatus.stopped.value:
                 return(redirect(url_for('category_configuration')))                
             category_id = create_empty_category(session['study'])
-            return(redirect('/edit_category/' + str(category_id)))                       
+            return(redirect('/edit_category/' + str(category_id)))
+        
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))
@@ -272,22 +276,27 @@ def edit_category(categoryId):
         if 'admin' in session and session['admin'] and ('study' in session):
             error = None
             status = get_status(session['study'])
+
             if status != StudyStatus.stopped.value:
                 return(redirect(url_for('category_configuration')))
-            optional_allowed = optional_category_allowed(session['study'], categoryId)
-            gold_standard_allowed = gold_standard_category_allowed(session['study'], categoryId)
+
             if request.method == 'GET':
-                categoryViewModel = category_for_editing(categoryId)
-                return render_template('category_edition.html', category=categoryViewModel, error=error, formError=None, optional_allowed=optional_allowed, gold_standard_allowed=gold_standard_allowed)
-                
+                categoryViewModel = category_for_editing(session['study'], categoryId)
+                categoryViewModel.status_error = error
+                return render_template('category_edition.html', ViewModel=categoryViewModel)
+
             if request.method == 'POST':
                 answer = (request.form).copy()
                 answer.pop('csrf_token')
                 formError = check_category(categoryId, answer)
+
                 if formError != None:
-                    categoryViewModel = category_for_editing(categoryId)
-                    return render_template('category_edition.html', category=categoryViewModel, error=error, formError=formError, optional_allowed=optional_allowed, gold_standard_allowed=gold_standard_allowed)
+                    categoryViewModel = category_for_editing(session['study'], categoryId)
+                    categoryViewModel.status_error = error
+                    categoryViewModel.formError = formError
+                    return render_template('category_edition.html', ViewModel=categoryViewModel)
                 return(redirect(url_for('category_configuration')))
+
         return(redirect(url_for('user_home')))    
     else:
         return(redirect(url_for('login')))

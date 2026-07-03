@@ -37,9 +37,9 @@ from img_vote.utilities.useful import listdir_safe_and_sorted
 from img_vote.utilities.useful import safe_worksheet_save
 from img_vote.utilities.useful import safe_remove_file
 from img_vote.utilities.useful import safe_remove_folder
-from img_vote.Models.Enums import Action, StudyStatus
+from img_vote.Models.Enums import Action, StudyStatus, CategoryType
 
-from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel
+from img_vote.Models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel, CategoriesForConfigurationViewModel
 from img_vote.Models.ViewModels import CategoryEditingViewModel, PrerequisiteEditingViewModel, UploadStatusViewModel
 from img_vote.Models.ViewModels import ReviewerDistributionViewmodel, ManageDownloadsViewModel
 
@@ -120,28 +120,44 @@ def create_user(studyId, login, name, admin, status, full_review, distribution=N
     return password
 
 def categories_for_editing(studyId):
-    
+
     categoriesDMs = categories_with_criteria(studyId)
-    categoriesVMs = []
-    
+    viewModel = CategoriesForConfigurationViewModel()
+
     for categoryDM in categoriesDMs:
         currentCategoryVM = CategoryConfigurationViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
         for crit in categoryDM.criteria:
-            currentCategoryVM.criteria.append(CriterionEditingViewModel(crit[0], crit[1]))
-        categoriesVMs.append(currentCategoryVM)
-        
-    return categoriesVMs   
+            currentCategoryVM.criteria.append(CriterionEditingViewModel(crit[0], crit[1], malignancy=crit[2]))
+        viewModel.categories.append(currentCategoryVM)
 
-def category_for_editing(catId):
-    
+    viewModel.status_error = None
+    viewModel.deletion_error = None
+
+    viewModel.typeYesNo = CategoryType.yes_no.value
+    viewModel.typeOneOf = CategoryType.one_of.value
+    viewModel.typeNumbers = CategoryType.numerical_value.value
+
+    return viewModel   
+
+def category_for_editing(studyId, catId):
+
     categoryDM = category_with_criteria_and_prerequisites(catId)
     categoryVM = CategoryEditingViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
-    
+
     for criterion in categoryDM.criteria:
         categoryVM.criteria.append(CriterionEditingViewModel(criterion[0], criterion[1], criterion[2]))
-    
+
     for prerequisite in categoryDM.prerequisites:
         categoryVM.prerequisites.append(PrerequisiteEditingViewModel(prerequisite[0], prerequisite[1]))
+
+    categoryVM.optional_allowed = optional_category_allowed(studyId, catId)
+    categoryVM.gold_standard_allowed = gold_standard_category_allowed(studyId, catId)
+
+    categoryVM.typeYesNo = CategoryType.yes_no.value
+    categoryVM.typeOneOf = CategoryType.one_of.value
+    categoryVM.typeNumbers = CategoryType.numerical_value.value
+
+    categoryVM.formError = None
 
     return categoryVM 
 
@@ -272,7 +288,7 @@ def check_category(cat_id, form_answers):
         if ans.find('prerequisiteField') != -1:
             val = form_answers[ans]
             if val == '':
-                return 'Invalid category : one of your answers is unnamed'
+                return 'Invalid category : one of your prerequisites is unnamed'
             if not sanitize(val):
                 return 'invalid prerequisite : ' + val + ' is not a valid name'
             prerequisites_ok = True
@@ -287,7 +303,7 @@ def check_category(cat_id, form_answers):
     if not prerequisites_ok:
         return 'Invalid category : an optional category needs at least one prerequisite'
     
-    if form_answers['type'] == '2' and nb_answers < 2:
+    if form_answers['type'] == str(CategoryType.one_of.value) and nb_answers < 2:
         return 'Invalid category : this type of category needs at least two answers'
     
     if nb_answers == 0:
