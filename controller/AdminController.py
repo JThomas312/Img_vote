@@ -100,8 +100,8 @@ def create_user(studyId, login, name, admin, status, full_review, distribution=N
     elif not full_review and not admin and distribution == 'n per case' and status in answer_creation_statuses:
         raise Exception('You can now only create full reviewers with your chosen distribution')
     
-    elif existing != None:
-        raise Exception('User already exists with login ' + login)
+    elif existing is not None:
+        raise Exception(''.join(['User already exists with login ', login]))
     
     else:
         password = generate_password()
@@ -290,14 +290,14 @@ def check_category(cat_id, form_answers):
             if val == '':
                 return 'Invalid category : one of your prerequisites is unnamed'
             if not sanitize(val):
-                return 'invalid prerequisite : ' + val + ' is not a valid name'
+                return ' '.join(['invalid prerequisite :', val, 'is not a valid name'])
             prerequisites_ok = True
         if ans.find('criterionField') != -1:
             val = form_answers[ans]
             if val == '':
                 return 'Invalid category : one of your answers is unnamed'
             if not sanitize(val):
-                return 'invalid answer : ' + val + ' is not a valid name'
+                return ' '.join(['invalid answer :', val, 'is not a valid name'])
             nb_answers += 1
     
     if not prerequisites_ok:
@@ -474,11 +474,11 @@ def check_uploads_and_create_cases(studyId, has_gold_standard):
     
     problems = create_all_cases(studyId, criteriaDict)
     
-    if problems != None:
+    if problems is not None:
         if problems[0] == 'file name discrepancy':
-            return 'Error : file ' + str(problems[1])   + ' does not correspond to case ' + problems[2] + ' in data file, please check your data and upload it again'
+            return ' '.join(['Error : file', str(problems[1]), 'does not correspond to case', problems[2], 'in data file, please check your data and upload it again'])
         if problems[0] == 'gold standard name discrepancy':
-            return 'Error : name ' + str(problems[1]) + ' was encountered in your gold standard spreadsheet but is not an answer in your gold standard category'
+            return ' '.join(['Error : name', str(problems[1]), 'was encountered in your gold standard spreadsheet but is not an answer in your gold standard category'])
     
     return problems
 
@@ -560,8 +560,8 @@ def get_remarks_for_export_async(studyId, studyName):
     
     now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
     
-    file_name1 = study_name + '_remarks' + now + '.xlsx'
-    file_name2 = study_name + '_remarks' + now + '.ods'
+    file_name1 = ''.join([study_name, '_remarks', now, '.xlsx'])
+    file_name2 = ''.join([study_name, '_remarks', now, '.ods'])
     
     folder_path = os.path.join(getcwd(), 'results', str(studyId))
     
@@ -596,8 +596,8 @@ def get_data_for_export_async(studyId, studyName):
     
     now = datetime.today().strftime('-%Y-%m-%d--%H-%M')
     
-    file_name1 = study_name + '_study_data' + now + '.xlsx'
-    file_name2 = study_name + '_study_data' + now + '.ods'
+    file_name1 = ''.join([study_name, '_study_data', now, '.xlsx'])
+    file_name2 = ''.join([study_name, '_study_data', now, '.ods'])
     
     folder_path = os.path.join(getcwd(), 'results', str(studyId))
     
@@ -625,10 +625,10 @@ def get_data_for_export_async(studyId, studyName):
                 ws[0, column_increment] = format_r_friendly(criterion.name)
                 column_increment += 1
         if current_category.confidence != -2:
-            ws[0, column_increment] = format_r_friendly(format_r_friendly(current_category.name) + '_confidence')
+            ws[0, column_increment] = format_r_friendly(''.join([format_r_friendly(current_category.name), '_confidence']))
             column_increment += 1
             
-    if gold_standard != None:
+    if gold_standard is not None:
         ws[0 , column_increment] = 'reviewer_gold_standard_answer'
         column_increment +=1
         if gold_standard.hasTrust:
@@ -665,7 +665,7 @@ def get_data_for_export_async(studyId, studyName):
                 ws[i + 1, column_increment] = current_category.confidence
                 column_increment += 1
         
-        if gold_standard != None:
+        if gold_standard is not None:
             ws[i + 1, column_increment] = format_r_friendly(finalExtract[i].reviewer_gold_standard_answer)
             column_increment +=1
             if gold_standard.hasTrust:

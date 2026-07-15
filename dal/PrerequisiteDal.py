@@ -50,7 +50,7 @@ def new_prerequisite(study_id, cat_id, name, engine):
     try:
         query = session.query(CriterionPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CategoryPOCO.study == study_id).filter(CriterionPOCO.name == name).filter(CriterionPOCO.category != cat_id)
         crit = query.one_or_none()
-        if crit != None:
+        if crit is not None:
             
             newPrerequisite = PrerequisitePOCO(cat_id, crit.id)
             

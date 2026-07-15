@@ -98,11 +98,11 @@ def categories_with_criteria(study_id, engine):
                     answer.append(currentDataModel)
                 currentCategory = ans[0].id
                 currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional, ans[0].has_gold_standard, ans[0].has_malignancy)
-            if ans[1] != None and not ans[1].is_trust:
+            if ans[1] is not None and not ans[1].is_trust:
                 currentDataModel.criteria.append((ans[1].id, ans[1].name, ans[1].malignancy))
         
         #avoid off by one
-        if currentDataModel != None:
+        if currentDataModel is not None:
             answer.append(currentDataModel)
     
     finally:
@@ -128,7 +128,7 @@ def category_with_criteria_and_prerequisites(catId, engine):
         categoryDataModel = CategoryWithCriteriaAndPrerequisitesDataModel(answer[0].id, answer[0].name, answer[0].type, answer[0].has_tutorial, answer[0].has_trust, answer[0].has_na, answer[0].optional, answer[0].has_gold_standard, answer[0].has_malignancy)
         
         for ans in queriedAnswer1:
-            if ans[1] != None and not ans[1].is_trust:
+            if ans[1] is not None and not ans[1].is_trust:
                 categoryDataModel.criteria.append((ans[1].id, ans[1].name, ans[1].malignancy))
         
         for ans in queriedAnswer2:
@@ -207,7 +207,7 @@ def optional_categories_without_prerequisites(study_id, engine):
         answer = []
         
         for ans in queriedAnswer:
-            if ans[1] == None:
+            if ans[1] is None:
                 answer.append((ans[0].id, ans[0].name))
         
     finally:
@@ -227,7 +227,7 @@ def categories_without_criteria(study_id, engine):
         answer = []
         
         for ans in queriedAnswer:
-            if ans[1] == None:
+            if ans[1] is None:
                 answer.append((ans[0].id, ans[0].name))
         
     finally:
@@ -318,7 +318,7 @@ def get_gold_standard(study_id, engine):
         
         ans = query.one_or_none()
         
-        if ans != None:
+        if ans is not None:
             answer = CategoryCreationDataModel()
             answer.name = ans.name
             answer.catType = ans.type

@@ -228,7 +228,7 @@ def create_study():
                 if name == '':
                     return render_template('new_study.html', error='Your study needs a name')
                 (newStudyId, error) = create_new_study(name)
-                if error != None:
+                if error is not None:
                     return render_template('new_study.html', error=error)
                 session['study'] = newStudyId
         return(redirect(url_for('user_home')))  
@@ -242,7 +242,7 @@ def category_configuration():
             deletion_error = None
             status = get_status(session['study'])
             if status != StudyStatus.stopped.value:
-                status_error = 'Categories are already locked, current status is: ' + status 
+                status_error = ''.join(['Categories are already locked, current status is: ', status])
             viewModel = categories_for_editing(session['study'])
             viewModel.status_error = status_error
             viewModel.deletion_error = deletion_error
@@ -260,7 +260,7 @@ def add_category():
             if status != StudyStatus.stopped.value:
                 return(redirect(url_for('category_configuration')))                
             category_id = create_empty_category(session['study'])
-            return(redirect('/edit_category/' + str(category_id)))
+            return(redirect(''.join(['/edit_category/', str(category_id)])))
         
         return(redirect(url_for('user_home')))    
     else:
@@ -288,7 +288,7 @@ def edit_category(categoryId):
                 answer.pop('csrf_token')
                 formError = check_category(categoryId, answer)
 
-                if formError != None:
+                if formError is not None:
                     categoryViewModel = category_for_editing(session['study'], categoryId)
                     categoryViewModel.status_error = error
                     categoryViewModel.formError = formError
@@ -374,7 +374,7 @@ def upload_case_images():
                     filename = 'case_images.zip'
                     safe_save(save_folder, filename, file)
                     problems = unzip_and_move(session['study'], os.path.join(save_folder, filename), 'case')
-                    if problems != None:
+                    if problems is not None:
                         return render_template('upload_case_images.html', errors=problems)
                 return redirect(url_for('manage_uploads'))
                     
@@ -404,7 +404,7 @@ def upload_tutorial_images():
                     filename = 'tutorial_images.zip'
                     safe_save(save_folder, filename, file)
                     problems = unzip_and_move(session['study'], os.path.join(save_folder, filename), 'tutorial')
-                    if problems != None:
+                    if problems is not None:
                         return render_template('upload_case_images.html', errors=problems)
                 return redirect(url_for('manage_uploads'))
                 
@@ -434,7 +434,7 @@ def upload_case_data():
                     return redirect(request.url)
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    filename = 'case_data.' + filename.rsplit('.', 1)[1]
+                    filename = ''.join(['case_data.', filename.rsplit('.', 1)[1]])
                     save_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(session['study']))
                     safe_save(save_folder, filename, file)
                     move(os.path.join(save_folder, filename), os.path.join(getcwd(), 'data', str(session['study']), filename))
@@ -496,7 +496,7 @@ def finish_uploading():
             if status == StudyStatus.categories_done.value:
                 has_gold_standard = study_has_gold_standard(session['study'])
                 errors = check_uploads_and_create_cases(session['study'], has_gold_standard)
-                if errors != None:
+                if errors is not None:
                     uploadStatusVM = upload_status(session['study'])
                     return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
                 update_status(session['study'], StudyStatus.uploads_done.value)
@@ -563,7 +563,7 @@ def begin_study():
             name = get_study_name(session['study'])
             if request.method == 'GET':
                 if status != StudyStatus.ready.value:
-                    error = 'Study has already begun, current status is: ' + status
+                    error = ''.join(['Study has already begun, current status is: ', status])
                 return render_template('study_begining.html', name=name, error=error, test=False)
             if request.method == 'POST':
                 if status == StudyStatus.ready.value:
@@ -584,7 +584,7 @@ def begin_study():
                     if reviewendresponse != '' and learningendresponse != '' and is_after(reviewendresponse, learningendresponse):
                         endDateError = 'Your endDate must come after the end of the reviews'
                     
-                    if nameError != None or revDateError != None or endDateError != None:
+                    if nameError is not None or revDateError is not None or endDateError is not None:
                         return render_template('study_begining.html', name=name, error=None, nameError=nameError, revDateError=revDateError, endDateError=endDateError, test=False)
                     
                     set_study_review_end(session['study'], reviewendresponse)
@@ -608,7 +608,7 @@ def begin_testing():
             name = get_study_name(session['study'])
             if request.method == 'GET':
                 if status != StudyStatus.ready.value:
-                    error = 'Study has already begun, current status is: ' + status 
+                    error = ''.join(['Study has already begun, current status is: ', status])
                 return render_template('study_begining.html', name=name, error=error, test=True)
             if request.method == 'POST':
                 if status == 'ready':
@@ -623,7 +623,7 @@ def begin_testing():
                     if endresponse == '':
                         dateError = 'You study needs an endDate'
                     
-                    if nameError != None or dateError != None:
+                    if nameError is not None or dateError is not None:
                         return render_template('study_begining.html', name=name, error=None, nameError=nameError, dateError=dateError, test=True)
                     
                     set_study_review_end(session['study'], endresponse)
@@ -1070,7 +1070,7 @@ def valid_login(username, password):
     if not sanitize(username):
         return False
     user = user_for_login(username)
-    if user == None:
+    if user is None:
         return False
     ePass = password.encode('utf-8')
     eHash = user.hashPass.encode('utf-8')

@@ -137,7 +137,7 @@ def extract_all_data(study_id, engine):
     
     try:
         gold_standard_category = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True).one_or_none()
-        if gold_standard_category != None:
+        if gold_standard_category is not None:
             casesQuery = session.query(CasePOCO, CriterionPOCO).join(CriterionPOCO, CasePOCO.gold_standard == CriterionPOCO.id).filter(CasePOCO.study == study_id).order_by(CasePOCO.id)
         else:
             casesQuery = session.query(CasePOCO).filter(CasePOCO.study == study_id).order_by(CasePOCO.id)
@@ -164,13 +164,13 @@ def extract_all_data(study_id, engine):
                     
                     newExtract.categories = []
                     
-                    if gold_standard_category != None:
+                    if gold_standard_category is not None:
                         gold_standard_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(AnswerCriterionPOCO.value == CriterionValue.true.value).where(CriterionPOCO.is_trust == False)
                         gold_standard_answer = gold_standard_query.one_or_none()
                         
                         rev_diag = 'unanswered'
                         
-                        if gold_standard_answer != None:
+                        if gold_standard_answer is not None:
                                 
                             rev_diag = format_r_friendly(gold_standard_answer[1].name)
     
@@ -178,7 +178,7 @@ def extract_all_data(study_id, engine):
                             rev_malignancy = 'unanswered'
                             gld_std_malignancy = 'unanswered'
     
-                            if gold_standard_answer != None:
+                            if gold_standard_answer is not None:
                                 if gold_standard_answer[1].malignancy:
                                     rev_malignancy = 'malignant'
                                 else:
@@ -198,7 +198,7 @@ def extract_all_data(study_id, engine):
                             gold_standard_trust_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(CriterionPOCO.is_trust == True)
                             gold_standard_trust_answer = gold_standard_trust_query.one_or_none()
                             
-                            if gold_standard_trust_answer != None:
+                            if gold_standard_trust_answer is not None:
                                 newExtract.gold_standard_confidence = gold_standard_trust_answer[0].value
                             else:
                                 newExtract.gold_standard_confidence = -1
@@ -224,7 +224,7 @@ def extract_all_data(study_id, engine):
                         else:
                             queryDiagnosis = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(AnswerCriterionPOCO.value == CriterionValue.true.value).where(CriterionPOCO.is_trust == False)
                             ansDiagnosis = queryDiagnosis.one_or_none()
-                            if ansDiagnosis != None:
+                            if ansDiagnosis is not None:
                                 newCategoryDM.diagnosis = ansDiagnosis[1].name
                             else:
                                 newCategoryDM.diagnosis = 'unanswered'

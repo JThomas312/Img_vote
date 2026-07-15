@@ -64,7 +64,7 @@ def create_new_study(studyName):
     error = None
     studyId = new_study(studyName)
     
-    if studyId == None:
+    if studyId is None:
         error = 'Study already exists with that name'
     
     return studyId, error
@@ -73,7 +73,7 @@ def get_status(studyId):
     
     status = get_study_status(studyId)
     
-    if status == None:
+    if status is None:
         status = 'stopped'
     
     return status
@@ -86,7 +86,7 @@ def get_remaining_review_days(studyId):
     
     study_end = get_review_end(studyId)
     
-    if study_end != None:
+    if study_end is not None:
         remaining_days = (study_end - date.today()).days
     else:
         remaining_days = -1
@@ -97,7 +97,7 @@ def get_remaining_learning_days(studyId):
     
     study_end = get_learning_end(studyId)
     
-    if study_end != None:
+    if study_end is not None:
         remaining_days = (study_end - date.today()).days
     else:
         remaining_days = -1
@@ -128,7 +128,7 @@ def get_study_name(studyId):
     
     name = get_name_of_study(studyId)
     
-    if name == None:
+    if name is None:
         name = ''
     
     return name

@@ -45,7 +45,7 @@ def get_study_status(study_id, engine):
     try:
         answer = session.query(StudyPOCO.status).filter(StudyPOCO.id == study_id).one_or_none()
         
-        if answer != None:
+        if answer is not None:
             answer = answer.status
     
     finally:    
@@ -60,7 +60,7 @@ def get_name_of_study(study_id, engine):
     try:
         answer = session.query(StudyPOCO.name).filter(StudyPOCO.id == study_id).one_or_none()
         
-        if answer != None:
+        if answer is not None:
             answer = answer.name
     
     finally:    
@@ -75,7 +75,7 @@ def get_review_end(study_id, engine):
     try:
         answer = session.query(StudyPOCO.review_end_date).filter(StudyPOCO.id == study_id).one_or_none()
         
-        if answer != None:
+        if answer is not None:
             answer = answer.review_end_date
     
     finally:    
@@ -90,7 +90,7 @@ def get_learning_end(study_id, engine):
     try:
         answer = session.query(StudyPOCO.end_date).filter(StudyPOCO.id == study_id).one_or_none()
         
-        if answer != None:
+        if answer is not None:
             answer = answer.end_date
     
     finally:    
@@ -118,7 +118,7 @@ def has_tutorial(study_id, engine):
     try:
         answer = session.query(StudyPOCO.tutorial).filter(StudyPOCO.id == study_id).one_or_none()
         
-        if answer != None:
+        if answer is not None:
             answer = answer.tutorial
 
     finally:    
@@ -133,7 +133,7 @@ def has_gold_standard(study_id, engine):
     try:
         answer = session.query(StudyPOCO.gold_standard).filter(StudyPOCO.id == study_id).one_or_none()
         
-        if answer != None:
+        if answer is not None:
             answer = answer.gold_standard
 
     finally:    
@@ -148,7 +148,7 @@ def has_malignancy(study_id, engine):
     try:
         answer = session.query(StudyPOCO.malignancy).filter(StudyPOCO.id == study_id).one_or_none()
         
-        if answer != None:
+        if answer is not None:
             answer = answer.malignancy
 
     finally:    

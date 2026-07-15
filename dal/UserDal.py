@@ -50,7 +50,7 @@ def get_reviewer_by_login(login, engine):
         
         revPOCO = query.one_or_none()
         
-        if revPOCO == None:
+        if revPOCO is None:
             return None
         
         rev = UserDataModel(revPOCO.id, revPOCO.study, revPOCO.name, revPOCO.login, revPOCO.admin, revPOCO.remaining_cases)
@@ -69,7 +69,7 @@ def get_reviewer_for_login(login, engine):
         query = session.query(ReviewerPOCO).filter(ReviewerPOCO.login == login)
         revPOCO = query.one_or_none()
     
-        if revPOCO == None:
+        if revPOCO is None:
             return None
     
         rev = UserForLogDataModel(revPOCO.login, revPOCO.password)
@@ -150,7 +150,7 @@ def update_user_count(user_id, done, engine):
         else:
             increment = 1
         
-        if ans != None:
+        if ans is not None:
             updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == user_id).values(remaining_cases=ans.remaining_cases + increment)
         
             session.execute(updatestmt)

@@ -95,7 +95,7 @@ def get_case_by_answer_name(answerName, userId, engine):
     try:
         query = session.query(AnswerPOCO.study_case).filter(AnswerPOCO.name == answerName).filter(AnswerPOCO.reviewer == userId)
         answer = query.one_or_none()
-        if answer == None:
+        if answer is None:
             answer = -1
         else:
             answer = answer[0]
@@ -132,7 +132,7 @@ def get_answer_remarks(userId, caseId, engine):
     try:
         query = session.query(AnswerPOCO.remarks).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == caseId)
         ans = query.one_or_none()
-        if ans.remarks == None:
+        if ans.remarks is None:
             answer = ''
         else:
             answer = ans.remarks
@@ -193,7 +193,7 @@ def get_answer_to_case(userId, caseId, engine):
         
         #0: answer, 1: answerCriterion, 2: criterion, 3: category
         
-        if ans == None:
+        if ans is None:
             answer = 'unanswered'
         else:
             answer = ans[2].name
@@ -225,7 +225,7 @@ def update_answer_status(userId, caseId, done, engine):
     
         databaseUpdated = False
         
-        if ans != None and (ans.completed != done):
+        if ans is not None and (ans.completed != done):
             updatestmt = update(AnswerPOCO).where(AnswerPOCO.reviewer == userId).where(AnswerPOCO.study_case == caseId).values(completed=done)
             session.execute(updatestmt)
             session.commit()

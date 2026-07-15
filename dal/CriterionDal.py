@@ -170,7 +170,7 @@ def create_criterion(name, tutorial_path, category, is_trust, malignancy, engine
     
     try:
         newCrit = CriterionPOCO(name, tutorial_path, category, is_trust, malignancy)
-        if (newCrit.tutorial_path == None):
+        if (newCrit.tutorial_path is None):
             newCrit.tutorial_path = tutorial_path
             
         session.add(newCrit)
@@ -373,9 +373,9 @@ def create_trust_criteria(study_id, engine):
         answer = query.all()
         
         for ans in answer:
-            newCrit = CriterionPOCO(ans.name + '_trust_scale', '', ans.id, True, False)
+            newCrit = CriterionPOCO(''.join([ans.name, '_trust_scale']), '', ans.id, True, False)
                 
-            if (newCrit.tutorial_path == None):
+            if (newCrit.tutorial_path is None):
                 newCrit.tutorial_path = ''
                 
             session.add(newCrit)
@@ -397,7 +397,7 @@ def create_na_criteria(study_id, engine):
         for ans in answer:
             newCrit = CriterionPOCO('na', '', ans.id, False, False)
                 
-            if (newCrit.tutorial_path == None):
+            if (newCrit.tutorial_path is None):
                 newCrit.tutorial_path = ''
                 
             session.add(newCrit)

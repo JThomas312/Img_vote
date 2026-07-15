@@ -39,7 +39,7 @@ def user_for_home(username, studyId = None, status = None):
         usr = AdminHomeViewModel()
         usr.userId = user.userId
         usr.userName = user.name
-        if studyId != None:
+        if studyId is not None:
             otherUsers = get_users_for_admin(user.userId, studyId)
             usr.otherUsers = []
             for otherUser in otherUsers:
