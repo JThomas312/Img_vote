@@ -231,6 +231,7 @@ def create_study():
                 if error is not None:
                     return render_template('new_study.html', error=error)
                 session['study'] = newStudyId
+                session['studyname'] = get_study_name(newStudyId)
         return(redirect(url_for('user_home')))  
 
 

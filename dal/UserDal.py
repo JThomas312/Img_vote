@@ -160,7 +160,7 @@ def update_user_count(user_id, done, engine):
     finally:
         session.close()
 
-def create_reviewer(name, login, password, study_id, full_review, engine):
+def create_reviewer(study_id, name, login, password, full_review, engine):
     
     session = Session(engine)
     

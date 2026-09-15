@@ -126,8 +126,8 @@ def get_users_for_admin(identifier, study_id):
 def count_all_reviewers(study_id, full):
     return UserDal.count_all_reviewers(study_id, full, engine)
 
-def create_reviewer(name, login, password, study_id, full_review):
-    return UserDal.create_reviewer(name, login, password, full_review, study_id, engine)
+def create_reviewer(study_id, name, login, password, full_review):
+    return UserDal.create_reviewer(study_id, name, login, password, full_review, engine)
 
 def create_admin(name, login, password):
     return UserDal.create_admin(name, login, password, engine)

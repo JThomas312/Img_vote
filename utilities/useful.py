@@ -62,7 +62,7 @@ def listdir_safe_and_sorted(path):
     
     if os.path.exists(path):
     
-        files = [file for file in listdir(path) if not file.startswith('.')]
+        files = [file for file in listdir(path) if not file.startswith('.') and not file.startswith('_')]
     
         return natsorted(files)
     
