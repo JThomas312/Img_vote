@@ -498,7 +498,9 @@ def finish_uploading():
                 has_gold_standard = study_has_gold_standard(session['study'])
                 errors = check_uploads_and_create_cases(session['study'], has_gold_standard)
                 if errors is not None:
-                    uploadStatusVM = upload_status(session['study'])
+                    has_tutorial = study_has_tutorial(session['study'])
+                    has_gold_standard = study_has_gold_standard(session['study'])
+                    uploadStatusVM = upload_status(session['study'], has_tutorial, has_gold_standard)
                     return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
                 update_status(session['study'], StudyStatus.uploads_done.value)
             return redirect(url_for('user_home'))
