@@ -7,7 +7,6 @@ Created on Thu Aug 28 14:49:10 2025
 """
 
 #general imports
-from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
 
@@ -64,11 +63,11 @@ def get_user_answers(userId, engine):
     answers = []
     
     try:
-        answersQuery = select(AnswerPOCO).filter(AnswerPOCO.reviewer == userId)
-        answersPOCO = session.execute(answersQuery).all()
+        answersQuery = session.query(AnswerPOCO).filter(AnswerPOCO.reviewer == userId)
+        answersPOCO = answersQuery.all()
         
         for i in range(len(answersPOCO)):
-            answers.append(answersPOCO[i][0]) #no time to investigate all(), mayhap later
+            answers.append(answersPOCO[i]) #no time to investigate all(), mayhap later
     
     finally:
         session.close()

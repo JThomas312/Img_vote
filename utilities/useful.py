@@ -27,16 +27,29 @@ def generate_password():
     length = random.randint(8, 32)
     characters = string.ascii_letters + string.digits + string.punctuation
     password = ''.join(random.choice(characters) for i in range(length))
+    password = sub(r'''[\\"']*''', '', password)
     return password
 
 def format_r_friendly(name):
     return sub(r'[^A-Za-z0-9_]+', "_", name).lower()
 
 def sanitize(userinput):
-    return bool(match(r'^[a-zA-Z0-9_\s]{3,50}$', userinput))
+    return bool(match(r'^[a-zA-Z0-9_ /]{2,50}$', userinput))
+
+def sanitize_login(userinput):
+    return bool(match(r'^[a-zA-Z_ ]{2,15}$', userinput))
+
+def sanitize_human_name(userinput):
+    return bool(match(r'^[a-zA-ZÀ-ÿ_ ]{2,50}$', userinput))
+
+def sanitize_technical_name(userinput):
+    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\'\" /%+<>≥≤«»]{2,100}$', userinput))
 
 def sanitize_text(userinput):
-    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\'\"\s]*$', userinput))
+    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\'\"\s/%+<>≥≤«»]{0,2000}$', userinput))
+
+def sanitize_password(userinput):
+    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\'\" /%+<>]{8,50}$', userinput))
 
 def get_distribution():
     
@@ -103,13 +116,21 @@ def is_after(firstDate, secondDate):
     second = datetime.strptime(secondDate, '%Y-%m-%d')
     
     return first > second
+
+#return is the date has already passed
+def is_passed(enteredDate):
+    
+    first = datetime.now()
+    second = datetime.strptime(enteredDate, '%Y-%m-%d')
+    
+    return first > second
     
 def get_image(img_path, try_extensions=False):
     
     definitive_path = img_path
     
     if try_extensions:
-        possible_extensions = ['.png', '.PNG', '.jpg', '.JPG', '.JPEG']
+        possible_extensions = ['.png', '.PNG', '.jpg', '.JPG',  'jpeg', '.JPEG']
     
         for extension in possible_extensions:
             if os.path.exists(img_path + extension):

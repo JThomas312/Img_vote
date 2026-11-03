@@ -32,7 +32,7 @@ sys.path.append(str(path_root))
 #local modules
 from img_vote.utilities.useful import generate_password
 from img_vote.utilities.useful import format_r_friendly
-from img_vote.utilities.useful import sanitize
+from img_vote.utilities.useful import sanitize_technical_name
 from img_vote.utilities.useful import listdir_safe_and_sorted
 from img_vote.utilities.useful import safe_worksheet_save
 from img_vote.utilities.useful import safe_remove_file
@@ -60,8 +60,8 @@ from img_vote.dal.MasterDal import create_all_answers, create_user_answers, get_
 from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria, category_with_criteria_and_prerequisites
 from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_least_one_mandatory_category
 from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
-from img_vote.dal.MasterDal import categories_without_criteria, malignant_categories_without_gold_standard, other_gold_standard_exists
-from img_vote.dal.MasterDal import get_gold_standards, get_gold_standard, gold_standard_in_wrong_category, new_empty_category
+from img_vote.dal.MasterDal import categories_without_criteria, categories_with_not_enough_criteria, malignant_categories_without_gold_standard
+from img_vote.dal.MasterDal import other_gold_standard_exists, get_gold_standards, get_gold_standard, gold_standard_in_wrong_category, new_empty_category
 from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_na_tutorial_one_of_categories
 
 #prerequisite related
@@ -173,7 +173,7 @@ def update_category(cat_id, value, parameter):
     param = parameter
     #this way if either the DAL of front changes parameter, only this needs to be updated --> no dependency between front and DAL
     if parameter == 'name':
-        if value == '' or not sanitize(value):
+        if value == '' or not sanitize_technical_name(value):
             return
         param = 'name'
     if parameter == 'type':
@@ -202,7 +202,7 @@ def update_category(cat_id, value, parameter):
 
 def save_criterion(studyId, cat_id, name, malignancy):
     
-    if not sanitize(name) or name == '' or name == 'na':
+    if not sanitize_technical_name(name) or name == '' or name == 'na':
         return
     
     category_name = get_category_by_id(cat_id).name
@@ -218,7 +218,7 @@ def change_criterion(cat_id, crit_id, name, malignancy, action):
         delete_prerequisite_from_criterion(crit_id)
         erase_criterion(crit_id)
         
-    if not sanitize(name) or name == '':
+    if not sanitize_technical_name(name) or name == '':
         return
     
     if action == Action.edit.value:
@@ -232,25 +232,25 @@ def save_criterion_malignancy(crit_id, malignancy):
 
 def save_prerequisite(studyId, catId, name):
     
-    if not sanitize(name) or name == '':
+    if not sanitize_technical_name(name) or name == '':
         return
     
     critId = new_prerequisite(studyId, catId, name)
     
     return critId
 
-def change_prerequisite(cat_id, crit_id, name, action):
+def change_prerequisite(studyId, cat_id, crit_id, name, action):
     
-    if not sanitize(name) or name == '':
+    if not sanitize_technical_name(name) or name == '':
         return
     
     if action == Action.remove.value:
-        delete_prerequisite(cat_id, crit_id)
+        delete_prerequisite(studyId, cat_id, crit_id)
         
     if action == Action.edit.value:
         delete_prerequisite(cat_id, crit_id)
         
-        return new_prerequisite(cat_id, name)
+        return new_prerequisite(studyId, cat_id, name)
         
 
 def delete_category(cat_id):
@@ -267,7 +267,7 @@ def delete_criterion(crit_id):
 
 def check_category(cat_id, form_answers):
 
-    if (not 'name' in form_answers) or (form_answers['name'] == '') or (not sanitize(form_answers['name'])):
+    if (not 'name' in form_answers) or (form_answers['name'] == '') or (not sanitize_technical_name(form_answers['name'])):
         return 'Invalid category : your category must have a valid name'
 
     update_category(cat_id, form_answers['name'], 'name')
@@ -289,14 +289,14 @@ def check_category(cat_id, form_answers):
             val = form_answers[ans]
             if val == '':
                 return 'Invalid category : one of your prerequisites is unnamed'
-            if not sanitize(val):
+            if not sanitize_technical_name(val):
                 return ' '.join(['invalid prerequisite :', val, 'is not a valid name'])
             prerequisites_ok = True
         if ans.find('criterionField') != -1:
             val = form_answers[ans]
             if val == '':
                 return 'Invalid category : one of your answers is unnamed'
-            if not sanitize(val):
+            if not sanitize_technical_name(val):
                 return ' '.join(['invalid answer :', val, 'is not a valid name'])
             nb_answers += 1
     
@@ -316,10 +316,12 @@ def check_categories(studyId):
     errors = []
     
     incorrect_categories = []
+    
     unnamed_categories = categories_without_name(studyId)
     if len(unnamed_categories) > 0:
         errors.append('Some of your categories are still unnamed')
         incorrect_categories.extend(unnamed_categories)
+        
     if not at_least_one_mandatory_category(studyId):
         errors.append('All of your categories are optional, you need at least one mandatory category')
     
@@ -347,6 +349,12 @@ def check_categories(studyId):
     if len(no_criteria) > 0:
         errors.append('Some categories have no possible answer, please add at least one or delete the category')
         incorrect_categories.extend(no_criteria)
+        
+    not_enough_criteria = categories_with_not_enough_criteria(studyId)
+    if len(not_enough_criteria) > 0:
+        errors.append('Some categories do not have enough possible answers, please add some or delete the category')
+        incorrect_categories.extend(not_enough_criteria)
+    
     
     malignant_categories = malignant_categories_without_gold_standard(studyId)        
     if len(malignant_categories) > 0:
@@ -461,9 +469,12 @@ def remove_case_data(studyId):
 
 def clear_uploads(studyId):
     
-    folder_path = os.path.join(getcwd(), 'uploads', str(studyId))
+    upload_path = os.path.join(getcwd(), 'uploads', str(studyId))
     
-    safe_remove_folder(folder_path)
+    data_path = os.path.join(getcwd(), 'data', str(studyId))
+    
+    safe_remove_folder(upload_path)
+    safe_remove_folder(data_path)
 
 def check_uploads_and_create_cases(studyId, has_gold_standard):
     
@@ -479,6 +490,8 @@ def check_uploads_and_create_cases(studyId, has_gold_standard):
             return ' '.join(['Error : file', str(problems[1]), 'does not correspond to case', problems[2], 'in data file, please check your data and upload it again'])
         if problems[0] == 'gold standard name discrepancy':
             return ' '.join(['Error : name', str(problems[1]), 'was encountered in your gold standard spreadsheet but is not an answer in your gold standard category'])
+        if problems[0] == 'case number discrepancy':
+            return ' '.join(['Error : there are', str(problems[1]), 'files in your image folder but', problems[2], 'lines in your gold standard spreadsheet, please check your data and upload it again'])
     
     return problems
 
@@ -572,9 +585,9 @@ def get_remarks_for_export_async(studyId, studyName):
     ws[0, 2] = 'remarks'
     
     for i in range(len(remarks)):
-        ws[i + 1, 0] = remarks[i].case
-        ws[i + 1, 1] = remarks[i].reviewer
-        ws[i + 1, 2] = remarks[i].remarks
+        ws[i + 1, 0] = format_r_friendly(remarks[i].case)
+        ws[i + 1, 1] = format_r_friendly(remarks[i].reviewer)
+        ws[i + 1, 2] = format_r_friendly(remarks[i].remarks)
     
     safe_worksheet_save(folder_path, file_name1, ws)
     safe_worksheet_save(folder_path, file_name2, ws)

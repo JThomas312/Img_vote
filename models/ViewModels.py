@@ -18,7 +18,7 @@ class StudyViewModel():
 class StudiesViewModel():
     
     studies_to_show: bool
-    studies: list(StudyViewModel)
+    studies: list[StudyViewModel]
     
     def __init__(self):
         self.studies_to_show = False
@@ -34,7 +34,7 @@ class HomeViewModel():
 
 class UserHomeViewModel(HomeViewModel):
     
-    items: list((int, str, bool)) #id, name, completed
+    items: list[(int, str, bool)] #id, name, completed
     remainingItems: int
     demographicsAnswered: bool
     
@@ -46,7 +46,7 @@ class UserHomeViewModel(HomeViewModel):
   
 class AdminHomeViewModel(HomeViewModel):
     
-    otherUsers: list((int, str, str, bool, int)) #id, login, name, admin, remaining cases
+    otherUsers: list[(int, str, str, bool, int)] #id, login, name, admin, remaining cases
     remaingUsers: int
     totalUsers: int
     displayOthers: bool
@@ -86,7 +86,7 @@ class AdminHomeViewModel(HomeViewModel):
 
 class UserLearnViewModel(HomeViewModel):
     
-    items: list((int, str, bool)) #id, name, correct
+    items: list[(int, str, bool)] #id, name, correct
     correctAnswers: int
     totalAnswers: int
     
@@ -119,7 +119,7 @@ class CategoryConfigurationViewModel():
     optional: bool
     has_gold_standard: bool
     has_malignancy: bool
-    criteria: list(CriterionEditingViewModel)
+    criteria: list[CriterionEditingViewModel]
 
     def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
         self.id = cat_id
@@ -140,7 +140,7 @@ class CategoriesForConfigurationViewModel():
     typeYesNo: int
     typeOneOf: int
     typeNumbers: int
-    categories: list(CategoryConfigurationViewModel)
+    categories: list[CategoryConfigurationViewModel]
     
     def __init__(self):
         self.categories = []
@@ -172,8 +172,8 @@ class CategoryEditingViewModel():
     typeYesNo: int
     typeOneOf: int
     typeNumbers: int
-    criteria: list(CriterionEditingViewModel)
-    prerequisites: list(PrerequisiteEditingViewModel)
+    criteria: list[CriterionEditingViewModel]
+    prerequisites: list[PrerequisiteEditingViewModel]
     
     def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
         self.id= cat_id
@@ -225,7 +225,7 @@ class ManageDownloadsViewModel():
     
     errors: str
     files_to_show: bool
-    files: list(str)
+    files: list[str]
     
     def __init__(self):
         self.errors = ''
@@ -242,8 +242,8 @@ class CategoryViewModel():
     has_tutorial: bool
     has_NA: bool
     optional: bool
-    prerequisites: list(int)
-    criteria: list(CriterionViewModel)
+    prerequisites: list[int]
+    criteria: list[CriterionViewModel]
     trust_criterion: CriterionViewModel
     unanswered: bool
     
@@ -267,8 +267,8 @@ class CaseDisplayViewModel():
     study_name: str
     nb_imgs: int 
     imgs: list()
-    imgs_sizes: list((int, int))
-    categories: list(CategoryViewModel)
+    imgs_sizes: list[(int, int)]
+    categories: list[CategoryViewModel]
     max_int: int
     min_int: int
     show_remarks : int
@@ -303,7 +303,7 @@ class CaseLearningViewModel():
     study_name: str
     nb_imgs: int 
     imgs: list()
-    imgs_sizes: list((int, int))
+    imgs_sizes: list[(int, int)]
     answer: str
     correct_answer: str
     prevcase: int

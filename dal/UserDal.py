@@ -7,7 +7,6 @@ Created on Mon Jul 21 15:05:05 2025
 """
 
 #general imports
-from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
 
@@ -85,18 +84,16 @@ def get_users_for_admin(identifier, study_id, engine):
 
     try:
         users = []
-    
-        reviewerQuery = select(ReviewerPOCO).where(ReviewerPOCO.study == study_id).where(ReviewerPOCO.admin == False).where(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.remaining_cases, ReviewerPOCO.id)
-        reviewerPOCO = session.execute(reviewerQuery).all()
-    
+        reviewerQuery = session.query(ReviewerPOCO).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.remaining_cases, ReviewerPOCO.id)
+        reviewerPOCO = reviewerQuery.all()
         for i in range(len(reviewerPOCO)):
-            users.append(UserDataModel(reviewerPOCO[i][0].id, reviewerPOCO[i][0].study, reviewerPOCO[i][0].name, reviewerPOCO[i][0].login, reviewerPOCO[i][0].admin, reviewerPOCO[i][0].remaining_cases))
+            users.append(UserDataModel(reviewerPOCO[i].id, reviewerPOCO[i].study, reviewerPOCO[i].name, reviewerPOCO[i].login, reviewerPOCO[i].admin, reviewerPOCO[i].remaining_cases))
     
-        adminQuery = select(ReviewerPOCO).where(ReviewerPOCO.admin == True).where(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.id)
-        adminPOCO = session.execute(adminQuery).all()
+        adminQuery = session.query(ReviewerPOCO).filter(ReviewerPOCO.admin == True).filter(ReviewerPOCO.id != identifier).order_by(ReviewerPOCO.id)
+        adminPOCO = adminQuery.all()
     
         for i in range(len(adminPOCO)):
-            users.append(UserDataModel(adminPOCO[i][0].id, adminPOCO[i][0].study, adminPOCO[i][0].name, adminPOCO[i][0].login, adminPOCO[i][0].admin, adminPOCO[i][0].remaining_cases))
+            users.append(UserDataModel(adminPOCO[i].id, adminPOCO[i].study, adminPOCO[i].name, adminPOCO[i].login, adminPOCO[i].admin, adminPOCO[i].remaining_cases))
     
     finally:
         session.close()
@@ -110,11 +107,11 @@ def get_all_non_admin_reviewers(study_id, engine):
     try:
         users = []
     
-        userQuery = select(ReviewerPOCO).where(ReviewerPOCO.study == study_id).where(ReviewerPOCO.admin != True)
-        userPOCO = session.execute(userQuery).all()
+        userQuery = session.query(ReviewerPOCO).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.admin == False).order_by(ReviewerPOCO.id)
+        userPOCO = userQuery.all()
     
         for i in range(len(userPOCO)):
-            users.append(UserDataModel(userPOCO[i][0].id, userPOCO[i][0].study, userPOCO[i][0].name, userPOCO[i][0].login, userPOCO[i][0].admin, userPOCO[i][0].remaining_cases))
+            users.append(UserDataModel(userPOCO[i].id, userPOCO[i].study, userPOCO[i].name, userPOCO[i].login, userPOCO[i].admin, userPOCO[i].remaining_cases))
     
     finally:
         session.close()

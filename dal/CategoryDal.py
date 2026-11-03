@@ -221,7 +221,6 @@ def categories_without_criteria(study_id, engine):
     
     try:
         query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.study == study_id)
-        
         queriedAnswer = query.all()
         
         answer = []
@@ -229,7 +228,25 @@ def categories_without_criteria(study_id, engine):
         for ans in queriedAnswer:
             if ans[1] is None:
                 answer.append((ans[0].id, ans[0].name))
-        
+           
+    finally:
+        session.close()
+    
+    return answer
+
+def categories_with_not_enough_criteria(study_id, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.type == CategoryType.one_of.value)
+        queriedAnswer = query.all()
+        answer = []
+        for ans in queriedAnswer:
+            query_crit = session.query(CriterionPOCO).filter(CriterionPOCO.category == ans.id)
+            queried_crit = query_crit.all()
+            if len(queried_crit) < 2:
+                answer.append((ans.id, ans.name))
     finally:
         session.close()
     

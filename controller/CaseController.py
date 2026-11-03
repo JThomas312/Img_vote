@@ -24,6 +24,7 @@ from img_vote.dal.MasterDal import update_user_count
 
 #case related
 from img_vote.dal.MasterDal import get_case_by_id
+from img_vote.dal.MasterDal import exists_case_by_id
 from img_vote.dal.MasterDal import get_case_with_gold_standard
 
 #answer related
@@ -50,6 +51,9 @@ from img_vote.dal.MasterDal import is_answer_done
 
 def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     
+    if studyStatus not in [StudyStatus.ongoing.value, StudyStatus.test.value]:
+        raise Exception("You do not have access to this page at the moment")
+
     #maximum value acceptable for database
     max_int_db = 1000000000
     #numerical value MUST be positive
@@ -57,12 +61,19 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     #max size for remarks in characters
     remarks_max_length = 2000
     
+    if not exists_case_by_id(case):
+        raise Exception("case does not exist")
+    
     caseDM = get_case_by_id(case)
     name = get_answer_name(userId, case)
+    
+    if name is None:
+        raise Exception("You do not have access to this case")
 
     categories = get_categories(studyId)
     
     categoriesVM = []
+    
     
     for category in categories:
             
@@ -83,7 +94,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
         
         newCatVM.criteria = criteriaVM
         
-        if category.catId == CategoryType.one_of.value and bool(list(filter(lambda x: x.value == CriterionValue.true.value or x.value == CriterionValue.na.value, newCatVM.criteria))):
+        if category.catType == CategoryType.one_of.value and bool(list(filter(lambda x: x.value == CriterionValue.true.value or x.value == CriterionValue.na.value, newCatVM.criteria))):
             newCatVM.unanswered = False
             
         categoriesVM.append(newCatVM)
@@ -141,10 +152,17 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     return caseVM
 
 
-def caseForLearning(userId, case, studyName):
-
+def caseForLearning(userId, case, studyName, studyStatus):
+    
+    if studyStatus not in [StudyStatus.ongoing.value, StudyStatus.test.value]:
+        raise Exception("You do not have access to this page at the moment")
+    
     caseDM = get_case_with_gold_standard(case)
     name = get_answer_name(userId, case)
+    
+    if name is None:
+        raise Exception("You do not have access to this case")
+        
     answer = get_answer_to_case(userId, case)
         
     caseVM = CaseLearningViewModel(caseDM.caseId, name, studyName, answer, caseDM.goldStandard, nb_imgs=0, imgs=[], imgs_sizes=[])

@@ -390,8 +390,14 @@ document.getElementById('addCriterionButton').addEventListener('click', function
 
   var newInput = document.createElement('input');
   newInput.type = 'text';
-  newInput.id = 'criterionField' + (criteriaContainer.children.length + 1);
-  newInput.name = 'criterionField' + (criteriaContainer.children.length + 1);
+  
+  newId = (criteriaContainer.children.length + 1);
+  while (document.getElementById('criterionField' + newId) != null){
+      newId = newId + 1;
+  }
+  
+  newInput.id = 'criterionField' + newId;
+  newInput.name = 'criterionField' + newId;
   newInput.className = 'flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-slate-50';
 
   newcriterionWrapper.appendChild(newInput);
@@ -399,7 +405,7 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   var newButton = document.createElement('button');
   newButton.textContent = '✕';
   newButton.className = 'removeCriterionButton text-danger text-xs px-2.5 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium';
-  newButton.id = 'removeCriterionButton' + (criteriaContainer.children.length + 1);
+  newButton.id = 'removeCriterionButton' + newId;
   newButton.setAttribute('onclick', 'removeParent(event)');
 
   newcriterionWrapper.appendChild(newButton);
@@ -416,7 +422,7 @@ document.getElementById('addCriterionButton').addEventListener('click', function
 
   var newDiv = document.createElement('div');
   newDiv.className = 'criterionMalignancy';
-  newDiv.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
+  newDiv.id = 'criterionMalignancy' + newId;
   if (display){
       newDiv.style.display='block'
   }
@@ -431,8 +437,8 @@ document.getElementById('addCriterionButton').addEventListener('click', function
   {
       var newRadioYes = document.createElement('input');
       newRadioYes.type = 'radio';
-      newRadioYes.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_yes';
-      newRadioYes.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
+      newRadioYes.id = 'criterionMalignancy' + newId + '_yes';
+      newRadioYes.name = 'criterionMalignancy' + newId;
       newRadioYes.value = 1;
       newRadioYes.className = 'accent-rose-600';
     
@@ -444,8 +450,8 @@ document.getElementById('addCriterionButton').addEventListener('click', function
     
       var newRadioNo = document.createElement('input');
       newRadioNo.type = 'radio';
-      newRadioNo.id = 'criterionMalignancy' + (criteriaContainer.children.length + 1) + '_no';
-      newRadioNo.name = 'criterionMalignancy' + (criteriaContainer.children.length + 1);
+      newRadioNo.id = 'criterionMalignancy' + newId + '_no';
+      newRadioNo.name = 'criterionMalignancy' + newId;
       newRadioNo.value = 0;
       newRadioNo.className = 'accent-green-600';
     
@@ -484,15 +490,21 @@ if (optional_allowed == 'True'){
     
       var newInput = document.createElement('input');
       newInput.type = 'text';
-      newInput.id = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
-      newInput.name = 'prerequisiteField' + (prerequisiteContainer.children.length + 1);
+      newId = (prerequisiteContainer.children.length + 1);
+      
+      while (document.getElementById('prerequisiteField' + newId) != null){
+          newId = newId + 1;
+      }
+      
+      newInput.id = 'prerequisiteField' + newId;
+      newInput.name = 'prerequisiteField' + newId;
       newInput.className = 'flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white';
       newprerequisiteWrapper.appendChild(newInput);
     
       var newButton = document.createElement('button');
       newButton.textContent = 'Remove';
       newButton.className = 'removePrerequisiteButton text-danger text-xs px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium';
-      newButton.id = 'removePrerequisiteButton' + (prerequisiteContainer.children.length + 1);
+      newButton.id = 'removePrerequisiteButton' + newId;
       newButton.setAttribute('onclick', 'removeParent(event)');
       newprerequisiteWrapper.appendChild(newButton);
     

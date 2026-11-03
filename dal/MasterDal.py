@@ -30,7 +30,6 @@ import img_vote.dal.CriterionDal as CriterionDal
 import img_vote.dal.PrerequisiteDal as PrerequisiteDal
 
 metadata_obj = MetaData()
-
 database_credentials_file = open(os.path.join(getcwd(), 'persistence', 'database_credentials.txt'), encoding="utf-8")
 orm_driver = database_credentials_file.readline().removesuffix('\n')
 usrname = database_credentials_file.readline().removesuffix('\n')
@@ -257,6 +256,9 @@ def optional_categories_without_prerequisites(study_id):
 
 def categories_without_criteria(study_id):
     return CategoryDal.categories_without_criteria(study_id, engine)
+
+def categories_with_not_enough_criteria(study_id):
+    return CategoryDal.categories_with_not_enough_criteria(study_id, engine)
 
 def malignant_categories_without_gold_standard(study_id):
     return CategoryDal.malignant_categories_without_gold_standard(study_id, engine)

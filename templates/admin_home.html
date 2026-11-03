@@ -16,7 +16,7 @@
       {% if ViewModel.showDeadLineAndGlobalAdvancement %}
         <div class="bg-white/15 rounded-xl px-5 py-3 text-sm text-right">
           {% if ViewModel.remaingUsers > 0 %}
-            {% if ViewModel.remainingDays > 0 %}
+            {% if ViewModel.remainingDays >= 0 %}
               <p>Study <strong>{{ ViewModel.studyName }}</strong> ends in <strong>{{ ViewModel.remainingDays }}</strong> days</p>
             {% else %}
               <p>Study is supposed to be over — you may end it anytime</p>
@@ -24,7 +24,7 @@
             <p class="text-indigo-200 text-xs mt-1">{{ ViewModel.remaingUsers }} of {{ ViewModel.totalUsers }} users yet to finish</p>
           {% else %}
             <p class="font-semibold text-green-300">Everyone has finished their reviews!</p>
-            {% if ViewModel.remainingDays > 0 %}
+            {% if ViewModel.remainingDays >= 0 %}
               <p class="text-indigo-200 text-xs mt-1">{{ ViewModel.remainingDays }} days before intended end date</p>
             {% else %}
               <p class="text-indigo-200 text-xs mt-1">Study is supposed to be over — you may end it anytime</p>

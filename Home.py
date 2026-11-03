@@ -27,10 +27,13 @@ from bcrypt import checkpw
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
-from utilities.useful import sanitize
+from utilities.useful import sanitize_password
+from utilities.useful import sanitize_login
+from utilities.useful import sanitize_human_name
 from utilities.useful import safe_save
 from utilities.useful import move
 from utilities.useful import is_after
+from utilities.useful import is_passed
 from models.Enums import StudyStatus
 
 from controller.StudyController import get_status
@@ -189,7 +192,7 @@ def user_home():
                         
                         return render_template('user_learning.html', ViewModel=learnViewModel)
                     else:
-                        return render_template('study_ended.html', username=userVM.name)
+                        return render_template('study_ended.html', username=userVM.userName)
             else:
                 return render_template('demographics.html', user=userVM)
     else:
@@ -227,6 +230,8 @@ def create_study():
                 name = request.form['study_name']
                 if name == '':
                     return render_template('new_study.html', error='Your study needs a name')
+                if not sanitize_technical_name(name):
+                    return render_template('new_study.html', error='Your study needs a valid name')                    
                 (newStudyId, error) = create_new_study(name)
                 if error is not None:
                     return render_template('new_study.html', error=error)
@@ -582,8 +587,12 @@ def begin_study():
                         nameError = 'Your study needs a name\n'
                     if reviewendresponse == '':
                         revDateError = 'You study needs a deadline for reviews'
+                    if reviewendresponse != '' and is_passed(reviewendresponse):
+                        revDateError = 'You study must end after today'
                     if learningendresponse == '':
                         endDateError = 'You study needs an endDate'
+                    if learningendresponse != '' and is_passed(learningendresponse):
+                        endDateError = 'You study must end after today'
                     if reviewendresponse != '' and learningendresponse != '' and is_after(reviewendresponse, learningendresponse):
                         endDateError = 'Your endDate must come after the end of the reviews'
                     
@@ -616,7 +625,7 @@ def begin_testing():
             if request.method == 'POST':
                 if status == 'ready':
                     nameError = None
-                    dateError = None
+                    revDateError = None
                     
                     name = request.form['study_name']
                     endresponse = request.form['reviews_end']
@@ -624,10 +633,12 @@ def begin_testing():
                     if name == '':
                         nameError = 'Your study needs a name\n'
                     if endresponse == '':
-                        dateError = 'You study needs an endDate'
+                        revDateError = 'You study needs an endDate'
+                    if endresponse != '' and is_passed(endresponse):
+                        revDateError = 'Your study must end after today'
                     
-                    if nameError is not None or dateError is not None:
-                        return render_template('study_begining.html', name=name, error=None, nameError=nameError, dateError=dateError, test=True)
+                    if nameError is not None or revDateError is not None:
+                        return render_template('study_begining.html', name=name, error=None, nameError=nameError, revDateError=revDateError, test=True)
                     
                     set_study_review_end(session['study'], endresponse)
                     
@@ -815,13 +826,19 @@ def change_password():
         if request.method == 'POST':
             if valid_login(session['username'], request.form['oldPass']):
                 if request.form['newPass'] == request.form['confirmPass']:
-                    modify_password(session['userId'], request.form['newPass'])
-                    return redirect(url_for('user_home'))
+                    if sanitize_password(request.form['newPass']):
+                        modify_password(session['userId'], request.form['newPass'])
+                    else:
+                        error = 'New password is invalid'
                 else:
                     error = 'New passwords do not match'
             else:
                 error = 'Invalid password'
-        return render_template('change_password.html', error=error)
+        
+        if error is None:
+            return redirect(url_for('user_home'))
+        else:
+            return render_template('change_password.html', error=error)
     else:
         return redirect(url_for('login'))
 
@@ -876,7 +893,7 @@ def new_user_creation():
             admin = request.form['admin'] == '1'
             full_review = request.form['full_review'] == '1'
             password = ''
-            if sanitize(fullname) and sanitize(login):
+            if sanitize_human_name(fullname) and sanitize_login(login):
                 try:
                     #find a cleaner way later
                     if status in ['ready', 'test', 'ongoing', 'paused']:
@@ -898,9 +915,12 @@ def new_user_creation():
 def case_display(case):
     if ('userId' in session) and ('study' in session):
         studyName = get_study_name(session['study'])
-        status= get_status(session['study'])
-        caseVM = caseForDisplay(session['study'], session['userId'], case, studyName, status)
-        return render_template('case_display.html', ViewModel=caseVM)
+        status = get_status(session['study'])
+        try:
+            caseVM = caseForDisplay(session['study'], session['userId'], case, studyName, status)
+        except Exception as e:
+            return render_template('case_display.html', error=f"{e}")
+        return render_template('case_display.html', ViewModel=caseVM, error=None)
     else:
         return redirect(url_for('login'))
 
@@ -910,7 +930,7 @@ def case_learning(case):
         status = get_status(session['study'])
         if status == StudyStatus.ended.value and study_has_gold_standard(session['study']):
             studyName = get_study_name(session['study'])
-            caseVM = caseForLearning(session['userId'], case, studyName)
+            caseVM = caseForLearning(session['userId'], case, studyName, status)
             return render_template('case_learning.html', ViewModel=caseVM)
         return redirect(url_for('user_home'))
     else:
@@ -1017,7 +1037,7 @@ def edit_prerequisite():
                 pre_id = request.args.get('pre_id')
                 name = request.args.get('name')
                 action = request.args.get('action')
-                new_id = change_prerequisite(cat_id, pre_id, name, action)
+                new_id = change_prerequisite(session['study'], cat_id, pre_id, name, action)
                 return jsonify(result=new_id)
             
         return(redirect(url_for('user_home')))
@@ -1054,6 +1074,7 @@ def safeguard_diagnosis():
         case_id = request.args.get('case_id')
         criterion_id = request.args.get('criterion_id')
         value = request.args.get('value')
+        print(value)
         category = request.args.get('category')
         safeguardDiagnosis(session['userId'], case_id, criterion_id, value, category)
         checkProgress(session['study'], session['userId'], int(request.args.get('case_id')))
@@ -1070,7 +1091,7 @@ def safeguard_remarks():
         return '', 204
     
 def valid_login(username, password):
-    if not sanitize(username):
+    if not sanitize_login(username):
         return False
     user = user_for_login(username)
     if user is None:

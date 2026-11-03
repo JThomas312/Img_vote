@@ -135,7 +135,7 @@ class CasePOCO(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     path: Mapped[str] = mapped_column(String(100))
-    name: Mapped[str] = mapped_column(String(10))
+    name: Mapped[str] = mapped_column(String(50))
     gold_standard: Mapped[int] = mapped_column(ForeignKey("criterion.id"))
     
     def __repr__(self) -> str:

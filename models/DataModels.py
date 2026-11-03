@@ -87,7 +87,7 @@ class UserHomeDataModel():
     userId: int
     name: str
     remaining_cases: int
-    cases: list((int, str, bool))
+    cases: list[(int, str, bool)]
     
     def __init__(self, userId, name):
         self.userId = userId
@@ -125,7 +125,7 @@ class CategoryDataModel():
      hasTrust: bool
      hasNA: bool
      optional: bool
-     prerequisites: list(int) #ids of criterions to display category
+     prerequisites: list[int] #ids of criterions to display category
      
      def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional, prerequisites = []):
          self.catId = catId
@@ -162,7 +162,7 @@ class CategoryWithCriteriaDataModel():
      optional: bool
      hasGoldStandard: bool
      hasMalignancy: bool
-     criteria: list(int, str, bool) #ids, names and malignancy of criterions from the category
+     criteria: list[int, str, bool] #ids, names and malignancy of criterions from the category
      
      def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional, hasGoldStandard, hasMalignancy):
          self.catId = catId
@@ -186,8 +186,8 @@ class CategoryWithCriteriaAndPrerequisitesDataModel():
      optional: bool
      hasGoldStandard: bool
      hasMalignancy: bool
-     criteria: list(int, str, bool) #ids, names and malignancies of criterions from the category
-     prerequisites: list(int, str) # ids and names of prerequisites for the category
+     criteria: list[int, str, bool] #ids, names and malignancies of criterions from the category
+     prerequisites: list[int, str] # ids and names of prerequisites for the category
      
      def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional, hasGoldStandard, hasMalignancy):
          self.catId = catId
@@ -221,8 +221,8 @@ class CriterionForCaseDataModel():
     
 class CriteriaForCase():
     path: str #path to image folder
-    categories: list(CategoryDataModel)
-    criteria: list(CriterionForCaseDataModel)
+    categories: list[CategoryDataModel]
+    criteria: list[CriterionForCaseDataModel]
     
     def __init__(self, path):
         self.path = path
@@ -240,7 +240,7 @@ class CriterionExtractdataModel():
 class CategoryExtractDataModel():
     name: str
     catType: int
-    criteria: list(CriterionExtractdataModel)
+    criteria: list[CriterionExtractdataModel]
     diagnosis: str
     confidence: int
     

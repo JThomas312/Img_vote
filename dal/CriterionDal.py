@@ -456,7 +456,7 @@ def create_all_answer_to_criterion(study_id, engine):
         session.close()
 
 def create_user_answer_to_criterion(study_id, userId, engine):
-        
+
     answers = get_user_answers(userId, engine)
     criteria = get_all_criteria(study_id, engine)
     
