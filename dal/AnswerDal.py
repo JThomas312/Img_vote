@@ -243,6 +243,11 @@ def create_all_answers(study_id, rev_per_case, engine):
     session = Session(engine)
     
     try:
+        # if any answer already exists for the study, it means this function has already been called, do not do anything
+        failsafe_query = session.query(AnswerPOCO, CasePOCO).join(CasePOCO, AnswerPOCO.study_case == CasePOCO.id).filter(CasePOCO.study == study_id)
+        if session.query(failsafe_query.exists()).scalar():
+            return 'answers already exist'
+        
         cases = session.query(CasePOCO.id).filter(CasePOCO.study == study_id).all()
         nb_cases = len(cases)
         full_reviewers = session.query(ReviewerPOCO.id).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.admin == False).filter(ReviewerPOCO.full_review == True).all()
@@ -306,6 +311,8 @@ def create_all_answers(study_id, rev_per_case, engine):
     
     finally:
         session.close()
+    
+    return None
 
 def create_user_answers(study_id, userId, case_per_rev, engine):
     

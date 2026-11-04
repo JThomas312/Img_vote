@@ -4,6 +4,7 @@
 
 {% block head %}
   <script src="{{url_for('static', filename='node_modules/jquery/dist/jquery.min.js')}}"></script>
+  <link rel="stylesheet" href="{{url_for('static', filename='CSS/category_edition.css')}}"/>
 {% endblock %}
 
 {% block content %}
@@ -23,6 +24,8 @@
       <input type="hidden" id="category_id" value="{{ViewModel.id}}"/>
       <input type="hidden" id="gold_standard_allowed" value="{{ViewModel.gold_standard_allowed}}"/>
       <input type="hidden" id="optional_allowed" value="{{ViewModel.optional_allowed}}"/>
+      <input type="hidden" id="prerequisite_error_message" value="{{ViewModel.prerequisiteErrorMessage}}"/>
+      <input type="hidden" id="criterion_error_message" value="{{ViewModel.criterionErrorMessage}}"/>
 
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
@@ -105,6 +108,7 @@
                     <div id="prerequisiteContainer" class="space-y-2">
                       {% set ns = namespace(i = 1) %}
                       {% for prerequisite in ViewModel.prerequisites %}
+                        <p class="text-xs text-danger mb-1" id="prerequisiteError{{ns.i}}" style="display:None">{{ViewModel.prerequisiteErrorMessage}}</p>
                         <div class="prerequisiteWrapper flex items-center gap-2 bg-indigo-50 rounded-xl px-3 py-2">
                           <input class="saved flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white" type="text" id="prerequisiteField{{ns.i}}" name="prerequisiteField{{ns.i}}" value="{{prerequisite.name}}" data-pre-id="{{prerequisite.id}}" data-cat-id="{{ViewModel.id}}">
                           <button class="removePrerequisiteButton text-danger text-xs px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium" id="removePrerequisiteButton{{ns.j}}" onclick="edit_prerequisite(event, {{prerequisite.id}}, prerequisiteField{{ns.i}}, {{ViewModel.id}}, 'remove')">Remove</button>
@@ -151,6 +155,7 @@
           <div id="criteriaContainer" class="space-y-2 mb-3">
             {% set ns = namespace(j = 1) %}
             {% for criterion in ViewModel.criteria %}
+              <p class="text-xs text-danger mb-1" id="criterionError{{ns.j}}" style="display:None">{{ViewModel.criterionErrorMessage}}</p>
               <div class="criterionWrapper flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2 shadow-sm">
                 <input class="saved flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-slate-50" type="text" id="criterionField{{ns.j}}" name="criterionField{{ns.j}}" value="{{criterion.name}}" data-crit-id="{{criterion.id}}" data-cat-id="{{ViewModel.id}}">
                 <button class="removeCriterionButton text-danger text-xs px-2.5 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-medium" id="removeCriterionButton{{ns.j}}" onclick="edit_criterion(event, {{criterion.id}}, criterionField{{ns.j}}, 'criterionMalignancy{{ns.j}}_yes', {{ViewModel.id}}, 'remove')">✕</button>

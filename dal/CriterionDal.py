@@ -43,6 +43,24 @@ def get_criterion_by_id(identifier, engine):
     
     return criterion
 
+def get_criterion_by_name(name, engine):
+    
+    session = Session(engine)
+    
+    try:
+        criterionQuery = session.query(CriterionPOCO).filter(CriterionPOCO.name == name)
+        criterionPOCO = criterionQuery.one_or_none()
+        
+        if criterionPOCO is None:
+            return None
+        else:
+            criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.category, criterionPOCO.is_trust)
+        
+    finally:        
+        session.close()
+    
+    return criterion
+
 def is_answer_done(study_id, userId, caseId, engine):
     
     session = Session(engine)
@@ -81,7 +99,7 @@ def is_answer_done(study_id, userId, caseId, engine):
                 
                 if category.has_trust:
                     #check if trust criterion was left unanswered
-                    trust_query1 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered_trust.value).filter(CriterionPOCO.is_trust == True)
+                    trust_query1 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered.value).filter(CriterionPOCO.is_trust == True)
                     trust_query2 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered.value).filter(CriterionPOCO.is_trust == True)
                     exists1 = session.query(trust_query1.exists()).scalar()
                     exists2 = session.query(trust_query2.exists()).scalar()
@@ -346,15 +364,13 @@ def undo_all_but_one(userId, case, criterionId, value, category, engine):
     
         # 0: answerCriterion, 1: answer, 2: criterion
         ansId = ansCrit[0][1].id
-        
-        for ans in ansCrit:
+        relevant_ids = [ans[2].id for ans in ansCrit]
             
-            updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion == ans[2].id).values(value=CriterionValue.false.value)
-            session.execute(updatestmt)
-        
-        
-        updatestmt = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion == criterionId).values(value=value)
-        session.execute(updatestmt)
+        updatestmt1 = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion.in_(relevant_ids)).values(value=CriterionValue.false.value)
+        updatestmt2 = update(AnswerCriterionPOCO).where(AnswerCriterionPOCO.answer == ansId).where(AnswerCriterionPOCO.criterion == criterionId).values(value=value)
+
+        session.execute(updatestmt1)
+        session.execute(updatestmt2)
         
         session.commit()
      
@@ -444,6 +460,10 @@ def create_all_answer_to_criterion(study_id, engine):
     
     session = Session(engine)
     
+    failsafe_query = session.query(AnswerCriterionPOCO).filter(AnswerCriterionPOCO.answer == answers[0].id)
+    if session.query(failsafe_query.exists()).scalar():
+        return 'answers to criteria already exist'
+    
     try:
         for i in range(len(answers)):
             for j in range(len(criteria)):
@@ -454,6 +474,8 @@ def create_all_answer_to_criterion(study_id, engine):
 
     finally:
         session.close()
+    
+    return None
 
 def create_user_answer_to_criterion(study_id, userId, engine):
 

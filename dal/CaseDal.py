@@ -7,7 +7,6 @@ Created on Wed Aug 27 20:23:30 2025
 """
 
 #general imports
-from sqlalchemy import select
 from sqlalchemy import delete
 
 from sqlalchemy.orm import Session
@@ -269,6 +268,9 @@ def create_all_cases(study_id, gold_standard_dict, engine):
                 return ('case number discrepancy', nb_files, sheet_obj.max_row)
          
         counter = 1
+        
+        if len(case_files) == 1:
+            return ('incorrect folder structure')
          
         for case_file in case_files:
             newpath = os.path.join(path, case_file)

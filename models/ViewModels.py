@@ -172,6 +172,8 @@ class CategoryEditingViewModel():
     typeYesNo: int
     typeOneOf: int
     typeNumbers: int
+    prerequisiteErrorMessage: str
+    criterionErrorMessage: str
     criteria: list[CriterionEditingViewModel]
     prerequisites: list[PrerequisiteEditingViewModel]
     
@@ -281,6 +283,7 @@ class CaseDisplayViewModel():
     criterionFalse: int
     criterionNA: int
     criterionUnanswered: int
+    save_error_message: str
     prevcase: int
     nextcase: int
     

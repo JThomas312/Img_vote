@@ -30,6 +30,7 @@ from werkzeug.utils import secure_filename
 from utilities.useful import sanitize_password
 from utilities.useful import sanitize_login
 from utilities.useful import sanitize_human_name
+from utilities.useful import sanitize_technical_name
 from utilities.useful import safe_save
 from utilities.useful import move
 from utilities.useful import is_after
@@ -381,6 +382,7 @@ def upload_case_images():
                     safe_save(save_folder, filename, file)
                     problems = unzip_and_move(session['study'], os.path.join(save_folder, filename), 'case')
                     if problems is not None:
+                        remove_case_images(session['study'])
                         return render_template('upload_case_images.html', errors=problems)
                 return redirect(url_for('manage_uploads'))
                     
@@ -411,6 +413,7 @@ def upload_tutorial_images():
                     safe_save(save_folder, filename, file)
                     problems = unzip_and_move(session['study'], os.path.join(save_folder, filename), 'tutorial')
                     if problems is not None:
+                        remove_tutorial_images(session['study'])
                         return render_template('upload_case_images.html', errors=problems)
                 return redirect(url_for('manage_uploads'))
                 
@@ -500,12 +503,14 @@ def finish_uploading():
         if 'admin' in session and session['admin'] and ('study' in session):
             status = get_status(session['study'])
             if status == StudyStatus.categories_done.value:
+                update_status(session['study'], StudyStatus.uploads_done.value)
                 has_gold_standard = study_has_gold_standard(session['study'])
                 errors = check_uploads_and_create_cases(session['study'], has_gold_standard)
                 if errors is not None:
                     has_tutorial = study_has_tutorial(session['study'])
                     has_gold_standard = study_has_gold_standard(session['study'])
                     uploadStatusVM = upload_status(session['study'], has_tutorial, has_gold_standard)
+                    update_status(session['study'], StudyStatus.categories_done.value)
                     return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
                 update_status(session['study'], StudyStatus.uploads_done.value)
             return redirect(url_for('user_home'))
@@ -537,13 +542,13 @@ def manage_reviewer_distribution():
                     viewModel = data_for_distribution(session['study'])
                     return render_template('manage_reviewer_distribution.html', VM=viewModel)
                 if request.method == 'POST':    
+                    update_status(session['study'], StudyStatus.ready.value)
                     distribution_method = request.form['distribution']
                     reviewer_per_case = request.form['reviewer_per_case']
                     cases_per_reviewer = request.form['cases_per_reviewer']
                     percentage = request.form['percentage']
                     handle_distribution(session['study'], distribution_method, reviewer_per_case, cases_per_reviewer, percentage)
                     set_distribution(session['study'], distribution_method, cases_per_reviewer, percentage)
-                    update_status(session['study'], StudyStatus.ready.value)
                         
         return(redirect(url_for('user_home')))    
     else:
@@ -988,8 +993,11 @@ def edit_criterion():
                 name = request.args.get('name')
                 malignancy = request.args.get('malignancy')
                 action = request.args.get('action')
-                change_criterion(cat_id, crit_id, name, malignancy, action)
-            return '', 204
+                problem = change_criterion(cat_id, crit_id, name, malignancy, action)
+                if problem is None:
+                    return '', 204
+                else:
+                    return jsonify(result=problem)
             
         return(redirect(url_for('user_home')))
     else:
@@ -1074,11 +1082,14 @@ def safeguard_diagnosis():
         case_id = request.args.get('case_id')
         criterion_id = request.args.get('criterion_id')
         value = request.args.get('value')
-        print(value)
         category = request.args.get('category')
-        safeguardDiagnosis(session['userId'], case_id, criterion_id, value, category)
-        checkProgress(session['study'], session['userId'], int(request.args.get('case_id')))
-        return '', 204
+        status = get_status(session['study'])
+        problem = safeguardDiagnosis(session['userId'], case_id, criterion_id, value, category, status)
+        if problem is None:
+            checkProgress(session['study'], session['userId'], int(request.args.get('case_id')))
+            return '', 204
+        else:
+            return jsonify(result=problem[1])
 
 @app.route('/safeguard_remarks/')    
 def safeguard_remarks():

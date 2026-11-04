@@ -60,6 +60,38 @@ def get_categories(study_id, engine):
 
     return categoriesDM
 
+def get_tutorial_categories_with_criteria(study_id, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_tutorial == True).order_by(CategoryPOCO.id, CriterionPOCO.id)
+        
+        #0: category, 1:criterion
+        queriedAnswer = query.all()
+        
+        answer = []
+        currentCategory = -1
+        currentDataModel = None
+        
+        for ans in queriedAnswer:
+            if (ans[0].id != currentCategory):
+                if (currentCategory != -1):
+                    answer.append(currentDataModel)
+                currentCategory = ans[0].id
+                currentDataModel = CategoryWithCriteriaDataModel(ans[0].id, ans[0].name, ans[0].type, ans[0].has_tutorial, ans[0].has_trust, ans[0].has_na, ans[0].optional, ans[0].has_gold_standard, ans[0].has_malignancy)
+            if ans[1] is not None and not ans[1].is_trust:
+                currentDataModel.criteria.append((ans[1].id, ans[1].name, ans[1].malignancy))
+        
+        #avoid off by one
+        if currentDataModel is not None:
+            answer.append(currentDataModel)
+    
+    finally:
+        session.close()
+    
+    return answer
+
 def get_na_tutorial_one_of_categories(study_id, engine):
     
     session = Session(engine)

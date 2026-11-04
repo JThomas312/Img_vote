@@ -101,6 +101,8 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     
     caseVM = CaseDisplayViewModel(caseDM.caseId, name, studyName, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
     
+    caseVM.save_error_message = 'There has been an error while saving your answer, please try again'
+    
     caseVM.categoryYesNo = CategoryType.yes_no.value
     caseVM.categoryOneOf = CategoryType.one_of.value
     caseVM.categoryNumbers = CategoryType.numerical_value.value
@@ -199,16 +201,26 @@ def criterion_for_tutorial(idCriterion):
     
     return img_data
     
-def safeguardDiagnosis(userId, case, criterionId, value, category):
+def safeguardDiagnosis(userId, case, criterionId, value, category, studyStatus):
+    
+    if studyStatus not in [StudyStatus.ongoing.value, StudyStatus.test.value]:
+        return None
     
     full_category = get_category_by_id(category)
     criterion = get_criterion_by_id(criterionId)
     
-    if full_category.catType == CategoryType.one_of.value and not criterion.isTrust:
-        undo_all_but_one(userId, case, criterionId, value, category)
-        
-    else:
-        safeguard_Criterion(userId, case, criterionId, value)
+    try:
+    
+        if full_category.catType == CategoryType.one_of.value and not criterion.isTrust:
+            undo_all_but_one(userId, case, criterionId, value, category)
+            
+        else:
+            safeguard_Criterion(userId, case, criterionId, value)
+            
+    except Exception as e:
+        return (f'{e}', full_category.catType)
+
+    return None
 
 def safeguardRemarks(userId, case, value):
     

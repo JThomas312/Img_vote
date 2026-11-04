@@ -43,6 +43,10 @@
     
     <div class="split right">
       <div class="centered">
+        <div id="error-banner" class="error-banner hidden">
+          <span id="error-message">{{ViewModel.save_error_message}}</span>
+          <button class="error-banner-close" onclick="dismissBanner()">✕</button>
+        </div>
         <form id="criteria-form" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="hidden" id="case_id" value="{{ ViewModel.case_id }}"/>
@@ -83,7 +87,7 @@
               {% if category.type == ViewModel.categoryOneOf %}
                 <fieldset class="border border-indigo-100 rounded-xl bg-white shadow-sm p-3 mb-2">
                   <legend class="text-xs font-semibold text-indigo-500 px-1 uppercase tracking-wide">{{category.name}}</legend>
-                  <div class="{{category.name}}-diagnosis-options">
+                  <div id="{{category.cat_id}}-diagnosis-options" class="{{category.name}}-diagnosis-options">
                     {% for criterion in category.criteria %}
                       <div class="criterion-row">
                         <div class="options">
@@ -145,7 +149,7 @@
           {% endif %}
         </form>
         <div class="button_area flex gap-2 justify-end p-3 border-t border-indigo-100">
-          <a href="/user_home/" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-all">Save &amp; leave</a>
+          <a href="/user_home/" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-all">Leave</a>
           {% if ViewModel.prevcase != ViewModel.criterionUnanswered %}
             <a href="/case_display/{{ViewModel.prevcase}}" class="bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors">← Prev</a>
           {% else %}

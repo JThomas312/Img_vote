@@ -19,10 +19,74 @@ const viewer = new Viewer(gallery, {
     tooltip: 1, //gives zoom ratio after a change
 });
 
+function clear_answer(criterion_id){
+    document.getElementById(criterion_id + 'Yes').checked = false;
+    document.getElementById(criterion_id + 'No').checked = false;
+    document.getElementById(criterion_id + 'NA').checked = false;
+}
+
+function clear_category(category){
+
+    const container = document.querySelector(`[id="${category}-diagnosis-options"]`);
+    const inputs = container.querySelectorAll('input[type="radio"]');
+    
+    console.log(inputs);
+    
+    inputs.forEach(input => {
+        console.log(input);
+        if (input.id.includes('unanswered')){
+            input.checked = true;
+        }
+        else {
+            input.checked = false;
+        }
+    })
+    
+}
+
+function clear_num_value(criterion_id){
+    // TODO find an elegant way to use the enum value instead of -1
+    document.getElementById(criterion_id).value = -1;
+}
+
+function showError(message, autoDismissMs = 0) {
+
+  if (message) {
+      document.getElementById('error-message').textContent = message;
+  }
+  
+  document.getElementById('error-banner').classList.remove('hidden');
+
+  if (autoDismissMs > 0) {
+    setTimeout(dismissBanner, autoDismissMs);
+  }
+}
+
+function dismissBanner() {
+  document.getElementById('error-banner').classList.add('hidden');
+}
+
 function safeguard(case_id, criterion_id, value, category) {
     url = '/safeguard_diagnosis?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value + '&category=' + category;
     
-    $.getJSON(url, function(data){});
+    $.getJSON(url, function(data){
+        if (data != null){
+            //caution timeout in case the click event is slower and runs afterwards
+            setTimeout(() => {
+                var type = data.result;
+                if (type == 1){
+                    clear_answer(criterion_id);
+                }
+                if (type == 2){
+                    clear_category(category);
+                }
+                if (type == 3){
+                    clear_num_value(criterion_id);
+                }
+                showError(null, 5000);
+            }, 10);
+        }
+    });
     return false;
 }
 
@@ -86,36 +150,38 @@ function save_number(case_id, criterion_id, category){
 }
 
 function updateVisibility(){
-    var prerequisites = document.getElementsByClassName( 'category_prerequisite' );
-    for (let i = 0; i < prerequisites.length; i++){
-        var prerequisite = prerequisites[i];
-        var conditions = JSON.parse(prerequisite.dataset.conditions);
-        var display = false;
-        for (let j = 0; j < conditions.length; j++){
-            var requirement_id = conditions[j];
-            var requirement = document.getElementById(requirement_id);
-            if (requirement == null){
-                var requirement = document.getElementById(requirement_id + 'Yes');
-            }
-            var checked = requirement.checked;
-            if (checked == undefined){
-                if (requirement.value != undefined){
-                    var checked = true;
+    setTimeout(() => {
+        var prerequisites = document.getElementsByClassName( 'category_prerequisite' );
+        for (let i = 0; i < prerequisites.length; i++){
+            var prerequisite = prerequisites[i];
+            var conditions = JSON.parse(prerequisite.dataset.conditions);
+            var display = false;
+            for (let j = 0; j < conditions.length; j++){
+                var requirement_id = conditions[j];
+                var requirement = document.getElementById(requirement_id);
+                if (requirement == null){
+                    var requirement = document.getElementById(requirement_id + 'Yes');
+                }
+                var checked = requirement.checked;
+                if (checked == undefined){
+                    if (requirement.value != undefined){
+                        var checked = true;
+                    }
+                }
+                if (checked){
+                    display = true;
                 }
             }
-            if (checked){
-                display = true;
+            var category_name = prerequisite.id.split( '_prerequisites' )[0];
+            var category = document.getElementById(category_name);
+            if (display){
+                category.style.display = 'block';
+            }
+            else{
+                category.style.display = 'none';
             }
         }
-        var category_name = prerequisite.id.split( '_prerequisites' )[0];
-        var category = document.getElementById(category_name);
-        if (display){
-            category.style.display = 'block';
-        }
-        else{
-            category.style.display = 'none';
-        }
-    }
+    }, 100);
 }
 
 // Function to update unanswered red borders

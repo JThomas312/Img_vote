@@ -130,7 +130,7 @@ def get_image(img_path, try_extensions=False):
     definitive_path = img_path
     
     if try_extensions:
-        possible_extensions = ['.png', '.PNG', '.jpg', '.JPG',  'jpeg', '.JPEG']
+        possible_extensions = ['.png', 'Png', '.PNG', '.jpg', 'Jpg', '.JPG',  'jpeg', 'Jpeg', '.JPEG']
     
         for extension in possible_extensions:
             if os.path.exists(img_path + extension):

@@ -227,6 +227,9 @@ def get_category_by_id(catId):
 def get_categories(study_id):
     return CategoryDal.get_categories(study_id, engine)
 
+def get_tutorial_categories_with_criteria(study_id):
+    return CategoryDal.get_tutorial_categories_with_criteria(study_id, engine)
+
 def get_na_tutorial_one_of_categories(study_id):
     return CategoryDal.get_na_tutorial_one_of_categories(study_id, engine)
 
@@ -320,6 +323,9 @@ def clear_all_prerequisites(study_id):
 #CriterionDal
 def get_criterion_by_id(critId):
     return CriterionDal.get_criterion_by_id(critId, engine)
+
+def get_criterion_by_name(critName):
+    return CriterionDal.get_criterion_by_name(critName, engine)
 
 def get_criteria_for_case(userId, caseId, catId):
     return CriterionDal.get_criteria_for_case(userId, caseId, catId, engine)

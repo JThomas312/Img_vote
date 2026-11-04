@@ -13,6 +13,8 @@ from pyexcel.sheet import Sheet
 from os import getcwd
 from os import remove
 import os.path
+import shutil
+import glob
 from natsort import natsorted
 from math import ceil
 from zipfile import ZipFile
@@ -62,14 +64,14 @@ from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_lea
 from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
 from img_vote.dal.MasterDal import categories_without_criteria, categories_with_not_enough_criteria, malignant_categories_without_gold_standard
 from img_vote.dal.MasterDal import other_gold_standard_exists, get_gold_standards, get_gold_standard, gold_standard_in_wrong_category, new_empty_category
-from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_na_tutorial_one_of_categories
+from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_tutorial_categories_with_criteria
 
 #prerequisite related
 from img_vote.dal.MasterDal import new_prerequisite, delete_prerequisite, delete_category_prerequisite
 from img_vote.dal.MasterDal import delete_prerequisite_from_category_criteria, delete_prerequisite_from_criterion, clear_all_prerequisites
 
 #criterion related
-from img_vote.dal.MasterDal import get_gold_standard_dict
+from img_vote.dal.MasterDal import get_gold_standard_dict, get_criterion_by_name
 from img_vote.dal.MasterDal import create_criterion, update_criterion, update_criterion_malignancy, update_criteria_path
 from img_vote.dal.MasterDal import clear_malignant_criteria_in_non_malignant_category, erase_criterion
 from img_vote.dal.MasterDal import erase_category_criteria, create_na_criteria, create_trust_criteria, remove_na_criteria
@@ -158,7 +160,10 @@ def category_for_editing(studyId, catId):
     categoryVM.typeNumbers = CategoryType.numerical_value.value
 
     categoryVM.formError = None
-
+    
+    categoryVM.prerequisiteErrorMessage = 'No matching answer found. The name must exactly match an existing answer from another category.'
+    categoryVM.criterionErrorMessage = 'Invalid answer name, names must be unique with minimal length of 2. Most characters except dash, hyphen and minus (-) are accepted'
+    
     return categoryVM 
 
 def create_empty_category(studyId):
@@ -219,11 +224,16 @@ def change_criterion(cat_id, crit_id, name, malignancy, action):
         erase_criterion(crit_id)
         
     if not sanitize_technical_name(name) or name == '':
-        return
+        return 'error'
     
     if action == Action.edit.value:
-        mal = malignancy == 'true'
-        update_criterion(crit_id, name, mal)
+        if get_criterion_by_name(name) is None:
+            mal = malignancy == 'true'
+            update_criterion(crit_id, name, mal)
+        else:
+            return 'error'
+        
+    return None
 
 def save_criterion_malignancy(crit_id, malignancy):
     
@@ -245,7 +255,7 @@ def change_prerequisite(studyId, cat_id, crit_id, name, action):
         return
     
     if action == Action.remove.value:
-        delete_prerequisite(studyId, cat_id, crit_id)
+        delete_prerequisite(cat_id, crit_id)
         
     if action == Action.edit.value:
         delete_prerequisite(cat_id, crit_id)
@@ -425,15 +435,51 @@ def unzip_and_move(studyId, path, version):
     try:
         zippy = ZipFile(path)
         zippy.extractall(extract_path)
+        zippy.close()
+        result_files = listdir_safe_and_sorted(extract_path)
+        first_folder = os.path.join(extract_path,result_files[0])
+        #if the archive contains only one folder and this folder contains folders and not images, move its content up one folder
+        if len(result_files) == 1 and os.path.isdir(os.path.join(first_folder, listdir_safe_and_sorted(first_folder)[0])):
+            for file in listdir_safe_and_sorted(first_folder):
+                shutil.move(os.path.join(first_folder, file), os.path.join(extract_path, file))
+            safe_remove_folder(first_folder)
+    
+        if version == 'tutorial':
+            categories = get_tutorial_categories_with_criteria(studyId)
+            
+            if len(listdir_safe_and_sorted(extract_path)) > len(categories):
+                raise Exception('There were more folder provided than actual tutorial categories')
+            
+            catErrors = []
+            
+            for category in categories:
+                if not os.path.exists(os.path.join(getcwd(), 'data', str(studyId), 'tutorial_data', category.name)):
+                    catErrors.append((category.name, None))
+                else:
+                    ok = True
+                    critErrors = []
+                    for criterion in category.criteria:
+                        #n/a criteria are not supposed to have their image yet as it will be added later if no error happened
+                        if criterion[1] != 'na' and not glob.glob(os.path.join(getcwd(), 'data', str(studyId), 'tutorial_data', category.name, '.'.join((criterion[1], '*')))):
+                            ok = False
+                            critErrors.append(criterion[1])
+                    if not ok:
+                        catErrors.append((category.name, critErrors))
+                    if catErrors == [] and category.catType == CategoryType.one_of.value:
+                        #all one of categories with tutorials and n/a enabled need the template n/a tutorial
+                        copyfile(os.path.join(getcwd(), 'data', 'na.jpg'), os.path.join(getcwd(), 'data', str(studyId), 'tutorial_data', category.name, 'na.jpg'))
+            
+            if catErrors != []:
+                errorMessage = 'There were some errors detected with tutorial categories :'
+                for error in catErrors:
+                    if error[1] is None:
+                        errorMessage = ' '.join((errorMessage, 'no folder was provided for category :', error[0], '\n'))
+                    else:
+                        errorMessage = ' '.join((errorMessage, 'category', error[0], 'is missing the following tutorial image(s) :', ', '.join(error[1])))
+                raise Exception(errorMessage)
+            
     except Exception as e:
         return e
-    
-    if version == 'tutorial':
-        #all one of categories with tutorials and n/a enabled need the template n/a tutorial
-        na_categories = get_na_tutorial_one_of_categories(studyId)
-        
-        for na_category in na_categories:
-            copyfile(os.path.join(getcwd(), 'data', 'na.jpg'), os.path.join(getcwd(), 'data', str(studyId), 'tutorial_data', na_category.name, 'na.jpg'))
     
     return None
 
@@ -492,7 +538,9 @@ def check_uploads_and_create_cases(studyId, has_gold_standard):
             return ' '.join(['Error : name', str(problems[1]), 'was encountered in your gold standard spreadsheet but is not an answer in your gold standard category'])
         if problems[0] == 'case number discrepancy':
             return ' '.join(['Error : there are', str(problems[1]), 'files in your image folder but', problems[2], 'lines in your gold standard spreadsheet, please check your data and upload it again'])
-    
+        if problems[0] == 'incorrect folder structure':
+            return ' '.join(['Error : your archive contains only 1 case folder, please check your data and upload it again'])
+                
     return problems
 
 def upload_rollback(studyId):
@@ -510,11 +558,16 @@ def data_for_distribution(studyId):
     return distributionVM
 
 def handle_distribution(studyId, method, r_per_case, case_per_r, percentage):
-
     rev_per_case= compute_rev_per_case(studyId, method, r_per_case, case_per_r, percentage)
     
-    create_all_answers(studyId, rev_per_case)    
-    create_all_answer_to_criterion(studyId)
+    result = create_all_answers(studyId, rev_per_case) 
+    if result is not None and result == 'answers already exist':
+        return None
+    
+    result = create_all_answer_to_criterion(studyId)
+    # there are no steps to cancel after this one but this mirrors the behavior of the other function and could be used later
+    # if result is not None and result == 'answers to criteria already exist':
+    #     return None
     
     return None
 
@@ -616,11 +669,13 @@ def get_data_for_export_async(studyId, studyName):
     
     finalExtract = extract_all_data(studyId)
     
+    if len(finalExtract) == 0:
+        return
+    
     nbCategories = len(finalExtract[0].categories)
     
     gold_standard = get_gold_standard(studyId)
     
-    one_of_category = 2
     column_increment = 0
     
     ws[0, 0] = 'cases'
@@ -630,7 +685,7 @@ def get_data_for_export_async(studyId, studyName):
     
     for i in range(nbCategories):
         current_category = finalExtract[0].categories[i]
-        if current_category.catType == one_of_category:
+        if current_category.catType == CategoryType.one_of.value:
             ws[0, column_increment] = format_r_friendly(current_category.name)
             column_increment += 1
         else:
@@ -665,7 +720,7 @@ def get_data_for_export_async(studyId, studyName):
         ws[i + 1, 1] = finalExtract[i].reviewer
         column_increment +=2
         for current_category in finalExtract[i].categories:
-            if current_category.catType == one_of_category:
+            if current_category.catType == CategoryType.one_of.value:
                 ws[i + 1, column_increment] = format_r_friendly(current_category.diagnosis)
                 column_increment += 1
                 

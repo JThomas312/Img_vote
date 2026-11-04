@@ -13,7 +13,6 @@ class CriterionValue(Enum):
     true = 1
     na = 2
     unanswered = -1
-    unanswered_trust = 0
 
 #type of category, dependency to the database
 class CategoryType(Enum):
