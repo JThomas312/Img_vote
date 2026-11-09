@@ -144,7 +144,7 @@ def categories_for_editing(studyId):
 def category_for_editing(studyId, catId):
 
     categoryDM = category_with_criteria_and_prerequisites(catId)
-    categoryVM = CategoryEditingViewModel(categoryDM.catId, categoryDM.name, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
+    categoryVM = CategoryEditingViewModel(categoryDM.catId, categoryDM.name, categoryDM.ordering, categoryDM.catType, categoryDM.hasTrust, categoryDM.hasTutorial, categoryDM.hasNA, categoryDM.optional, categoryDM.hasGoldStandard, categoryDM.hasMalignancy)
 
     for criterion in categoryDM.criteria:
         categoryVM.criteria.append(CriterionEditingViewModel(criterion[0], criterion[1], criterion[2]))
@@ -181,6 +181,9 @@ def update_category(cat_id, value, parameter):
         if value == '' or not sanitize_technical_name(value):
             return
         param = 'name'
+    if parameter == 'ordering':
+        val = int(value)
+        param = 'ordering'
     if parameter == 'type':
         val = int(value)
         param = 'type'
@@ -537,7 +540,7 @@ def check_uploads_and_create_cases(studyId, has_gold_standard):
         if problems[0] == 'gold standard name discrepancy':
             return ' '.join(['Error : name', str(problems[1]), 'was encountered in your gold standard spreadsheet but is not an answer in your gold standard category'])
         if problems[0] == 'case number discrepancy':
-            return ' '.join(['Error : there are', str(problems[1]), 'files in your image folder but', problems[2], 'lines in your gold standard spreadsheet, please check your data and upload it again'])
+            return ' '.join(['Error : there are', str(problems[1]), 'files in your image folder but', str(problems[2]), 'lines in your gold standard spreadsheet, please check your data and upload it again'])
         if problems[0] == 'incorrect folder structure':
             return ' '.join(['Error : your archive contains only 1 case folder, please check your data and upload it again'])
                 
@@ -680,8 +683,10 @@ def get_data_for_export_async(studyId, studyName):
     
     ws[0, 0] = 'cases'
     ws[0, 1] = 'reviewers'
+    ws[0, 2] = 'reviewers_login'
+    ws[0, 3] = 'case_completed'
     
-    column_increment += 2
+    column_increment += 4
     
     for i in range(nbCategories):
         current_category = finalExtract[0].categories[i]
@@ -718,7 +723,9 @@ def get_data_for_export_async(studyId, studyName):
         column_increment = 0
         ws[i + 1, 0] = finalExtract[i].case
         ws[i + 1, 1] = finalExtract[i].reviewer
-        column_increment +=2
+        ws[i + 1, 2] = finalExtract[i].reviewer_login
+        ws[i + 1, 3] = finalExtract[i].case_completion
+        column_increment +=4
         for current_category in finalExtract[i].categories:
             if current_category.catType == CategoryType.one_of.value:
                 ws[i + 1, column_increment] = format_r_friendly(current_category.diagnosis)

@@ -512,7 +512,6 @@ def finish_uploading():
                     uploadStatusVM = upload_status(session['study'], has_tutorial, has_gold_standard)
                     update_status(session['study'], StudyStatus.categories_done.value)
                     return render_template('manage_uploads.html', upload_status=uploadStatusVM, errors=errors)
-                update_status(session['study'], StudyStatus.uploads_done.value)
             return redirect(url_for('user_home'))
 
         return(redirect(url_for('user_home')))    
@@ -805,7 +804,7 @@ def confirm_clear_users():
     if 'userId' in session:
         if ('admin' in session) and session['admin'] and ('study' in session):
             status = get_status(session['study'])
-            if status in [StudyStatus.ended.value]:
+            if status in [StudyStatus.ended.value, StudyStatus.stopped.value]:
                 return render_template('confirm_clear_users.html')
         return redirect(url_for('user_home'))
     else:
@@ -816,7 +815,7 @@ def clear_users():
     if 'userId' in session:
         if ('admin' in session) and session['admin'] and ('study' in session):
             status = get_status(session['study'])
-            if status == StudyStatus.ended.value:
+            if status in [StudyStatus.ended.value, StudyStatus.stopped.value]:
                 clear_data(session['study'])
                 session.pop('study', default=None)
         return redirect(url_for('user_home'))

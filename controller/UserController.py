@@ -61,7 +61,7 @@ def user_for_home(username, studyId = None, status = None):
             usr.resumeAndEnd = (status == StudyStatus.paused.value)
             usr.exportData = (status in [StudyStatus.ended.value, StudyStatus.paused.value, StudyStatus.test.value])
             usr.manageDownloads = (status in [StudyStatus.ended.value, StudyStatus.paused.value, StudyStatus.test.value, StudyStatus.ongoing.value])
-            usr.clearUserAndData = (status == StudyStatus.ended.value)
+            usr.clearUserAndData = (status == StudyStatus.ended.value or status == StudyStatus.stopped.value)
             usr.allowUserDeletion = (status != StudyStatus.ongoing.value)
         
         return usr

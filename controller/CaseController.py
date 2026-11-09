@@ -93,6 +93,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
                 criteriaVM.append(newCritVM)
         
         newCatVM.criteria = criteriaVM
+        newCatVM.nb_criteria = len(criteriaVM)
         
         if category.catType == CategoryType.one_of.value and bool(list(filter(lambda x: x.value == CriterionValue.true.value or x.value == CriterionValue.na.value, newCatVM.criteria))):
             newCatVM.unanswered = False

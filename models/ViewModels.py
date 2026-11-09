@@ -158,6 +158,7 @@ class CategoryEditingViewModel():
     
     id: int
     name: str
+    ordering: int
     type: int
     has_trust: bool
     has_tutorial: bool
@@ -177,9 +178,10 @@ class CategoryEditingViewModel():
     criteria: list[CriterionEditingViewModel]
     prerequisites: list[PrerequisiteEditingViewModel]
     
-    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
+    def __init__(self, cat_id, name, ordering, cat_type, has_trust, has_tutorial, has_NA, optional, has_gold_standard, has_malignancy):
         self.id= cat_id
         self.name = name
+        self.ordering = ordering
         self.type = cat_type
         self.has_trust = has_trust
         self.has_tutorial = has_tutorial
@@ -246,10 +248,11 @@ class CategoryViewModel():
     optional: bool
     prerequisites: list[int]
     criteria: list[CriterionViewModel]
+    nb_criteria: int
     trust_criterion: CriterionViewModel
     unanswered: bool
     
-    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites=[], criteria=[], trust_criterion=None, unanswered=True):
+    def __init__(self, cat_id, name, cat_type, has_trust, has_tutorial, has_NA, optional, prerequisites=[], nb_criteria=0, criteria=[], trust_criterion=None, unanswered=True):
         self.cat_id = cat_id
         self.name = name
         self.type = cat_type
@@ -257,6 +260,7 @@ class CategoryViewModel():
         self.has_tutorial = has_tutorial
         self.has_NA = has_NA
         self.optional = optional
+        self.nb_criteria = nb_criteria
         self.prerequisites = prerequisites
         self.criteria = criteria
         self.trust_criterion = trust_criterion

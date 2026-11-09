@@ -231,6 +231,13 @@ window.addEventListener('load', function() {
 });
 
 
+function safeguard_ordering(cat_id){
+    value = document.getElementById("display_order").value
+    url = '/safeguard_category?cat_id=' + cat_id + '&value=' + value + '&field=ordering';
+    $.getJSON(url, function(data){});
+    return false;
+}
+
 function safeguard_trust(cat_id, value){
     url = '/safeguard_category?cat_id=' + cat_id + '&value=' + value + '&field=trust';
     $.getJSON(url, function(data){});

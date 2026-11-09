@@ -179,6 +179,7 @@ class CategoryWithCriteriaDataModel():
 class CategoryWithCriteriaAndPrerequisitesDataModel():
      catId: int
      name: str
+     ordering: int
      catType: int
      hasTutorial: bool
      hasTrust: bool
@@ -189,9 +190,10 @@ class CategoryWithCriteriaAndPrerequisitesDataModel():
      criteria: list[int, str, bool] #ids, names and malignancies of criterions from the category
      prerequisites: list[int, str] # ids and names of prerequisites for the category
      
-     def __init__(self, catId, name, catType, hasTutorial, hasTrust, hasNA, optional, hasGoldStandard, hasMalignancy):
+     def __init__(self, catId, name, ordering, catType, hasTutorial, hasTrust, hasNA, optional, hasGoldStandard, hasMalignancy):
          self.catId = catId
          self.name = name
+         self.ordering = ordering
          self.catType = catType
          self.hasTutorial = hasTutorial
          self.hasTrust = hasTrust
@@ -254,6 +256,8 @@ class CategoryExtractDataModel():
 class FinalExtractDataModel():
     case: str
     reviewer: str
+    reviewer_login: str
+    case_completion: bool
     categories: list[CategoryExtractDataModel]
     reviewer_gold_standard_answer: str
     gold_standard_confidence: int
@@ -263,9 +267,11 @@ class FinalExtractDataModel():
     gold_standard_malignancy: str
     gold_standard_malignancy_comparison: bool
     
-    def __init__(self, case, reviewer, reviewer_gold_standard_answer = '', gold_standard_confidence = -1, gold_standard_answer = '', gold_standard_comparison = False, reviewer_gold_standard_malignancy = '', gold_standard_malignancy = '', gold_standard_malignancy_comparison = False, categories = []):
+    def __init__(self, case, reviewer, reviewer_login, case_completion = False, reviewer_gold_standard_answer = '', gold_standard_confidence = -1, gold_standard_answer = '', gold_standard_comparison = False, reviewer_gold_standard_malignancy = '', gold_standard_malignancy = '', gold_standard_malignancy_comparison = False, categories = []):
         self.case = case
         self.reviewer = reviewer
+        self.reviewer_login = reviewer_login
+        self.case_completion = case_completion
         self.reviewer_gold_standard_answer = reviewer_gold_standard_answer
         self.gold_standard_confidence = gold_standard_confidence
         self.gold_standard_answer = gold_standard_answer

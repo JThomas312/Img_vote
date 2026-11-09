@@ -76,6 +76,7 @@ class CategoryPOCO(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     study: Mapped[int] = mapped_column(ForeignKey("study.id"))
     name: Mapped[str] = mapped_column(String(100))
+    ordering: Mapped[int]
     type: Mapped[int]
     has_tutorial: Mapped[bool]
     has_trust: Mapped[bool]
@@ -87,8 +88,9 @@ class CategoryPOCO(Base):
     def __repr__(self) -> str:
         return f"Category(id={self.id!r}, name={self.name!r}, type={self.type!r}, has_tutorial={self.has_tutorial!r}, has_trust={self.has_trust!r}, has_na={self.has_na!r}, optional={self.optional!r}, has_gold_standard={self.has_gold_standard!r}, has_malignancy={self.has_malignancy!r})"
     
-    def __init__(self, study, name='', catType=0, has_tutorial=False, has_trust=False, has_na=False, optional=False, has_gold_standard=False, has_malignancy=False):
+    def __init__(self, study, ordering=1, name='', catType=0, has_tutorial=False, has_trust=False, has_na=False, optional=False, has_gold_standard=False, has_malignancy=False):
         self.study = study
+        self.ordering = ordering
         self.name = name
         self.type = catType
         self.has_tutorial = has_tutorial

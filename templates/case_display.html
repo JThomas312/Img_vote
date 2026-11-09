@@ -57,7 +57,9 @@
               {% endif %}
     
               {% if category.type == ViewModel.categoryYesNo %}
-                <h1 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-4 mb-2 px-1">{{category.name}}</h1>
+                {% if category.nb_criteria == 1 %}
+                  <h1 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-4 mb-2 px-1">{{category.name}}</h1>
+                {% endif %}
                 {% for criterion in category.criteria %}
                   <fieldset class="border border-indigo-100 rounded-xl bg-white shadow-sm p-3 mb-2">
                     <legend class="text-xs font-semibold text-indigo-500 px-1 uppercase tracking-wide">{{criterion.name}}</legend>
@@ -85,8 +87,10 @@
               {% endif %}
     
               {% if category.type == ViewModel.categoryOneOf %}
-                <fieldset class="border border-indigo-100 rounded-xl bg-white shadow-sm p-3 mb-2">
-                  <legend class="text-xs font-semibold text-indigo-500 px-1 uppercase tracking-wide">{{category.name}}</legend>
+                {% if category.nb_criteria == 1 %}
+                  <fieldset class="border border-indigo-100 rounded-xl bg-white shadow-sm p-3 mb-2">
+                    <legend class="text-xs font-semibold text-indigo-500 px-1 uppercase tracking-wide">{{category.name}}</legend>
+                {% endif % }
                   <div id="{{category.cat_id}}-diagnosis-options" class="{{category.name}}-diagnosis-options">
                     {% for criterion in category.criteria %}
                       <div class="criterion-row">
@@ -108,7 +112,9 @@
               {% endif %}
     
               {% if category.type == ViewModel.categoryNumbers %}
-                <h1 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-4 mb-2 px-1">{{category.name}}</h1>
+                {% if category.nb_criteria == 1 %}
+                  <h1 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-4 mb-2 px-1">{{category.name}}</h1>
+                {% endif %}
                 {% for criterion in category.criteria %}
                   <fieldset class="border border-indigo-100 rounded-xl bg-white shadow-sm p-3 mb-2">
                     <legend class="text-xs font-semibold text-indigo-500 px-1 uppercase tracking-wide">{{criterion.name}}</legend>

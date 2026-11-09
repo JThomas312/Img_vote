@@ -136,6 +136,8 @@ def extract_all_data(study_id, engine):
     
     try:
         gold_standard_category = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True).one_or_none()
+        #if there is a gold standard category the format of the returned object will be different and there should be a check
+        #before any calls to its element
         if gold_standard_category is not None:
             casesQuery = session.query(CasePOCO, CriterionPOCO).join(CriterionPOCO, CasePOCO.gold_standard == CriterionPOCO.id).filter(CasePOCO.study == study_id).order_by(CasePOCO.id)
         else:
@@ -148,23 +150,35 @@ def extract_all_data(study_id, engine):
         
         for case in cases:
             for reviewer in reviewers:
-                
-                answerExistsQuery = session.query(AnswerPOCO).filter(AnswerPOCO.study_case == case.id).filter(AnswerPOCO.reviewer == reviewer.userId)
+                if gold_standard_category is not None:
+                    answerExistsQuery = session.query(AnswerPOCO).filter(AnswerPOCO.study_case == case[0].id).filter(AnswerPOCO.reviewer == reviewer.userId)
+                else:
+                    answerExistsQuery = session.query(AnswerPOCO).filter(AnswerPOCO.study_case == case.id).filter(AnswerPOCO.reviewer == reviewer.userId)
                 answerExists = session.query(answerExistsQuery.exists()).scalar()
                 
                 #check first if reviewer was assigned to this case
                 if answerExists:
+                    if gold_standard_category is not None:
+                        case_completion = session.query(AnswerPOCO.completed).filter(AnswerPOCO.study_case == case[0].id).filter(AnswerPOCO.reviewer == reviewer.userId).one_or_none()[0]
+
+                        case_name = format_r_friendly(case[0].name)
+                    else:
+                        case_completion = session.query(AnswerPOCO.completed).filter(AnswerPOCO.study_case == case.id).filter(AnswerPOCO.reviewer == reviewer.userId).one_or_none()[0]
+
+                        case_name = format_r_friendly(case.name)
+
+                    rev_name = format_r_friendly(reviewer.name)
+
+                    rev_login = format_r_friendly(reviewer.login)
                     
-                    rev_identifier = format_r_friendly(reviewer.name)
+                    newExtract = FinalExtractDataModel(case_name, rev_name, rev_login)
                     
-                    case_name = format_r_friendly(case.name)
-                    
-                    newExtract = FinalExtractDataModel(case_name, rev_identifier)
+                    newExtract.case_completion = case_completion
                     
                     newExtract.categories = []
                     
                     if gold_standard_category is not None:
-                        gold_standard_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(AnswerCriterionPOCO.value == CriterionValue.true.value).where(CriterionPOCO.is_trust == False)
+                        gold_standard_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(AnswerCriterionPOCO.value == CriterionValue.true.value).where(CriterionPOCO.is_trust == False)
                         gold_standard_answer = gold_standard_query.one_or_none()
                         
                         rev_diag = 'unanswered'
@@ -194,7 +208,7 @@ def extract_all_data(study_id, engine):
                             
                         if gold_standard_category.has_trust:
                         
-                            gold_standard_trust_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(CriterionPOCO.is_trust == True)
+                            gold_standard_trust_query = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == gold_standard_category.id).where(CriterionPOCO.is_trust == True)
                             gold_standard_trust_answer = gold_standard_trust_query.one_or_none()
                             
                             if gold_standard_trust_answer is not None:
@@ -214,14 +228,21 @@ def extract_all_data(study_id, engine):
                         newCategoryDM.criteria = []
                         
                         if category.type != CategoryType.one_of.value:
-                            queryCriteria = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(CriterionPOCO.is_trust == False).order_by(CriterionPOCO.id)
+                            if gold_standard_category is not None:
+                                queryCriteria = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(CriterionPOCO.is_trust == False).order_by(CriterionPOCO.id)
+                            else:
+                                queryCriteria = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(CriterionPOCO.is_trust == False).order_by(CriterionPOCO.id)
+                            
                             ansCriteria = queryCriteria.all()
                             
                             for ansCriterion in ansCriteria:
                                 newCategoryDM.criteria.append(CriterionExtractdataModel(ansCriterion[1].name, ansCriterion[0].value))
                         
                         else:
-                            queryDiagnosis = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(AnswerCriterionPOCO.value == CriterionValue.true.value).where(CriterionPOCO.is_trust == False)
+                            if gold_standard_category is not None:
+                                queryDiagnosis = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(AnswerCriterionPOCO.value == CriterionValue.true.value).where(CriterionPOCO.is_trust == False)
+                            else:                                
+                                queryDiagnosis = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(AnswerCriterionPOCO.value == CriterionValue.true.value).where(CriterionPOCO.is_trust == False)
                             ansDiagnosis = queryDiagnosis.one_or_none()
                             if ansDiagnosis is not None:
                                 newCategoryDM.diagnosis = ansDiagnosis[1].name
@@ -230,7 +251,10 @@ def extract_all_data(study_id, engine):
                                 
                         
                         if category.has_trust:
-                            queryConfidence = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(CriterionPOCO.is_trust == True)
+                            if gold_standard_category is not None:
+                                queryConfidence = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case[0].id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(CriterionPOCO.is_trust == True)
+                            else:
+                                queryConfidence = session.query(AnswerCriterionPOCO, CriterionPOCO, AnswerPOCO).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).where(AnswerPOCO.study_case == case.id).where(AnswerPOCO.reviewer == reviewer.userId).where(CriterionPOCO.category == category.id).where(CriterionPOCO.is_trust == True)
                             ansConfidence = queryConfidence.one_or_none()
                             newCategoryDM.confidence = ansConfidence[0].value
                         
@@ -264,8 +288,11 @@ def create_all_cases(study_id, gold_standard_dict, engine):
                     wbpath = os.path.join(wbfolderpath, filename)
          
             sheet_obj = get_sheet(file_name=wbpath)
-            if sheet_obj.max_row != nb_files:
-                return ('case number discrepancy', nb_files, sheet_obj.max_row)
+            
+            nb_useful_rows = sheet_obj.number_of_rows() - 1
+            
+            if nb_useful_rows != nb_files:
+                return ('case number discrepancy', nb_files, nb_useful_rows)
          
         counter = 1
         

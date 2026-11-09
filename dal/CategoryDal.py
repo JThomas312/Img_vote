@@ -115,7 +115,7 @@ def categories_with_criteria(study_id, engine):
     session = Session(engine)
     
     try:
-        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.study == study_id).order_by(CategoryPOCO.id, CriterionPOCO.id)
+        query = session.query(CategoryPOCO, CriterionPOCO).outerjoin(CriterionPOCO, CategoryPOCO.id == CriterionPOCO.category).filter(CategoryPOCO.study == study_id).order_by(CategoryPOCO.ordering, CategoryPOCO.id, CriterionPOCO.id)
         
         #0: category, 1:criterion
         queriedAnswer = query.all()
@@ -157,7 +157,7 @@ def category_with_criteria_and_prerequisites(catId, engine):
         
         
         answer = queriedAnswer1[0]
-        categoryDataModel = CategoryWithCriteriaAndPrerequisitesDataModel(answer[0].id, answer[0].name, answer[0].type, answer[0].has_tutorial, answer[0].has_trust, answer[0].has_na, answer[0].optional, answer[0].has_gold_standard, answer[0].has_malignancy)
+        categoryDataModel = CategoryWithCriteriaAndPrerequisitesDataModel(answer[0].id, answer[0].name, answer[0].ordering, answer[0].type, answer[0].has_tutorial, answer[0].has_trust, answer[0].has_na, answer[0].optional, answer[0].has_gold_standard, answer[0].has_malignancy)
         
         for ans in queriedAnswer1:
             if ans[1] is not None and not ans[1].is_trust:
@@ -441,6 +441,8 @@ def update_category_value(cat_id, value, parameter, engine):
         
         if parameter == 'name':
             updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(name=value)
+        if parameter == 'ordering':
+            updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(ordering=value)
         if parameter == 'type':
             updatestmt = update(CategoryPOCO).where(CategoryPOCO.id == cat_id).values(type=value)
         if parameter == 'tutorial':
