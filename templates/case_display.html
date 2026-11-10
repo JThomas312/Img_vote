@@ -43,9 +43,13 @@
     
     <div class="split right">
       <div class="centered">
-        <div id="error-banner" class="error-banner hidden">
-          <span id="error-message">{{ViewModel.save_error_message}}</span>
-          <button class="error-banner-close" onclick="dismissBanner()">✕</button>
+        <div id="save-error-banner" class="error-banner hidden">
+          <span id="save-error-message">{{ViewModel.save_error_message}}</span>
+          <button class="error-banner-close" onclick="dismissSaveBanner()">✕</button>
+        </div>
+        <div id="text-error-banner" class="error-banner hidden">
+          <span id="text-error-message">{{ViewModel.text_error_message}}</span>
+          <button class="error-banner-close" onclick="dismissTextBanner()">✕</button>
         </div>
         <form id="criteria-form" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

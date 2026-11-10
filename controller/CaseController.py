@@ -104,6 +104,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     caseVM = CaseDisplayViewModel(caseDM.caseId, name, studyName, len(categoriesVM), nb_imgs=0, imgs=[], imgs_sizes=[])
     
     caseVM.save_error_message = 'There has been an error while saving your answer, please try again'
+    caseVM.text_error_message = r'Invalid remark text, some special characters like \ are not authorized'
     
     caseVM.categoryYesNo = CategoryType.yes_no.value
     caseVM.categoryOneOf = CategoryType.one_of.value
@@ -231,6 +232,9 @@ def safeguardRemarks(userId, case, value):
     
     if sanitize_text(value):
         save_remarks(userId, case, value)
+        return None
+    else:
+        return r'Invalid Text, some special characters like \ are not authorized'
     
 def checkProgress(studyId, userId, case):
     

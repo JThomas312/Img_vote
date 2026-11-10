@@ -45,21 +45,38 @@ function clear_num_value(criterion_id){
     document.getElementById(criterion_id).value = -1;
 }
 
-function showError(message, autoDismissMs = 0) {
+function showSaveError(message, autoDismissMs = 0) {
 
   if (message) {
-      document.getElementById('error-message').textContent = message;
+      document.getElementById('save-error-message').textContent = message;
   }
   
-  document.getElementById('error-banner').classList.remove('hidden');
+  document.getElementById('save-error-banner').classList.remove('hidden');
 
   if (autoDismissMs > 0) {
-    setTimeout(dismissBanner, autoDismissMs);
+    setTimeout(dismissSaveBanner, autoDismissMs);
   }
 }
 
-function dismissBanner() {
-  document.getElementById('error-banner').classList.add('hidden');
+function dismissSaveBanner() {
+  document.getElementById('save-error-banner').classList.add('hidden');
+}
+
+function showTextError(message, autoDismissMs = 0) {
+
+  if (message) {
+      document.getElementById('text-error-message').textContent = message;
+  }
+  
+  document.getElementById('text-error-banner').classList.remove('hidden');
+
+  if (autoDismissMs > 0) {
+    setTimeout(dismissTextBanner, autoDismissMs);
+  }
+}
+
+function dismissTextBanner() {
+  document.getElementById('text-error-banner').classList.add('hidden');
 }
 
 function safeguard(case_id, criterion_id, value, category) {
@@ -79,7 +96,7 @@ function safeguard(case_id, criterion_id, value, category) {
                 if (type == 3){
                     clear_num_value(criterion_id);
                 }
-                showError(null, 5000);
+                showSaveError(null, 5000);
             }, 10);
         }
     });
@@ -241,7 +258,12 @@ window.addEventListener('load', function() {
     var remarksInput = document.getElementById('remarks');
     if (remarksInput != null){
         var debouncedSaveRemarks = debounce(function() {
-            $.getJSON('/safeguard_remarks?case_id=' + caseId + '&value=' + encodeURIComponent(remarksInput.value));
+            $.getJSON( '/safeguard_remarks?case_id=' + caseId + '&value=' + encodeURIComponent(remarksInput.value), function(data)
+            {
+                if (data != null && data.result == 'text format error'){
+                    showTextError(null, 5000);
+                }
+            });
         }, 800);
         remarksInput.addEventListener('input', debouncedSaveRemarks);
     }

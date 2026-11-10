@@ -1160,7 +1160,9 @@ def safeguard_remarks():
         if status == StudyStatus.test.value:
             case_id = request.args.get('case_id')
             value = request.args.get('value')
-            safeguardRemarks(session['userId'], case_id, value)
+            problem = safeguardRemarks(session['userId'], case_id, value)
+            if problem != None:
+                return jsonify(result='text format error')
         return '', 204
     
 def valid_login(username, password):
