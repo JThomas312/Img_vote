@@ -47,7 +47,7 @@
           <div class="mb-4">
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Display Order</label>
             <div class="flex gap-2 items-center">
-              <input id="display_order" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" type="number" onclick="safeguard_ordering({{ViewModel.id}})" name="ordering" value="{{ViewModel.ordering}}">
+              <input id="display_order" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" type="number" oninput="safeguard_ordering({{ViewModel.id}})" name="ordering" value="{{ViewModel.ordering}}">
             </div>
           </div>
 

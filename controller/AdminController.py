@@ -39,6 +39,7 @@ from img_vote.utilities.useful import listdir_safe_and_sorted
 from img_vote.utilities.useful import safe_worksheet_save
 from img_vote.utilities.useful import safe_remove_file
 from img_vote.utilities.useful import safe_remove_folder
+from img_vote.utilities.useful import verify_images
 from img_vote.models.Enums import Action, StudyStatus, CategoryType
 
 from img_vote.models.ViewModels import CriterionEditingViewModel, CategoryConfigurationViewModel, CategoriesForConfigurationViewModel
@@ -60,9 +61,9 @@ from img_vote.dal.MasterDal import create_all_answers, create_user_answers, get_
 
 #category related
 from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria, category_with_criteria_and_prerequisites
-from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_least_one_mandatory_category
-from img_vote.dal.MasterDal import categories_without_name, mandatory_categories_with_prerequisites, optional_categories_without_prerequisites
-from img_vote.dal.MasterDal import categories_without_criteria, categories_with_not_enough_criteria, malignant_categories_without_gold_standard
+from img_vote.dal.MasterDal import at_least_one_other_mandatory_category, at_least_one_mandatory_category, categories_without_name
+from img_vote.dal.MasterDal import mandatory_categories_with_prerequisites, optional_categories_without_prerequisites, categories_without_criteria
+from img_vote.dal.MasterDal import categories_with_not_enough_criteria, malignant_categories_without_gold_standard, is_number_category
 from img_vote.dal.MasterDal import other_gold_standard_exists, get_gold_standards, get_gold_standard, gold_standard_in_wrong_category, new_empty_category
 from img_vote.dal.MasterDal import update_category_value, erase_category, clear_all_categories, get_tutorial_categories_with_criteria
 
@@ -161,7 +162,7 @@ def category_for_editing(studyId, catId):
 
     categoryVM.formError = None
     
-    categoryVM.prerequisiteErrorMessage = 'No matching answer found. The name must exactly match an existing answer from another category.'
+    categoryVM.prerequisiteErrorMessage = 'No matching answer found. The name must exactly match an existing answer from another category except numerical value categories'
     categoryVM.criterionErrorMessage = 'Invalid answer name, names must be unique with minimal length of 2. Most characters except dash, hyphen and minus (-) are accepted'
     
     return categoryVM 
@@ -238,32 +239,38 @@ def change_criterion(cat_id, crit_id, name, malignancy, action):
         
     return None
 
-def save_criterion_malignancy(crit_id, malignancy):
+def save_criterion_malignancy(critId, malignancy):
     
     mal = malignancy == 'true'
-    update_criterion_malignancy(crit_id, mal)
+    update_criterion_malignancy(critId, mal)
 
 def save_prerequisite(studyId, catId, name):
     
     if not sanitize_technical_name(name) or name == '':
         return
     
+    if is_number_category(catId):
+        return
+    
     critId = new_prerequisite(studyId, catId, name)
     
     return critId
 
-def change_prerequisite(studyId, cat_id, crit_id, name, action):
+def change_prerequisite(studyId, catId, critId, name, action):
     
     if not sanitize_technical_name(name) or name == '':
         return
     
+    if is_number_category(catId):
+        return
+    
     if action == Action.remove.value:
-        delete_prerequisite(cat_id, crit_id)
+        delete_prerequisite(catId, critId)
         
     if action == Action.edit.value:
-        delete_prerequisite(cat_id, crit_id)
+        delete_prerequisite(catId, critId)
         
-        return new_prerequisite(studyId, cat_id, name)
+        return new_prerequisite(studyId, catId, name)
         
 
 def delete_category(cat_id):
@@ -485,6 +492,17 @@ def unzip_and_move(studyId, path, version):
         return e
     
     return None
+
+def check_images(studyId, version):
+    
+    if version == 'case':
+        folder_path = os.path.join(getcwd(), 'data', str(studyId), 'Img_data')
+    elif version == 'tutorial':
+        folder_path = os.path.join(getcwd(), 'data', str(studyId), 'tutorial_data')
+    else:
+        return 'something went wrong'
+    
+    return verify_images(folder_path)
 
 def remove_case_images(studyId):
     

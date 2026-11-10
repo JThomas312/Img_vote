@@ -119,6 +119,9 @@ def get_reviewer_by_login(login):
 def get_reviewer_for_login(login):
     return UserDal.get_reviewer_for_login(login, engine)
 
+def get_demographics(identifier):
+    return UserDal.get_demographics(identifier, engine)
+
 def get_users_for_admin(identifier, study_id):
     return UserDal.get_users_for_admin(identifier, study_id, engine)
 
@@ -136,6 +139,9 @@ def delete_reviewer_by_id(identifier):
 
 def delete_reviewer_by_login(login):
     return UserDal.delete_reviewer_by_login(login, engine)
+
+def register_demographics(identifier, gender, age, experience, frequency):
+    return UserDal.register_demographics(identifier, gender, age, experience, frequency, engine)
 
 def clear_non_admin_users(study_id):
     return UserDal.clear_non_admin_users(study_id, engine)
@@ -268,6 +274,9 @@ def malignant_categories_without_gold_standard(study_id):
 
 def other_gold_standard_exists(study_id, cat_id):
     return CategoryDal.other_gold_standard_exists(study_id, cat_id, engine)
+
+def is_number_category(cat_id):
+    return CategoryDal.is_number_category(cat_id, engine)
 
 def gold_standard_exists(study_id):
     return CategoryDal.gold_standard_exists(study_id, engine)

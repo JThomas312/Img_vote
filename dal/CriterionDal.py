@@ -456,10 +456,11 @@ def remove_na_criteria(study_id, engine):
 def create_all_answer_to_criterion(study_id, engine):
         
     answers = get_all_answers(study_id, engine)
+    if len(answers) == 0:
+        return 'no answers were created, likely because there are no reviewers'
     criteria = get_all_criteria(study_id, engine)
     
     session = Session(engine)
-    
     failsafe_query = session.query(AnswerCriterionPOCO).filter(AnswerCriterionPOCO.answer == answers[0].id)
     if session.query(failsafe_query.exists()).scalar():
         return 'answers to criteria already exist'

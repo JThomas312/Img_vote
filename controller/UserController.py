@@ -18,13 +18,15 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.models.ViewModels import UserHomeViewModel, AdminHomeViewModel, UserLearnViewModel
-from img_vote.models.Enums import StudyStatus
+from img_vote.models.Enums import StudyStatus, DemographicsVal
 
 #user related
 from img_vote.dal.MasterDal import get_reviewer_by_login
 from img_vote.dal.MasterDal import get_reviewer_for_login
+from img_vote.dal.MasterDal import get_demographics
 from img_vote.dal.MasterDal import get_users_for_admin
 from img_vote.dal.MasterDal import update_password
+from img_vote.dal.MasterDal import register_demographics
 
 #answer related
 from img_vote.dal.MasterDal import get_cases_and_answers
@@ -71,6 +73,32 @@ def user_for_home(username, studyId = None, status = None):
     usr.userId = user.userId
     usr.userName= user.name
     usr.study = user.study
+    
+    demographics = get_demographics(user.userId)
+    
+    if demographics.gender is None or demographics.age is None or demographics.experience is None or demographics.frequency is None:
+        usr.demographicsAnswered = False
+        usr.gender = demographics.gender
+        usr.age = demographics.age
+        usr.experience = demographics.experience
+        usr.frequency = demographics.frequency
+        usr.female = DemographicsVal.female.value
+        usr.male = DemographicsVal.male.value
+        usr.other = DemographicsVal.other.value
+        usr.lessThanAYear = DemographicsVal.lessThanAYear.value
+        usr.oneToThreeYears = DemographicsVal.oneToThreeYears.value
+        usr.threeToTenYears = DemographicsVal.threeToTenYears.value
+        usr.moreThanTenYears = DemographicsVal.moreThanTenYears.value
+        usr.never = DemographicsVal.never.value
+        usr.severalAYear = DemographicsVal.severalAYear.value
+        usr.severalAMonth = DemographicsVal.severalAMonth.value
+        usr.severalAWeek = DemographicsVal.severalAWeek.value
+        usr.everyDay = DemographicsVal.everyDay.value
+        usr.min_int = 0
+        usr.max_int = 100
+        return usr
+    
+    usr.demographicsAnswered = True
    
     casesAns = get_cases_and_answers(usr.userId)
        
@@ -108,6 +136,32 @@ def user_for_login(username):
     usr = get_reviewer_for_login(username)
     
     return usr
+
+def create_demographic_ViewModel(userId):
+    
+    usr = UserHomeViewModel()
+    
+    usr.userId = userId
+    
+    usr.female = DemographicsVal.female.value
+    usr.male = DemographicsVal.male.value
+    usr.other = DemographicsVal.other.value
+    usr.lessThanAYear = DemographicsVal.lessThanAYear.value
+    usr.oneToThreeYears = DemographicsVal.oneToThreeYears.value
+    usr.threeToTenYears = DemographicsVal.threeToTenYears.value
+    usr.moreThanTenYears = DemographicsVal.moreThanTenYears.value
+    usr.never = DemographicsVal.never.value
+    usr.severalAYear = DemographicsVal.severalAYear.value
+    usr.severalAMonth = DemographicsVal.severalAMonth.value
+    usr.severalAWeek = DemographicsVal.severalAWeek.value
+    usr.everyDay = DemographicsVal.everyDay.value
+    usr.min_int = 0
+    usr.max_int = 100
+    
+    return usr
+
+def save_demographics(userId, gender, age, experience, frequency):
+    return register_demographics(int(userId), int(gender), int(age), int(experience), int(frequency))
 
 def modify_password(userId, newPass):
     

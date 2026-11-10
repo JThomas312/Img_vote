@@ -15,7 +15,7 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 #local modules
-from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted, get_image
+from img_vote.utilities.useful import sanitize_text, listdir_safe_and_sorted, get_image_dimensions
 from img_vote.models.Enums import CriterionValue, CategoryType, StudyStatus
 from img_vote.models.ViewModels import CategoryViewModel, CriterionViewModel, CaseDisplayViewModel, CaseLearningViewModel
 
@@ -135,8 +135,8 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
 
     for img_file in img_files:
         img_path = os.path.join(path, img_file)
-        (img_data, w, h) = get_image(img_path)
-        caseVM.imgs.append(img_data)
+        (w, h) = get_image_dimensions(img_path)
+        caseVM.imgs.append(os.path.join(caseDM.name, img_file))
         caseVM.imgs_sizes.append((w, h))
         caseVM.nb_imgs += 1
     
@@ -157,7 +157,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
 
 def caseForLearning(userId, case, studyName, studyStatus):
     
-    if studyStatus not in [StudyStatus.ongoing.value, StudyStatus.test.value]:
+    if studyStatus not in [StudyStatus.ended.value]:
         raise Exception("You do not have access to this page at the moment")
     
     caseDM = get_case_with_gold_standard(case)
@@ -178,8 +178,8 @@ def caseForLearning(userId, case, studyName, studyStatus):
 
     for img_file in img_files:
         img_path = os.path.join(path, img_file)
-        (img_data, w, h) = get_image(img_path)
-        caseVM.imgs.append(img_data)
+        (w, h) = get_image_dimensions(img_path)
+        caseVM.imgs.append(os.path.join(caseDM.name, img_file))
         caseVM.imgs_sizes.append((w, h))
         caseVM.nb_imgs += 1
     
@@ -195,12 +195,14 @@ def caseForLearning(userId, case, studyName, studyStatus):
     return caseVM
 
 
-def criterion_for_tutorial(idCriterion):
+def criterion_for_tutorial(studyId, idCriterion):
     
-    tutorial_slide_path = get_criterion_by_id(idCriterion).tutorial_path
-    img_data, w, h = get_image(tutorial_slide_path, True)
+    crit = get_criterion_by_id(idCriterion)
+    critName = crit.name
+    catName = get_category_by_id(crit.critCategory).name
+    tutorial_slide_path = os.path.join(catName, critName)
     
-    return img_data
+    return tutorial_slide_path
     
 def safeguardDiagnosis(userId, case, criterionId, value, category, studyStatus):
     

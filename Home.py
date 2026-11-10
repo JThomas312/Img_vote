@@ -35,6 +35,7 @@ from utilities.useful import safe_save
 from utilities.useful import move
 from utilities.useful import is_after
 from utilities.useful import is_passed
+from utilities.useful import find_extension
 from models.Enums import StudyStatus
 
 from controller.StudyController import get_status
@@ -56,6 +57,8 @@ from controller.UserController import user_for_home
 from controller.UserController import user_for_login
 from controller.UserController import modify_password
 from controller.UserController import user_for_learning
+from controller.UserController import create_demographic_ViewModel
+from controller.UserController import save_demographics
 
 from controller.AdminController import create_user
 from controller.AdminController import delete_user
@@ -77,6 +80,7 @@ from controller.AdminController import save_prerequisite
 from controller.AdminController import change_prerequisite
 from controller.AdminController import upload_status
 from controller.AdminController import unzip_and_move
+from controller.AdminController import check_images
 from controller.AdminController import remove_case_images
 from controller.AdminController import remove_tutorial_images
 from controller.AdminController import remove_case_data
@@ -160,42 +164,91 @@ def logout():
     session.clear()
     return render_template('login.html', error=error, logout=logout)
 
-@app.route('/user_home/', methods=['GET'])
+@app.route('/case_image/<filename>')
+def get_case_image(filename):
+    
+    image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'Img_data', filename)
+    return send_file(image_file)
+
+@app.route('/tutorial_image/<filename>')
+def get_tutorial_image(filename):
+    
+    image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'tutorial_data', filename)
+    image_file_with_ext = find_extension(image_file)
+    
+    return send_file(image_file_with_ext)
+
+@app.route('/user_home/', methods=['GET', 'POST'])
 def user_home():    
     if 'username' in session:
-        if 'study' in session:
-            status = get_status(session['study'])
-            userVM = user_for_home(session["username"], session['study'], status)
-            studyName = get_study_name(session['study'])
-            userVM.studyName = studyName
-        elif ('admin' in session) and session['admin']:
-            return(redirect(url_for('study_selection')))
-        else:
-            #this SHOULD NOT happen but in case authentication went wrong, try again
-            return(redirect(url_for('logout')))
-        
-        if status == StudyStatus.ended.value:
-            remainingDays = get_remaining_learning_days(session['study'])
-        else:
-            remainingDays = get_remaining_review_days(session['study'])
-        userVM.remainingDays = remainingDays
-        
-        if userVM.admin:
-            return render_template('admin_home.html', ViewModel=userVM)
-        else:
-            if userVM.demographicsAnswered:
-                if status in [StudyStatus.ongoing.value, StudyStatus.test.value]:
-                    userVM.remainingItems             
-                    return render_template('user_home.html', ViewModel=userVM)
-                else:
-                    if status == StudyStatus.ended.value and study_has_gold_standard(session['study']):
-                        learnViewModel = user_for_learning(userVM.userId, userVM.userName, studyName, remainingDays)
-                        
-                        return render_template('user_learning.html', ViewModel=learnViewModel)
-                    else:
-                        return render_template('study_ended.html', username=userVM.userName)
+        if request.method == 'GET':
+            if 'study' in session:
+                status = get_status(session['study'])
+                userVM = user_for_home(session["username"], session['study'], status)
+                studyName = get_study_name(session['study'])
+                userVM.studyName = studyName
+            elif ('admin' in session) and session['admin']:
+                return(redirect(url_for('study_selection')))
             else:
-                return render_template('demographics.html', user=userVM)
+                #this SHOULD NOT happen but in case authentication went wrong, try again
+                return(redirect(url_for('logout')))
+            
+            if status == StudyStatus.ended.value:
+                remainingDays = get_remaining_learning_days(session['study'])
+            else:
+                remainingDays = get_remaining_review_days(session['study'])
+            userVM.remainingDays = remainingDays
+            
+            if userVM.admin:
+                return render_template('admin_home.html', ViewModel=userVM)
+            else:
+                if userVM.demographicsAnswered:
+                    if status in [StudyStatus.ongoing.value, StudyStatus.test.value]:
+                        userVM.remainingItems             
+                        return render_template('user_home.html', ViewModel=userVM)
+                    else:
+                        if status == StudyStatus.ended.value and study_has_gold_standard(session['study']):
+                            learnViewModel = user_for_learning(userVM.userId, userVM.userName, studyName, remainingDays)
+                            
+                            return render_template('user_learning.html', ViewModel=learnViewModel)
+                        else:
+                            return render_template('study_ended.html', username=userVM.userName)
+                else:
+                    
+                    return render_template('demographics.html', ViewModel=userVM, genderMissingError=None, ageMissingError=None, experienceMissingError=None, frequencyMissingError=None)
+        
+        if request.method == 'POST':
+            
+            genderMissingError = None
+            ageMissingError = None
+            experienceMissingError = None
+            frequencyMissingError = None
+
+            if 'gender' not in request.form:
+                
+                genderMissingError = 'please select a gender, or pick other/unspecified'
+                
+            if 'age' not in request.form or request.form['age'] == '':
+                
+                ageMissingError = 'please enter your age'
+            
+            if 'experience' not in request.form:
+                
+                experienceMissingError = 'please select an experience category'
+                
+            if 'frequency' not in request.form:
+                
+                frequencyMissingError = 'please select a practice frequency category'
+            
+            if genderMissingError is not None or ageMissingError is not None or experienceMissingError is not None or frequencyMissingError is not None:
+                demoVM = create_demographic_ViewModel(request.form['userId'])
+                return render_template('demographics.html', ViewModel=demoVM, genderMissingError=genderMissingError, ageMissingError=ageMissingError, experienceMissingError=experienceMissingError, frequencyMissingError=frequencyMissingError)
+            
+            else:
+                
+                save_demographics(request.form['userId'], request.form['gender'], request.form['age'], request.form['experience'], request.form['frequency'])
+                
+                return(redirect(url_for('user_home')))
     else:
         return(redirect(url_for('login')))
 
@@ -384,6 +437,10 @@ def upload_case_images():
                     if problems is not None:
                         remove_case_images(session['study'])
                         return render_template('upload_case_images.html', errors=problems)
+                    problems = check_images(session['study'], 'case')
+                    if problems is not None:
+                        remove_case_images(session['study'])
+                        return render_template('upload_case_images.html', errors=problems)
                 return redirect(url_for('manage_uploads'))
                     
         return(redirect(url_for('user_home')))    
@@ -414,6 +471,10 @@ def upload_tutorial_images():
                     problems = unzip_and_move(session['study'], os.path.join(save_folder, filename), 'tutorial')
                     if problems is not None:
                         remove_tutorial_images(session['study'])
+                        return render_template('upload_case_images.html', errors=problems)
+                    problems = check_images(session['study'], 'tutorial')
+                    if problems is not None:
+                        remove_case_images(session['study'])
                         return render_template('upload_case_images.html', errors=problems)
                 return redirect(url_for('manage_uploads'))
                 
@@ -923,7 +984,7 @@ def case_display(case):
         try:
             caseVM = caseForDisplay(session['study'], session['userId'], case, studyName, status)
         except Exception as e:
-            return render_template('case_display.html', error=f"{e}")
+            return render_template('case_display.html', error=f'{e}')
         return render_template('case_display.html', ViewModel=caseVM, error=None)
     else:
         return redirect(url_for('login'))
@@ -934,7 +995,10 @@ def case_learning(case):
         status = get_status(session['study'])
         if status == StudyStatus.ended.value and study_has_gold_standard(session['study']):
             studyName = get_study_name(session['study'])
-            caseVM = caseForLearning(session['userId'], case, studyName, status)
+            try:
+                caseVM = caseForLearning(session['userId'], case, studyName, status)
+            except Exception as e:
+                return render_template('case_learning.html', error=f'{e}')
             return render_template('case_learning.html', ViewModel=caseVM)
         return redirect(url_for('user_home'))
     else:
@@ -943,8 +1007,9 @@ def case_learning(case):
 @app.route('/tutorial/<tuto>')
 def display_tutorial(tuto):
     if 'userId' in session:
-        img_tuto = criterion_for_tutorial(tuto)
-        return render_template('tutorial.html', img_tuto=img_tuto)
+        relative_path_tuto = criterion_for_tutorial(session['study'], tuto)
+        
+        return render_template('tutorial.html', tuto=relative_path_tuto)
     else:
         return '', 404
  

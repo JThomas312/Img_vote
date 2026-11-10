@@ -45,7 +45,7 @@ def get_categories(study_id, engine):
     categoriesDM = []
     
     try:
-        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).order_by(CategoryPOCO.id).all()
+        categories = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).order_by(CategoryPOCO.ordering, CategoryPOCO.id).all()
         
         for category in categories:
             cDM = CategoryDataModel(category.id, category.name, category.type, category.has_tutorial, category.has_trust, category.has_na, category.optional, [])
@@ -304,6 +304,20 @@ def other_gold_standard_exists(study_id, cat_id, engine):
     
     try:
         query = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True).filter(CategoryPOCO.id != cat_id)
+        
+        ans = session.query(query.exists()).scalar()
+        
+    finally:
+        session.close()
+        
+    return ans
+
+def is_number_category(cat_id, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(CategoryPOCO).filter(CategoryPOCO.id == cat_id).filter(CategoryPOCO.type == CategoryType.numerical_value.value)
         
         ans = session.query(query.exists()).scalar()
         

@@ -34,6 +34,24 @@ class HomeViewModel():
 
 class UserHomeViewModel(HomeViewModel):
     
+    gender : int
+    age: int
+    experience: int
+    frequency: int
+    female: int
+    male: int
+    other: int
+    lessThanAYear: int
+    oneToThreeYears: int
+    threeToTenYears: int
+    moreThanTenYears: int
+    everyDay: int
+    severalAWeek: int
+    severalAMonth: int
+    severalAYear: int
+    never: int
+    min_int: int
+    max_int: int
     items: list[(int, str, bool)] #id, name, completed
     remainingItems: int
     demographicsAnswered: bool
@@ -42,7 +60,7 @@ class UserHomeViewModel(HomeViewModel):
         self.items = []
         self.remainingItems = 0
         self.admin = False
-        self.demographicsAnswered = True #edit once demographics are implemented
+        self.demographicsAnswered = False #edit once demographics are implemented
   
 class AdminHomeViewModel(HomeViewModel):
     

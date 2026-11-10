@@ -35,7 +35,7 @@
       <div class="centered">
         <div id="gallery">
           {% for i in range(ViewModel.nb_imgs) %}
-            <img class="case_img" src="data:image/jpeg;base64,{{ ViewModel.imgs[i] }}" alt="Picture {{i}}">
+            <img class="case_img" src="{{ url_for('get_case_image', filename=ViewModel.imgs[i]) }}" alt="Picture {{i}}">
           {% endfor %}
         </div>
       </div>
@@ -57,7 +57,7 @@
               {% endif %}
     
               {% if category.type == ViewModel.categoryYesNo %}
-                {% if category.nb_criteria == 1 %}
+                {% if category.nb_criteria != 1 %}
                   <h1 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-4 mb-2 px-1">{{category.name}}</h1>
                 {% endif %}
                 {% for criterion in category.criteria %}
@@ -87,10 +87,10 @@
               {% endif %}
     
               {% if category.type == ViewModel.categoryOneOf %}
-                {% if category.nb_criteria == 1 %}
+                {% if category.nb_criteria != 1 %}
                   <fieldset class="border border-indigo-100 rounded-xl bg-white shadow-sm p-3 mb-2">
                     <legend class="text-xs font-semibold text-indigo-500 px-1 uppercase tracking-wide">{{category.name}}</legend>
-                {% endif % }
+                {% endif %}
                   <div id="{{category.cat_id}}-diagnosis-options" class="{{category.name}}-diagnosis-options">
                     {% for criterion in category.criteria %}
                       <div class="criterion-row">
@@ -112,7 +112,7 @@
               {% endif %}
     
               {% if category.type == ViewModel.categoryNumbers %}
-                {% if category.nb_criteria == 1 %}
+                {% if category.nb_criteria != 1 %}
                   <h1 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-4 mb-2 px-1">{{category.name}}</h1>
                 {% endif %}
                 {% for criterion in category.criteria %}

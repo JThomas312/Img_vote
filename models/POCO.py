@@ -55,6 +55,10 @@ class ReviewerPOCO(Base):
     name: Mapped[str] = mapped_column(String(50))
     login: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(30))
+    gender: Mapped[int]
+    age: Mapped[int]
+    experience: Mapped[int]
+    practice_frequency: Mapped[int]
     admin: Mapped[bool]
     full_review: Mapped[bool]
     remaining_cases: Mapped[int]

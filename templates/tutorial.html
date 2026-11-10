@@ -13,6 +13,6 @@
 {% endblock %}
 
 {% block content %}
-<img src="data:image/jpeg;base64,{{ img_tuto }}" alt="Tutorial image">
+<img src="{{ url_for('get_tutorial_image', filename=tuto) }}" alt="Tutorial image">
 {% endblock %}
 

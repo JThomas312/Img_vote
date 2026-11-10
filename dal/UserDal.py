@@ -21,6 +21,7 @@ sys.path.append(str(path_root))
 #local modules
 from img_vote.models.DataModels import UserDataModel
 from img_vote.models.DataModels import UserForLogDataModel
+from img_vote.models.DataModels import DemographicsDataModel
 from img_vote.models.POCO import ReviewerPOCO, AnswerPOCO, AnswerCriterionPOCO
 
 
@@ -77,6 +78,20 @@ def get_reviewer_for_login(login, engine):
         session.close()
     
     return rev
+
+def get_demographics(identifier, engine):
+    
+    session = Session(engine)
+    
+    try:
+        query = session.query(ReviewerPOCO).filter(ReviewerPOCO.id == identifier)
+        ans = query.one_or_none()
+        answer = DemographicsDataModel(ans.gender, ans.age, ans.experience, ans.practice_frequency)
+        
+    finally:
+        session.close()
+    
+    return answer
 
 def get_users_for_admin(identifier, study_id, engine):
     
@@ -251,7 +266,21 @@ def delete_reviewer_by_login(login, engine):
     
     finally:        
         session.close()
+
+def register_demographics(identifier, gender, age, experience, frequency, engine):
     
+    session = Session(engine)
+    
+    try:
+        updatestmt = update(ReviewerPOCO).where(ReviewerPOCO.id == identifier).values(gender=gender, age=age, experience=experience, practice_frequency=frequency)
+        
+        session.execute(updatestmt)
+        
+        session.commit()
+        
+    finally:
+        session.close()
+
 def clear_non_admin_users(study_id, engine):
     
     session = Session(engine)

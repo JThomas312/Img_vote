@@ -124,27 +124,53 @@ def is_passed(enteredDate):
     second = datetime.strptime(enteredDate, '%Y-%m-%d')
     
     return first > second
+
+def verify_images(folder_path):
     
-def get_image(img_path, try_extensions=False):
+    possible_extensions = ['png', 'Png', 'PNG', 'jpg', 'Jpg', 'JPG',  'jpeg', 'Jpeg', 'JPEG']
+    
+    try :
+        for folder in listdir_safe_and_sorted(folder_path):
+            for img in listdir_safe_and_sorted(os.path.join(folder_path, folder)):
+                img_path = os.path.join(folder_path, folder, img)
+                with Image.open(img_path) as image:
+                    image.verify()
+                if img_path.split('.')[-1] not in possible_extensions:
+                    raise Exception(' '.join(('Incorrect extension detected', os.path.join(folder, img))))
+                
+    except Exception as e:
+        error = f'{e}'
+        return error
+    
+    return None
+
+def find_extension(img_path):
+
+    definitive_path = img_path
+    
+    possible_extensions = ['png', 'Png', 'PNG', 'jpg', 'Jpg', 'JPG',  'jpeg', 'Jpeg', 'JPEG']
+
+    for extension in possible_extensions:
+        if os.path.exists('.'.join((img_path, extension))):
+            definitive_path = '.'.join((img_path, extension))
+    
+    return definitive_path
+
+def get_image_dimensions(img_path, try_extensions=False):
     
     definitive_path = img_path
     
     if try_extensions:
-        possible_extensions = ['.png', 'Png', '.PNG', '.jpg', 'Jpg', '.JPG',  'jpeg', 'Jpeg', '.JPEG']
+        possible_extensions = ['png', 'Png', 'PNG', 'jpg', 'Jpg', 'JPG',  'jpeg', 'Jpeg', 'JPEG']
     
         for extension in possible_extensions:
-            if os.path.exists(img_path + extension):
-                definitive_path = img_path + extension
+            if os.path.exists('.'.join((img_path, extension))):
+                definitive_path = '.'.join((img_path, extension))
     
     try:
         im = Image.open(definitive_path)
-        data = io.BytesIO()
-        im.save(data, im.format)
-        encoded_img_data = base64.b64encode(data.getvalue())
-        img_data = encoded_img_data.decode('utf-8')
         w, h = im.size
     except:
-        img_data = bytearray()
         w, h = 0, 0
         
-    return (img_data, w, h)
+    return (w, h)

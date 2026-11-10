@@ -36,4 +36,17 @@ class StudyStatus(Enum):
     paused = 'paused'
     ended = 'ended'
     
-
+class DemographicsVal(Enum):
+    
+    female = 1
+    male = 2
+    other = 3
+    lessThanAYear = 1
+    oneToThreeYears = 2
+    threeToTenYears = 3
+    moreThanTenYears = 4
+    never = 1
+    severalAYear = 2
+    severalAMonth = 3
+    severalAWeek = 4
+    everyDay = 5

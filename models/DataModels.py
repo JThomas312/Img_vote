@@ -14,6 +14,18 @@ class StudyDataModel():
         self.id = id
         self.name = name
 
+class DemographicsDataModel():
+    gender: int
+    age: int
+    experience: int
+    frequency: int
+    
+    def __init__(self, gender, age, experience, frequency):
+        self.gender = gender
+        self.age = age
+        self.experience = experience
+        self.frequency = frequency
+
 class UserDataModel():
     userId: int
     study: int
