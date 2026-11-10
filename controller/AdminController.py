@@ -57,7 +57,7 @@ from img_vote.dal.MasterDal import delete_reviewer_by_id, update_password, clear
 from img_vote.dal.MasterDal import count_all_cases, extract_all_data, create_all_cases, clear_all_cases
 
 #answer related
-from img_vote.dal.MasterDal import create_all_answers, create_user_answers, get_all_remarks, erase_optional_answers
+from img_vote.dal.MasterDal import create_all_answers, create_user_answers, get_all_remarks
 
 #category related
 from img_vote.dal.MasterDal import get_category_by_id, categories_with_criteria, category_with_criteria_and_prerequisites
@@ -211,7 +211,7 @@ def update_category(cat_id, value, parameter):
 
 def save_criterion(studyId, cat_id, name, malignancy):
     
-    if not sanitize_technical_name(name) or name == '' or name == 'na':
+    if not sanitize_technical_name(name) or name == '' or name == 'na' or get_criterion_by_name(studyId, name) is not None:
         return
     
     category_name = get_category_by_id(cat_id).name
@@ -221,19 +221,22 @@ def save_criterion(studyId, cat_id, name, malignancy):
     
     return crit_id
 
-def change_criterion(cat_id, crit_id, name, malignancy, action):
+def change_criterion(studyId, cat_id, critId, name, malignancy, action):
     
     if action == Action.remove.value:
-        delete_prerequisite_from_criterion(crit_id)
-        erase_criterion(crit_id)
+        delete_prerequisite_from_criterion(critId)
+        erase_criterion(critId)
+        
+        return None
         
     if not sanitize_technical_name(name) or name == '':
         return 'error'
     
     if action == Action.edit.value:
-        if get_criterion_by_name(name) is None:
+        crit_by_name = get_criterion_by_name(studyId, name)
+        if crit_by_name is None or crit_by_name.critId == critId:
             mal = malignancy == 'true'
-            update_criterion(crit_id, name, mal)
+            update_criterion(critId, name, mal)
         else:
             return 'error'
         
@@ -665,10 +668,6 @@ def get_remarks_for_export_async(studyId, studyName):
     
     safe_worksheet_save(folder_path, file_name1, ws)
     safe_worksheet_save(folder_path, file_name2, ws)
-
-def clear_optional_answers(studyId):
-    
-    erase_optional_answers(studyId)
 
 def get_data_for_export(studyId, studyName):
 

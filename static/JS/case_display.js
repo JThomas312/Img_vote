@@ -29,11 +29,7 @@ function clear_category(category){
 
     const container = document.querySelector(`[id="${category}-diagnosis-options"]`);
     const inputs = container.querySelectorAll('input[type="radio"]');
-    
-    console.log(inputs);
-    
     inputs.forEach(input => {
-        console.log(input);
         if (input.id.includes('unanswered')){
             input.checked = true;
         }
@@ -70,7 +66,7 @@ function safeguard(case_id, criterion_id, value, category) {
     url = '/safeguard_diagnosis?case_id=' + case_id + '&criterion_id=' + criterion_id + '&value=' + value + '&category=' + category;
     
     $.getJSON(url, function(data){
-        if (data != null){
+        if (data != null && data.result == "saving_error"){
             //caution timeout in case the click event is slower and runs afterwards
             setTimeout(() => {
                 var type = data.result;
@@ -151,34 +147,60 @@ function save_number(case_id, criterion_id, category){
 
 function updateVisibility(){
     setTimeout(() => {
-        var prerequisites = document.getElementsByClassName( 'category_prerequisite' );
-        for (let i = 0; i < prerequisites.length; i++){
-            var prerequisite = prerequisites[i];
-            var conditions = JSON.parse(prerequisite.dataset.conditions);
-            var display = false;
-            for (let j = 0; j < conditions.length; j++){
-                var requirement_id = conditions[j];
-                var requirement = document.getElementById(requirement_id);
-                if (requirement == null){
-                    var requirement = document.getElementById(requirement_id + 'Yes');
-                }
-                var checked = requirement.checked;
-                if (checked == undefined){
-                    if (requirement.value != undefined){
-                        var checked = true;
+        var workToDo = true;
+        while (workToDo){
+            workToDo = false;
+            var prerequisites = document.getElementsByClassName( 'category_prerequisite' );
+            for (let i = 0; i < prerequisites.length; i++){
+                var prerequisite = prerequisites[i];
+                var conditions = JSON.parse(prerequisite.dataset.conditions);
+                var display = false;
+                for (let j = 0; j < conditions.length; j++){
+                    var requirement_id = conditions[j];
+                    var requirement = document.getElementById(requirement_id);
+                    if (requirement == null){
+                        var requirement = document.getElementById(requirement_id + 'Yes');
+                    }
+                    var checked = requirement.checked;
+                    if (checked == undefined){
+                        if (requirement.value != undefined){
+                            var checked = true;
+                        }
+                    }
+                    if (checked){
+                        display = true;
                     }
                 }
-                if (checked){
-                    display = true;
+                var category_name = prerequisite.id.split( '_prerequisites' )[0];
+                var category = document.getElementById(category_name);
+                if (display){
+                    category.style.display = 'block';
                 }
-            }
-            var category_name = prerequisite.id.split( '_prerequisites' )[0];
-            var category = document.getElementById(category_name);
-            if (display){
-                category.style.display = 'block';
-            }
-            else{
-                category.style.display = 'none';
+                else{
+                    //safety to avoid infinite loop
+                    if (category.style.display != 'none'){
+                        category.style.display = 'none';
+                        const container = document.getElementById(category_name);
+                        const radios = container.querySelectorAll( 'input[type="radio"]');
+                        const numbers = container.querySelectorAll( 'input[type="number"]');
+                        const ranges = container.querySelectorAll( 'input[type="range"]');
+                        radios.forEach(radio => {
+                            if (radio.id.includes('unanswered')){
+                                radio.checked = true;
+                            }
+                            else {
+                                radio.checked = false;
+                            }
+                        })
+                        numbers.forEach(number => {
+                            number.value = null;
+                        })
+                        ranges.forEach(range => {
+                            range.value = null;
+                        })
+                        workToDo = true;
+                    }
+                }
             }
         }
     }, 100);

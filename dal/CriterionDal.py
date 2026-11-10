@@ -43,17 +43,18 @@ def get_criterion_by_id(identifier, engine):
     
     return criterion
 
-def get_criterion_by_name(name, engine):
+def get_criterion_by_name(study_id, name, engine):
     
     session = Session(engine)
     
     try:
-        criterionQuery = session.query(CriterionPOCO).filter(CriterionPOCO.name == name)
+        criterionQuery = session.query(CriterionPOCO, CategoryPOCO).join(CategoryPOCO, CriterionPOCO.category == CategoryPOCO.id).filter(CriterionPOCO.name == name).filter(CategoryPOCO.study == study_id)
         criterionPOCO = criterionQuery.one_or_none()
         
         if criterionPOCO is None:
             return None
         else:
+            criterionPOCO = criterionPOCO[0]
             criterion = CriterionDataModel(criterionPOCO.id, criterionPOCO.name, criterionPOCO.tutorial_path, criterionPOCO.category, criterionPOCO.is_trust)
         
     finally:        
@@ -99,11 +100,9 @@ def is_answer_done(study_id, userId, caseId, engine):
                 
                 if category.has_trust:
                     #check if trust criterion was left unanswered
-                    trust_query1 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered.value).filter(CriterionPOCO.is_trust == True)
-                    trust_query2 = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered.value).filter(CriterionPOCO.is_trust == True)
-                    exists1 = session.query(trust_query1.exists()).scalar()
-                    exists2 = session.query(trust_query2.exists()).scalar()
-                    if exists1 or exists2:
+                    trust_query = query0.filter(CategoryPOCO.id == category.id).filter(AnswerCriterionPOCO.value == CriterionValue.unanswered.value).filter(CriterionPOCO.is_trust == True)
+                    exists = session.query(trust_query.exists()).scalar()
+                    if exists:
                         return False
     
     finally:
@@ -361,7 +360,7 @@ def undo_all_but_one(userId, case, criterionId, value, category, engine):
     try:
         query = session.query(AnswerCriterionPOCO, AnswerPOCO, CriterionPOCO).join(AnswerPOCO, AnswerCriterionPOCO.answer == AnswerPOCO.id).join(CriterionPOCO, AnswerCriterionPOCO.criterion == CriterionPOCO.id).filter(CriterionPOCO.category == category).filter(AnswerPOCO.reviewer == userId).filter(AnswerPOCO.study_case == case).filter(CriterionPOCO.id != criterionId).filter(CriterionPOCO.is_trust == False)
         ansCrit = query.all()
-    
+        
         # 0: answerCriterion, 1: answer, 2: criterion
         ansId = ansCrit[0][1].id
         relevant_ids = [ans[2].id for ans in ansCrit]

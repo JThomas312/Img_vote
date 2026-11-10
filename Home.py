@@ -96,7 +96,6 @@ from controller.AdminController import get_result_file
 from controller.AdminController import remove_result_file
 from controller.AdminController import remove_all_result_files
 from controller.AdminController import get_remarks_for_export
-from controller.AdminController import clear_optional_answers
 
 from controller.CaseController import caseForDisplay
 from controller.CaseController import caseForLearning
@@ -782,7 +781,6 @@ def end_study():
         if ('admin' in session) and session['admin'] and ('study' in session):
             status = get_status(session['study'])
             if status == StudyStatus.paused.value:
-                clear_optional_answers(session['study'])
                 update_status(session['study'], StudyStatus.ended.value)
         return(redirect(url_for('user_home')))
     else:
@@ -894,16 +892,16 @@ def change_password():
                     if sanitize_password(request.form['newPass']):
                         modify_password(session['userId'], request.form['newPass'])
                     else:
-                        error = 'New password is invalid'
+                        error = 'New password should be between 8 and 50 characters'
                 else:
                     error = 'New passwords do not match'
             else:
                 error = 'Invalid password'
         
-        if error is None:
-            return redirect(url_for('user_home'))
-        else:
-            return render_template('change_password.html', error=error)
+            if error is None:
+                return redirect(url_for('user_home'))
+        
+        return render_template('change_password.html', error=error)
     else:
         return redirect(url_for('login'))
 
@@ -1057,7 +1055,7 @@ def edit_criterion():
                 name = request.args.get('name')
                 malignancy = request.args.get('malignancy')
                 action = request.args.get('action')
-                problem = change_criterion(cat_id, crit_id, name, malignancy, action)
+                problem = change_criterion(session['study'], cat_id, int(crit_id), name, malignancy, action)
                 if problem is None:
                     return '', 204
                 else:
@@ -1153,7 +1151,7 @@ def safeguard_diagnosis():
             checkProgress(session['study'], session['userId'], int(request.args.get('case_id')))
             return '', 204
         else:
-            return jsonify(result=problem[1])
+            return jsonify(result='saving_error')
 
 @app.route('/safeguard_remarks/')    
 def safeguard_remarks():

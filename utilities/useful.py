@@ -20,8 +20,6 @@ import os.path
 import random
 import string
 from PIL import Image
-import base64
-import io
 
 def generate_password():
     length = random.randint(8, 32)
@@ -49,7 +47,7 @@ def sanitize_text(userinput):
     return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\'\"\s/%+<>≥≤«»]{0,2000}$', userinput))
 
 def sanitize_password(userinput):
-    return bool(match(r'^[a-zA-Z0-9À-ÿ,.:;?!_()\'\" /%+<>]{8,50}$', userinput))
+    return (len(userinput) > 7 and len(userinput) < 51)
 
 def get_distribution():
     

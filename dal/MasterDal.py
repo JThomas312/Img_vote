@@ -210,6 +210,9 @@ def get_answer_to_case(userId, caseId):
 def save_remarks(userId, caseId, value):
     return AnswerDal.save_remarks(userId, caseId, value, engine)
 
+def update_optional_answers(userId, case, criterionId, category=None):
+    return AnswerDal.update_optional_answers(userId, case, criterionId, category, engine)
+
 def update_answer_status(userId, caseId, done):
     return AnswerDal.update_answer_status(userId, caseId, done, engine)
 
@@ -218,9 +221,6 @@ def create_all_answers(study_id, rev_per_case):
     
 def create_user_answers(study_id, userId, case_per_rev):
     return AnswerDal.create_user_answers(study_id, userId, case_per_rev, engine)
-    
-def erase_optional_answers(study_id):
-    return AnswerDal.erase_optional_answers(study_id, engine)
     
 def clear_all_answers(study_id):
     return AnswerDal.clear_all_answers(study_id, engine)
@@ -333,8 +333,8 @@ def clear_all_prerequisites(study_id):
 def get_criterion_by_id(critId):
     return CriterionDal.get_criterion_by_id(critId, engine)
 
-def get_criterion_by_name(critName):
-    return CriterionDal.get_criterion_by_name(critName, engine)
+def get_criterion_by_name(study_id, critName):
+    return CriterionDal.get_criterion_by_name(study_id, critName, engine)
 
 def get_criteria_for_case(userId, caseId, catId):
     return CriterionDal.get_criteria_for_case(userId, caseId, catId, engine)

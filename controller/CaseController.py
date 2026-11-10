@@ -29,6 +29,7 @@ from img_vote.dal.MasterDal import get_case_with_gold_standard
 
 #answer related
 from img_vote.dal.MasterDal import get_case_by_answer_name
+from img_vote.dal.MasterDal import update_optional_answers
 from img_vote.dal.MasterDal import update_answer_status
 from img_vote.dal.MasterDal import get_answer_to_case
 from img_vote.dal.MasterDal import get_answer_remarks
@@ -216,9 +217,10 @@ def safeguardDiagnosis(userId, case, criterionId, value, category, studyStatus):
     
         if full_category.catType == CategoryType.one_of.value and not criterion.isTrust:
             undo_all_but_one(userId, case, criterionId, value, category)
-            
+            update_optional_answers(userId, case, criterionId, category)
         else:
             safeguard_Criterion(userId, case, criterionId, value)
+            update_optional_answers(userId, case, criterionId)
             
     except Exception as e:
         return (f'{e}', full_category.catType)
