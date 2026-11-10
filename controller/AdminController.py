@@ -664,7 +664,7 @@ def get_remarks_for_export_async(studyId, studyName):
     for i in range(len(remarks)):
         ws[i + 1, 0] = format_r_friendly(remarks[i].case)
         ws[i + 1, 1] = format_r_friendly(remarks[i].reviewer)
-        ws[i + 1, 2] = format_r_friendly(remarks[i].remarks)
+        ws[i + 1, 2] = remarks[i].remarks
     
     safe_worksheet_save(folder_path, file_name1, ws)
     safe_worksheet_save(folder_path, file_name2, ws)
