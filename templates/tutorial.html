@@ -13,6 +13,6 @@
 {% endblock %}
 
 {% block content %}
-<img src="{{ url_for('get_tutorial_image', filename=tuto) }}" alt="Tutorial image">
+<img src="{{ url_for('get_tutorial_image', foldername=tuto_folder, filename=tuto_file) }}" alt="Tutorial image">
 {% endblock %}
 

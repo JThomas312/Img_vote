@@ -163,16 +163,16 @@ def logout():
     session.clear()
     return render_template('login.html', error=error, logout=logout)
 
-@app.route('/case_image/<filename>')
-def get_case_image(filename):
+@app.route('/case_image/<foldername>/<filename>')
+def get_case_image(foldername, filename):
     
-    image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'Img_data', filename)
+    image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'Img_data', foldername, filename)
     return send_file(image_file)
 
-@app.route('/tutorial_image/<filename>')
-def get_tutorial_image(filename):
+@app.route('/tutorial_image/<foldername>/<filename>')
+def get_tutorial_image(foldername, filename):
     
-    image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'tutorial_data', filename)
+    image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'tutorial_data', foldername, filename)
     image_file_with_ext = find_extension(image_file)
     
     return send_file(image_file_with_ext)
@@ -1005,9 +1005,9 @@ def case_learning(case):
 @app.route('/tutorial/<tuto>')
 def display_tutorial(tuto):
     if 'userId' in session:
-        relative_path_tuto = criterion_for_tutorial(session['study'], tuto)
+        (tuto_folder, tuto_file) = criterion_for_tutorial(session['study'], tuto)
         
-        return render_template('tutorial.html', tuto=relative_path_tuto)
+        return render_template('tutorial.html', tuto_folder=tuto_folder, tuto_file=tuto_file)
     else:
         return '', 404
  

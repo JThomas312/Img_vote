@@ -35,7 +35,7 @@
       <div class="centered">
         <div id="gallery">
           {% for i in range(ViewModel.nb_imgs) %}
-            <img class="case_img" src="{{ url_for('get_case_image', filename=ViewModel.imgs[i]) }}" alt="Picture {{i}}">
+            <img class="case_img" src="{{ url_for('get_case_image', foldername=ViewModel.imgs[i][0], filename=ViewModel.imgs[i][1]) }}" alt="Picture {{i}}">
           {% endfor %}
         </div>
       </div>

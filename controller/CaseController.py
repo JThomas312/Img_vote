@@ -138,7 +138,7 @@ def caseForDisplay(studyId, userId, case, studyName, studyStatus):
     for img_file in img_files:
         img_path = os.path.join(path, img_file)
         (w, h) = get_image_dimensions(img_path)
-        caseVM.imgs.append(os.path.join(caseDM.name, img_file))
+        caseVM.imgs.append((caseDM.name, img_file))
         caseVM.imgs_sizes.append((w, h))
         caseVM.nb_imgs += 1
     
@@ -181,7 +181,7 @@ def caseForLearning(userId, case, studyName, studyStatus):
     for img_file in img_files:
         img_path = os.path.join(path, img_file)
         (w, h) = get_image_dimensions(img_path)
-        caseVM.imgs.append(os.path.join(caseDM.name, img_file))
+        caseVM.imgs.append((caseDM.name, img_file))
         caseVM.imgs_sizes.append((w, h))
         caseVM.nb_imgs += 1
     
@@ -202,9 +202,9 @@ def criterion_for_tutorial(studyId, idCriterion):
     crit = get_criterion_by_id(idCriterion)
     critName = crit.name
     catName = get_category_by_id(crit.critCategory).name
-    tutorial_slide_path = os.path.join(catName, critName)
+    tutorial_slide_path_elements = (catName, critName)
     
-    return tutorial_slide_path
+    return tutorial_slide_path_elements
     
 def safeguardDiagnosis(userId, case, criterionId, value, category, studyStatus):
     
