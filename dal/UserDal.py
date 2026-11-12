@@ -20,6 +20,7 @@ sys.path.append(str(path_root))
 
 #local modules
 from img_vote.models.DataModels import UserDataModel
+from img_vote.models.DataModels import UserDemographicsDataModel
 from img_vote.models.DataModels import UserForLogDataModel
 from img_vote.models.DataModels import DemographicsDataModel
 from img_vote.models.POCO import ReviewerPOCO, AnswerPOCO, AnswerCriterionPOCO
@@ -127,6 +128,24 @@ def get_all_non_admin_reviewers(study_id, engine):
     
         for i in range(len(userPOCO)):
             users.append(UserDataModel(userPOCO[i].id, userPOCO[i].study, userPOCO[i].name, userPOCO[i].login, userPOCO[i].admin, userPOCO[i].remaining_cases))
+    
+    finally:
+        session.close()
+
+    return users
+
+def get_all_non_admin_reviewers_with_demographics(study_id, engine):
+    
+    session = Session(engine)
+
+    try:
+        users = []
+    
+        userQuery = session.query(ReviewerPOCO).filter(ReviewerPOCO.study == study_id).filter(ReviewerPOCO.admin == False).order_by(ReviewerPOCO.id)
+        userPOCO = userQuery.all()
+    
+        for i in range(len(userPOCO)):
+            users.append(UserDemographicsDataModel(userPOCO[i].id, userPOCO[i].study, userPOCO[i].name, userPOCO[i].login, userPOCO[i].gender, userPOCO[i].age, userPOCO[i].experience, userPOCO[i].practice_frequency, userPOCO[i].admin, userPOCO[i].remaining_cases))
     
     finally:
         session.close()

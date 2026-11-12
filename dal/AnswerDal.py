@@ -148,11 +148,11 @@ def get_all_remarks(study_id, engine):
     answer = []
     
     try:
-        query = session.query(AnswerPOCO.remarks, ReviewerPOCO.name, CasePOCO.name).join(ReviewerPOCO, AnswerPOCO.reviewer == ReviewerPOCO.id).join(CasePOCO, AnswerPOCO.study_case == CasePOCO.id).filter(ReviewerPOCO.study == study_id).order_by(AnswerPOCO.study_case, AnswerPOCO.reviewer)
+        query = session.query(AnswerPOCO.remarks, ReviewerPOCO.name, ReviewerPOCO.login, CasePOCO.name).join(ReviewerPOCO, AnswerPOCO.reviewer == ReviewerPOCO.id).join(CasePOCO, AnswerPOCO.study_case == CasePOCO.id).filter(ReviewerPOCO.study == study_id).order_by(AnswerPOCO.study_case, AnswerPOCO.reviewer)
         queriedAns = query.all()
         for ans in queriedAns:
-            #0:Answer, 1: Reviewer, 2: Case
-            answer.append(RemarksDataModel(ans[2], ans[1], ans[0]))
+            #0:Answer, 1: Reviewer, 2:Reviewer login, 3: Case
+            answer.append(RemarksDataModel(ans[3], ans[1], ans[2], ans[0]))
         
     finally:
         session.close()

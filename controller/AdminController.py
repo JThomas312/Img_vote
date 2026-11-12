@@ -659,12 +659,14 @@ def get_remarks_for_export_async(studyId, studyName):
     
     ws[0, 0] = 'case'
     ws[0, 1] = 'reviewer'
-    ws[0, 2] = 'remarks'
+    ws[0, 2] = 'reviewer_login'
+    ws[0, 3] = 'remarks'
     
     for i in range(len(remarks)):
         ws[i + 1, 0] = format_r_friendly(remarks[i].case)
         ws[i + 1, 1] = format_r_friendly(remarks[i].reviewer)
-        ws[i + 1, 2] = remarks[i].remarks
+        ws[i + 1, 2] = format_r_friendly(remarks[i].reviewer_login)
+        ws[i + 1, 3] = remarks[i].remarks
     
     safe_worksheet_save(folder_path, file_name1, ws)
     safe_worksheet_save(folder_path, file_name2, ws)
@@ -701,9 +703,13 @@ def get_data_for_export_async(studyId, studyName):
     ws[0, 0] = 'cases'
     ws[0, 1] = 'reviewers'
     ws[0, 2] = 'reviewers_login'
-    ws[0, 3] = 'case_completed'
+    ws[0, 3] = 'gender'
+    ws[0, 4] = 'age'
+    ws[0, 5] = 'experience_category'
+    ws[0, 6] = 'practice_frequency_category'
+    ws[0, 7] = 'case_completed'
     
-    column_increment += 4
+    column_increment += 8
     
     for i in range(nbCategories):
         current_category = finalExtract[0].categories[i]
@@ -741,8 +747,12 @@ def get_data_for_export_async(studyId, studyName):
         ws[i + 1, 0] = finalExtract[i].case
         ws[i + 1, 1] = finalExtract[i].reviewer
         ws[i + 1, 2] = finalExtract[i].reviewer_login
-        ws[i + 1, 3] = finalExtract[i].case_completion
-        column_increment +=4
+        ws[i + 1, 3] = finalExtract[i].reviewer_gender
+        ws[i + 1, 4] = finalExtract[i].reviewer_age
+        ws[i + 1, 5] = finalExtract[i].reviewer_experience_category
+        ws[i + 1, 6] = finalExtract[i].reviewer_practice_frequency
+        ws[i + 1, 7] = finalExtract[i].case_completion
+        column_increment +=8
         for current_category in finalExtract[i].categories:
             if current_category.catType == CategoryType.one_of.value:
                 ws[i + 1, column_increment] = format_r_friendly(current_category.diagnosis)

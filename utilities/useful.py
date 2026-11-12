@@ -35,7 +35,7 @@ def sanitize(userinput):
     return bool(match(r'^[a-zA-Z0-9_ /]{2,50}$', userinput))
 
 def sanitize_login(userinput):
-    return bool(match(r'^[a-zA-Z_ ]{2,15}$', userinput))
+    return bool(match(r'^[a-zA-Z0-9_ ]{2,15}$', userinput))
 
 def sanitize_human_name(userinput):
     return bool(match(r'^[a-zA-ZÀ-ÿ_ ]{2,50}$', userinput))
@@ -131,12 +131,16 @@ def verify_images(folder_path):
         for folder in listdir_safe_and_sorted(folder_path):
             for img in listdir_safe_and_sorted(os.path.join(folder_path, folder)):
                 img_path = os.path.join(folder_path, folder, img)
-                with Image.open(img_path) as image:
-                    image.verify()
+                try:
+                    with Image.open(img_path) as image:
+                        image.verify()
+                except Exception:
+                    raise Exception(' '.join(('Invalid image file', img, 'detected in folder', folder)))
                 if img_path.split('.')[-1] not in possible_extensions:
-                    raise Exception(' '.join(('Incorrect extension detected', os.path.join(folder, img))))
+                    raise Exception(' '.join(('Incorrect extension detected for image', img, 'in folder', folder)))
                 
     except Exception as e:
+        print(e)
         error = f'{e}'
         return error
     

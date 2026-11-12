@@ -166,11 +166,17 @@ def logout():
 @app.route('/case_image/<foldername>/<filename>')
 def get_case_image(foldername, filename):
     
+    if '..' in foldername or '..' in filename:
+        return '', 404
+    
     image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'Img_data', foldername, filename)
     return send_file(image_file)
 
 @app.route('/tutorial_image/<foldername>/<filename>')
 def get_tutorial_image(foldername, filename):
+    
+    if '..' in foldername or '..' in filename:
+        return '', 404
     
     image_file = os.path.join(os.getcwd(), 'data', str(session['study']), 'tutorial_data', foldername, filename)
     image_file_with_ext = find_extension(image_file)
@@ -230,6 +236,10 @@ def user_home():
             if 'age' not in request.form or request.form['age'] == '':
                 
                 ageMissingError = 'please enter your age'
+                
+            if request.form['age'] < 1 or request.form['age'] > 100:
+                
+                ageMissingError = 'please enter a valid age'                
             
             if 'experience' not in request.form:
                 
@@ -245,7 +255,7 @@ def user_home():
             
             else:
                 
-                save_demographics(request.form['userId'], request.form['gender'], request.form['age'], request.form['experience'], request.form['frequency'])
+                save_demographics(session['userId'], request.form['gender'], request.form['age'], request.form['experience'], request.form['frequency'])
                 
                 return(redirect(url_for('user_home')))
     else:
@@ -256,6 +266,7 @@ def study_selection():
     if 'username' in session:
         if 'admin' in session and session['admin']:
             session.pop('study', default=None)
+            session.pop('studyname', default=None)
             viewmodel = get_studies()
             viewmodel.username = session['username']
             return render_template('study_selection.html', ViewModel=viewmodel)
@@ -877,6 +888,7 @@ def clear_users():
             if status in [StudyStatus.ended.value, StudyStatus.stopped.value]:
                 clear_data(session['study'])
                 session.pop('study', default=None)
+                session.pop('studyname', default=None)
         return redirect(url_for('user_home'))
     else:
         return(redirect(url_for('login')))    

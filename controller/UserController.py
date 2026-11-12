@@ -87,7 +87,7 @@ def user_for_home(username, studyId = None, status = None):
         usr.other = DemographicsVal.other.value
         usr.lessThanAYear = DemographicsVal.lessThanAYear.value
         usr.oneToThreeYears = DemographicsVal.oneToThreeYears.value
-        usr.threeToTenYears = DemographicsVal.threeToTenYears.value
+        usr.fourToTenYears = DemographicsVal.fourToTenYears.value
         usr.moreThanTenYears = DemographicsVal.moreThanTenYears.value
         usr.never = DemographicsVal.never.value
         usr.severalAYear = DemographicsVal.severalAYear.value
@@ -148,7 +148,7 @@ def create_demographic_ViewModel(userId):
     usr.other = DemographicsVal.other.value
     usr.lessThanAYear = DemographicsVal.lessThanAYear.value
     usr.oneToThreeYears = DemographicsVal.oneToThreeYears.value
-    usr.threeToTenYears = DemographicsVal.threeToTenYears.value
+    usr.fourToTenYears = DemographicsVal.fourToTenYears.value
     usr.moreThanTenYears = DemographicsVal.moreThanTenYears.value
     usr.never = DemographicsVal.never.value
     usr.severalAYear = DemographicsVal.severalAYear.value

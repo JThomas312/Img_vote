@@ -43,6 +43,30 @@ class UserDataModel():
         self.admin = admin
         self.remaining_cases = remaining_cases
         self.demographics_answered = False#demographics_answered
+
+class UserDemographicsDataModel():
+    userId: int
+    study: int
+    name: str
+    login: str
+    gender: int
+    age: int
+    experience: int
+    practice_frequency: int
+    admin: bool
+    remaining_cases: int
+    
+    def __init__(self, userId, study, name, login, gender, age, experience, practice_frequency, admin, remaining_cases):
+        self.userId = userId
+        self.study = study
+        self.name = name
+        self.login = login
+        self.gender = gender
+        self.age = age
+        self.experience = experience
+        self.practice_frequency = practice_frequency
+        self.admin = admin
+        self.remaining_cases = remaining_cases
         
 class UserForLogDataModel():
     login: str
@@ -269,6 +293,10 @@ class FinalExtractDataModel():
     case: str
     reviewer: str
     reviewer_login: str
+    reviewer_gender: str
+    reviewer_age: int
+    reviewer_experience_category: int
+    reviewer_practice_frequency: int
     case_completion: bool
     categories: list[CategoryExtractDataModel]
     reviewer_gold_standard_answer: str
@@ -279,10 +307,14 @@ class FinalExtractDataModel():
     gold_standard_malignancy: str
     gold_standard_malignancy_comparison: bool
     
-    def __init__(self, case, reviewer, reviewer_login, case_completion = False, reviewer_gold_standard_answer = '', gold_standard_confidence = -1, gold_standard_answer = '', gold_standard_comparison = False, reviewer_gold_standard_malignancy = '', gold_standard_malignancy = '', gold_standard_malignancy_comparison = False, categories = []):
+    def __init__(self, case, reviewer, reviewer_login, reviewer_gender, reviewer_age, reviewer_experience_category, reviewer_practice_frequency, case_completion = False, reviewer_gold_standard_answer = '', gold_standard_confidence = -1, gold_standard_answer = '', gold_standard_comparison = False, reviewer_gold_standard_malignancy = '', gold_standard_malignancy = '', gold_standard_malignancy_comparison = False, categories = []):
         self.case = case
         self.reviewer = reviewer
         self.reviewer_login = reviewer_login
+        self.reviewer_gender = reviewer_gender
+        self.reviewer_age = reviewer_age
+        self.reviewer_experience_category = reviewer_experience_category
+        self.reviewer_practice_frequency = reviewer_practice_frequency
         self.case_completion = case_completion
         self.reviewer_gold_standard_answer = reviewer_gold_standard_answer
         self.gold_standard_confidence = gold_standard_confidence
@@ -296,11 +328,13 @@ class FinalExtractDataModel():
 class RemarksDataModel():
     case: int
     reviewer: str
+    reviewer_login: str
     remarks: str
     
-    def __init__(self, case, reviewer, remarks):
+    def __init__(self, case, reviewer, reviewer_login, remarks):
         self.case = case
         self.reviewer = reviewer
+        self.reviewer_login = reviewer_login
         self.remarks = remarks
     
     

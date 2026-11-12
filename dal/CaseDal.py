@@ -25,11 +25,11 @@ sys.path.append(str(path_root))
 #local imports
 from img_vote.utilities.useful import listdir_safe_and_sorted, format_r_friendly
 
-from img_vote.models.Enums import CriterionValue, CategoryType
+from img_vote.models.Enums import CriterionValue, CategoryType, DemographicsVal
 from img_vote.models.DataModels import CaseDataModel, CaseGoldStandardDataModel, FinalExtractDataModel, CategoryExtractDataModel, CriterionExtractdataModel
 from img_vote.models.POCO import CasePOCO, CriterionPOCO, AnswerPOCO, AnswerCriterionPOCO, CategoryPOCO
 
-from img_vote.dal.UserDal import get_all_non_admin_reviewers
+from img_vote.dal.UserDal import get_all_non_admin_reviewers_with_demographics
 
 
 #read only     
@@ -132,7 +132,7 @@ def extract_all_data(study_id, engine):
     
     session = Session(engine)
     
-    reviewers = get_all_non_admin_reviewers(study_id, engine)
+    reviewers = get_all_non_admin_reviewers_with_demographics(study_id, engine)
     
     try:
         gold_standard_category = session.query(CategoryPOCO).filter(CategoryPOCO.study == study_id).filter(CategoryPOCO.has_gold_standard == True).one_or_none()
@@ -171,7 +171,30 @@ def extract_all_data(study_id, engine):
 
                     rev_login = format_r_friendly(reviewer.login)
                     
-                    newExtract = FinalExtractDataModel(case_name, rev_name, rev_login)
+                    match reviewer.gender:
+                        case DemographicsVal.female.value:
+                            rev_gender = 'female'
+                        case DemographicsVal.male.value:
+                            rev_gender = 'male'
+                        case DemographicsVal.other.value:
+                            rev_gender = 'other/unspecified'
+                        case _:
+                            rev_gender = 'unanswered'
+                            
+                    rev_age = 'unanswered'
+                    rev_exp = 'unanswered'
+                    rev_frequency = 'unanswered'
+
+                    if reviewer.age is not None:
+                        rev_age = reviewer.age
+
+                    if reviewer.experience is not None:
+                        rev_exp = reviewer.experience
+
+                    if reviewer.practice_frequency is not None:
+                        rev_frequency = reviewer.practice_frequency
+                    
+                    newExtract = FinalExtractDataModel(case_name, rev_name, rev_login, rev_gender, rev_age, rev_exp, rev_frequency)
                     
                     newExtract.case_completion = case_completion
                     
@@ -204,7 +227,10 @@ def extract_all_data(study_id, engine):
     
                             newExtract.reviewer_gold_standard_malignancy = rev_malignancy
                             newExtract.gold_standard_malignancy = gld_std_malignancy
-                            newExtract.gold_standard_malignancy_comparison = rev_malignancy == gld_std_malignancy
+                            if rev_malignancy == 'unanswered':
+                                newExtract.gold_standard_malignancy_comparison = ''
+                            else:
+                                newExtract.gold_standard_malignancy_comparison = rev_malignancy == gld_std_malignancy
                             
                         if gold_standard_category.has_trust:
                         
@@ -219,7 +245,10 @@ def extract_all_data(study_id, engine):
                         gld_std_name = format_r_friendly(case[1].name)
                         newExtract.reviewer_gold_standard_answer = rev_diag
                         newExtract.gold_standard_answer = gld_std_name
-                        newExtract.gold_standard_comparison = rev_diag == gld_std_name
+                        if rev_diag == 'unanswered':
+                            newExtract.gold_standard_comparison = ''
+                        else:
+                            newExtract.gold_standard_comparison = rev_diag == gld_std_name
                         
                     for category in categories:
                         

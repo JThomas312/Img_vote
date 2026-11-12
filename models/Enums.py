@@ -43,7 +43,7 @@ class DemographicsVal(Enum):
     other = 3
     lessThanAYear = 1
     oneToThreeYears = 2
-    threeToTenYears = 3
+    fourToTenYears = 3
     moreThanTenYears = 4
     never = 1
     severalAYear = 2
